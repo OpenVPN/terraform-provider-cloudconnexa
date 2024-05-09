@@ -2,8 +2,9 @@ package cloudconnexa
 
 import (
 	"context"
-	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 	"hash/fnv"
+
+	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -12,7 +13,7 @@ import (
 
 func resourceHost() *schema.Resource {
 	return &schema.Resource{
-		Description:   "Use `cloudconnexa_host` to create an Cloud Connexa host.",
+		Description:   "Use `cloudconnexa_host` to create an CloudConnexa host.",
 		CreateContext: resourceHostCreate,
 		ReadContext:   resourceHostRead,
 		UpdateContext: resourceHostUpdate,
@@ -135,7 +136,7 @@ func resourceHostCreate(ctx context.Context, d *schema.ResourceData, m interface
 	return append(diags, diag.Diagnostic{
 		Severity: diag.Warning,
 		Summary:  "The connector for this host needs to be set up manually",
-		Detail:   "Terraform only creates the Cloud Connexa connector object for this host, but additional manual steps are required to associate a host in your infrastructure with this connector. Go to https://openvpn.net/cloud-docs/connector/ for more information.",
+		Detail:   "Terraform only creates the CloudConnexa connector object for this host, but additional manual steps are required to associate a host in your infrastructure with this connector. Go to https://openvpn.net/cloud-docs/connector/ for more information.",
 	})
 }
 

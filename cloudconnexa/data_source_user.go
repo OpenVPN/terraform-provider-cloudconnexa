@@ -2,9 +2,10 @@ package cloudconnexa
 
 import (
 	"context"
-	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 	"strconv"
 	"time"
+
+	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -12,7 +13,7 @@ import (
 
 func dataSourceUser() *schema.Resource {
 	return &schema.Resource{
-		Description: "Use a `cloudconnexa_user` data source to read a specific Cloud Connexa user.",
+		Description: "Use a `cloudconnexa_user` data source to read a specific CloudConnexa user.",
 		ReadContext: dataSourceUserRead,
 		Schema: map[string]*schema.Schema{
 			"user_id": {

@@ -31,7 +31,7 @@ func resourceIPService() *schema.Resource {
 			},
 			"description": {
 				Type:         schema.TypeString,
-				Default:      "Created by Terraform Cloud Connexa Provider",
+				Default:      "Created by Terraform CloudConnexa Provider",
 				ValidateFunc: validation.StringLenBetween(1, 255),
 				Optional:     true,
 			},

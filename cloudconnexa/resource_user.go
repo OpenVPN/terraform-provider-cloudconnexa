@@ -2,6 +2,7 @@ package cloudconnexa
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -10,7 +11,7 @@ import (
 
 func resourceUser() *schema.Resource {
 	return &schema.Resource{
-		Description:   "Use `cloudconnexa_user` to create an Cloud Connexa user.",
+		Description:   "Use `cloudconnexa_user` to create an CloudConnexa user.",
 		CreateContext: resourceUserCreate,
 		ReadContext:   resourceUserRead,
 		UpdateContext: resourceUserUpdate,
@@ -30,7 +31,7 @@ func resourceUser() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringLenBetween(1, 120),
-				Description:  "An invitation to Cloud Connexa account will be sent to this email. It will include an initial password and a VPN setup guide.",
+				Description:  "An invitation to CloudConnexa account will be sent to this email. It will include an initial password and a VPN setup guide.",
 			},
 			"first_name": {
 				Type:         schema.TypeString,
@@ -61,7 +62,7 @@ func resourceUser() *schema.Resource {
 				Optional:    true,
 				ForceNew:    true,
 				MaxItems:    1,
-				Description: "When a user signs in, the device that they use will be added to their account. You can read more at [Cloud Connexa Device](https://openvpn.net/cloud-docs/device/).",
+				Description: "When a user signs in, the device that they use will be added to their account. You can read more at [CloudConnexa Device](https://openvpn.net/cloud-docs/device/).",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -134,7 +135,7 @@ func resourceUserCreate(ctx context.Context, d *schema.ResourceData, m interface
 	return append(diags, diag.Diagnostic{
 		Severity: diag.Warning,
 		Summary:  "The user's role cannot be changed using the code.",
-		Detail:   "There is a bug in Cloud Connexa API that prevents setting the user's role during the creation. All users are created as Members by default. Once it's fixed, the provider will be updated accordingly.",
+		Detail:   "There is a bug in CloudConnexa API that prevents setting the user's role during the creation. All users are created as Members by default. Once it's fixed, the provider will be updated accordingly.",
 	})
 }
 
@@ -144,7 +145,7 @@ func resourceUserRead(ctx context.Context, d *schema.ResourceData, m interface{}
 	userId := d.Id()
 	u, err := c.Users.Get(userId)
 
-	// If group_id is not set, Cloud Connexa sets it to the default group.
+	// If group_id is not set, CloudConnexa sets it to the default group.
 	var groupId string
 	if d.Get("group_id") == "" {
 		// The group has not been explicitly set.

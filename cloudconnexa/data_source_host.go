@@ -12,7 +12,7 @@ import (
 
 func dataSourceHost() *schema.Resource {
 	return &schema.Resource{
-		Description: "Use an `cloudconnexa_host` data source to read an existing Cloud Connexa connector.",
+		Description: "Use an `cloudconnexa_host` data source to read an existing CloudConnexa connector.",
 		ReadContext: dataSourceHostRead,
 		Schema: map[string]*schema.Schema{
 			"name": {

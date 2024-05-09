@@ -3,12 +3,12 @@
 page_title: "cloudconnexa_route Resource - terraform-provider-cloudconnexa"
 subcategory: ""
 description: |-
-  Use cloudconnexa_route to create a route on an Cloud Connexa network.
+  Use cloudconnexa_route to create a route on an CloudConnexa network.
 ---
 
 # cloudconnexa_route (Resource)
 
-Use `cloudconnexa_route` to create a route on an Cloud Connexa network.
+Use `cloudconnexa_route` to create a route on an CloudConnexa network.
 
 
 

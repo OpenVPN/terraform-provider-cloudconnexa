@@ -2,8 +2,8 @@ provider "aws" {
   region = "eu-central-1"
   default_tags {
     tags = {
-      task-group = "terraform-provider-openvpn-cloud"
-      created-by = "Terraform/terraform-provider-openvpn-cloud"
+      task-group = "terraform-provider-cloudconnexa"
+      created-by = "Terraform/terraform-provider-cloudconnexa"
     }
   }
 }

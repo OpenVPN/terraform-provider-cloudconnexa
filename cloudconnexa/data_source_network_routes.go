@@ -2,9 +2,10 @@ package cloudconnexa
 
 import (
 	"context"
-	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 	"strconv"
 	"time"
+
+	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -12,13 +13,13 @@ import (
 
 func dataSourceNetworkRoutes() *schema.Resource {
 	return &schema.Resource{
-		Description: "Use an `cloudconnexa_network_routes` data source to read all the routes associated with an Cloud Connexa network.",
+		Description: "Use an `cloudconnexa_network_routes` data source to read all the routes associated with an CloudConnexa network.",
 		ReadContext: dataSourceNetworkRoutesRead,
 		Schema: map[string]*schema.Schema{
 			"network_item_id": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The id of the Cloud Connexa network of the routes to be discovered.",
+				Description: "The id of the CloudConnexa network of the routes to be discovered.",
 			},
 			"routes": {
 				Type:        schema.TypeList,

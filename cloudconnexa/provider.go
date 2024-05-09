@@ -3,6 +3,7 @@ package cloudconnexa
 import (
 	"context"
 	"fmt"
+
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -22,7 +23,7 @@ func Provider() *schema.Provider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"client_id": {
-				Description: "The authentication client_id used to connect to Cloud Connexa API. The value can be sourced from " +
+				Description: "The authentication client_id used to connect to CloudConnexa API. The value can be sourced from " +
 					"the `CLOUDCONNEXA_CLIENT_ID` environment variable.",
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -30,7 +31,7 @@ func Provider() *schema.Provider {
 				DefaultFunc: schema.EnvDefaultFunc(ClientIDEnvVar, nil),
 			},
 			"client_secret": {
-				Description: "The authentication client_secret used to connect to Cloud Connexa API. The value can be sourced from " +
+				Description: "The authentication client_secret used to connect to CloudConnexa API. The value can be sourced from " +
 					"the `CLOUDCONNEXA_CLIENT_SECRET` environment variable.",
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -38,7 +39,7 @@ func Provider() *schema.Provider {
 				DefaultFunc: schema.EnvDefaultFunc(ClientSecretEnvVar, nil),
 			},
 			"base_url": {
-				Description: "The target Cloud Connexa Base API URL in the format `https://[companyName].api.openvpn.com`",
+				Description: "The target CloudConnexa Base API URL in the format `https://[companyName].api.openvpn.com`",
 				Type:        schema.TypeString,
 				Required:    true,
 			},
