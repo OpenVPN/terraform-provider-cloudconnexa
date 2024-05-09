@@ -55,15 +55,15 @@ variable "routes" {
   type = list(map(string))
   default = [
     {
-      value       = "10.0.0.0/18"
+      subnet       = "10.0.0.0/18"
       description = "Example Route with subnet /18"
     },
     {
-      value       = "10.10.0.0/20"
+      subnet       = "10.10.0.0/20"
       description = "Example Route with subnet /20"
     },
     {
-      value       = "10.20.0.0/24"
+      subnet       = "10.20.0.0/24"
       description = "Example Route with subnet /24"
     },
   ]
