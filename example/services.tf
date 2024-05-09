@@ -2,7 +2,7 @@ data "cloudconnexa_network" "test-net" {
   name = "test-net"
 }
 
-resource "cloudconnexa_service" "test-service" {
+resource "cloudconnexa_ip_service" "test-service" {
   name              = "test-service"
   type              = "IP_SOURCE"
   description       = "test-description"
