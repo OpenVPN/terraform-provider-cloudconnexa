@@ -19,7 +19,7 @@ Use `cloudconnexa_route` to create a route on an CloudConnexa network.
 
 - `network_item_id` (String) The id of the network on which to create the route.
 - `type` (String) The type of route. Valid values are `IP_V4`, `IP_V6`, and `DOMAIN`.
-- `value` (String) The target value of the default route.
+- `subnet` (String) The target subnet of the default route.
 
 ### Read-Only
 
