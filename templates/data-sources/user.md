@@ -3,12 +3,12 @@
 page_title: "cloudconnexa_user Data Source - terraform-provider-cloudconnexa"
 subcategory: ""
 description: |-
-  Use a cloudconnexa_user data source to read a specific Cloud Connexa user.
+  Use a cloudconnexa_user data source to read a specific CloudConnexa user.
 ---
 
 # cloudconnexa_user (Data Source)
 
-Use a `cloudconnexa_user` data source to read a specific Cloud Connexa user.
+Use a `cloudconnexa_user` data source to read a specific CloudConnexa user.
 
 
 

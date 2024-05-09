@@ -1,13 +1,13 @@
 terraform {
   required_providers {
-    openvpn-cloud = {
+    cloudconnexa = {
       version = "0.0.11"
-      source  = "cloudconnexa.dev/openvpn/openvpncloud"
+      source  = "cloudconnexa.dev/openvpn/cloudconnexa"
     }
   }
 }
 
-provider "openvpn-cloud" {
+provider "cloudconnexa" {
   base_url = ""
 }
 
@@ -26,7 +26,7 @@ resource "cloudconnexa_host" "host" {
     vpn_region_id = "us-west-1"
   }
 
-  provider = openvpn-cloud
+  provider = cloudconnexa
 }
 
 locals {

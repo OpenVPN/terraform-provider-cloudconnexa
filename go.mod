@@ -1,4 +1,4 @@
-module github.com/OpenVPN/terraform-provider-openvpn-cloud
+module github.com/OpenVPN/terraform-provider-cloudconnexa
 
 go 1.21
 

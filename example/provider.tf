@@ -1,4 +1,4 @@
-provider "openvpncloud" {
+provider "cloudconnexa" {
   base_url = "https://${var.company_name}.api.openvpn.com"
 }
 

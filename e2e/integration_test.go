@@ -2,14 +2,15 @@ package e2e
 
 import (
 	"fmt"
-	"github.com/OpenVPN/terraform-provider-openvpn-cloud/cloudconnexa"
+	"os"
+	"testing"
+	"time"
+
+	"github.com/OpenVPN/terraform-provider-cloudconnexa/cloudconnexa"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	api "github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"os"
-	"testing"
-	"time"
 )
 
 const (

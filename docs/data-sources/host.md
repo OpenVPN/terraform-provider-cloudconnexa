@@ -3,12 +3,12 @@
 page_title: "cloudconnexa_host Data Source - terraform-provider-cloudconnexa"
 subcategory: ""
 description: |-
-  Use an cloudconnexa_host data source to read an existing Cloud Connexa connector.
+  Use an cloudconnexa_host data source to read an existing CloudConnexa connector.
 ---
 
 # cloudconnexa_host (Data Source)
 
-Use an `cloudconnexa_host` data source to read an existing Cloud Connexa connector.
+Use an `cloudconnexa_host` data source to read an existing CloudConnexa connector.
 
 
 
