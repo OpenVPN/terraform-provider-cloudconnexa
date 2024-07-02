@@ -29,6 +29,7 @@ func resourceConnector() *schema.Resource {
 			"description": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				ForceNew:     true,
 				Default:      "Managed by Terraform",
 				ValidateFunc: validation.StringLenBetween(1, 120),
 				Description:  "The display description for this resource. Defaults to `Managed by Terraform`.",
@@ -78,11 +79,13 @@ func resourceConnectorCreate(ctx context.Context, d *schema.ResourceData, m inte
 	networkItemId := d.Get("network_item_id").(string)
 	networkItemType := d.Get("network_item_type").(string)
 	vpnRegionId := d.Get("vpn_region_id").(string)
+	description := d.Get("description").(string)
 	connector := cloudconnexa.Connector{
 		Name:            name,
 		NetworkItemId:   networkItemId,
 		NetworkItemType: networkItemType,
 		VpnRegionId:     vpnRegionId,
+		Description:     description,
 	}
 	conn, err := c.Connectors.Create(connector, networkItemId)
 	if err != nil {
