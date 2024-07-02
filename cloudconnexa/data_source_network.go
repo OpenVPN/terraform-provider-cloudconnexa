@@ -139,7 +139,7 @@ func dataSourceNetworkRead(ctx context.Context, d *schema.ResourceData, m interf
 	d.Set("internet_access", network.InternetAccess)
 	d.Set("system_subnets", network.SystemSubnets)
 	d.Set("routes", getRoutesSlice(&network.Routes))
-	d.Set("connectors", getConnectorsSlice(&network.Connectors))
+	d.Set("connectors", getConnectorsSliceByNetworkConnectors(&network.Connectors))
 	d.SetId(strconv.FormatInt(time.Now().Unix(), 10))
 	return diags
 }
@@ -156,7 +156,7 @@ func getRoutesSlice(networkRoutes *[]cloudconnexa.Route) []interface{} {
 	return routes
 }
 
-func getConnectorsSlice(connectors *[]cloudconnexa.NetworkConnector) []interface{} {
+func getConnectorsSliceByNetworkConnectors(connectors *[]cloudconnexa.NetworkConnector) []interface{} {
 	conns := make([]interface{}, len(*connectors))
 	for i, c := range *connectors {
 		connector := make(map[string]interface{})

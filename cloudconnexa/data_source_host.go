@@ -91,7 +91,24 @@ func dataSourceHostRead(ctx context.Context, d *schema.ResourceData, m interface
 	d.Set("name", host.Name)
 	d.Set("internet_access", host.InternetAccess)
 	d.Set("system_subnets", host.SystemSubnets)
-	d.Set("connectors", getConnectorsSlice(&host.Connectors))
+	d.Set("connectors", getConnectorsSliceByConnectors(&host.Connectors))
 	d.SetId(strconv.FormatInt(time.Now().Unix(), 10))
 	return diags
+}
+
+func getConnectorsSliceByConnectors(connectors *[]cloudconnexa.Connector) []interface{} {
+	conns := make([]interface{}, len(*connectors))
+	for i, c := range *connectors {
+		connector := make(map[string]interface{})
+		connector["id"] = c.Id
+		connector["name"] = c.Name
+		connector["network_item_id"] = c.NetworkItemId
+		connector["network_item_type"] = c.NetworkItemType
+		connector["vpn_region_id"] = c.VpnRegionId
+		connector["ip_v4_address"] = c.IPv4Address
+		connector["ip_v6_address"] = c.IPv6Address
+		connector["description"] = c.Description
+		conns[i] = connector
+	}
+	return conns
 }
