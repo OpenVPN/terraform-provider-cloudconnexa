@@ -141,6 +141,7 @@ func getConnectorSlice(connectors []cloudconnexa.Connector, networkItemId string
 			connector["id"] = c.Id
 			connector["name"] = c.Name
 			connector["network_item_id"] = c.NetworkItemId
+			connector["description"] = c.Description
 			connector["network_item_type"] = c.NetworkItemType
 			connector["vpn_region_id"] = c.VpnRegionId
 			connector["ip_v4_address"] = c.IPv4Address
