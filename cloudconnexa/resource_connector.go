@@ -26,6 +26,14 @@ func resourceConnector() *schema.Resource {
 				ForceNew:    true,
 				Description: "The connector display name.",
 			},
+			"description": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      "Managed by Terraform",
+				ValidateFunc: validation.StringLenBetween(1, 120),
+				Description:  "The display description for this resource. Defaults to `Managed by Terraform`.",
+			},
 			"vpn_region_id": {
 				Type:        schema.TypeString,
 				Required:    true,
@@ -71,11 +79,13 @@ func resourceConnectorCreate(ctx context.Context, d *schema.ResourceData, m inte
 	networkItemId := d.Get("network_item_id").(string)
 	networkItemType := d.Get("network_item_type").(string)
 	vpnRegionId := d.Get("vpn_region_id").(string)
+	description := d.Get("description").(string)
 	connector := cloudconnexa.Connector{
 		Name:            name,
 		NetworkItemId:   networkItemId,
 		NetworkItemType: networkItemType,
 		VpnRegionId:     vpnRegionId,
+		Description:     description,
 	}
 	conn, err := c.Connectors.Create(connector, networkItemId)
 	if err != nil {
@@ -141,6 +151,7 @@ func getConnectorSlice(connectors []cloudconnexa.Connector, networkItemId string
 			connector["id"] = c.Id
 			connector["name"] = c.Name
 			connector["network_item_id"] = c.NetworkItemId
+			connector["description"] = c.Description
 			connector["network_item_type"] = c.NetworkItemType
 			connector["vpn_region_id"] = c.VpnRegionId
 			connector["ip_v4_address"] = c.IPv4Address

@@ -84,6 +84,11 @@ func dataSourceNetwork() *schema.Resource {
 							Computed:    true,
 							Description: "The connector name.",
 						},
+						"description": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "The default connection description.",
+						},
 						"network_item_id": {
 							Type:        schema.TypeString,
 							Computed:    true,
@@ -134,7 +139,7 @@ func dataSourceNetworkRead(ctx context.Context, d *schema.ResourceData, m interf
 	d.Set("internet_access", network.InternetAccess)
 	d.Set("system_subnets", network.SystemSubnets)
 	d.Set("routes", getRoutesSlice(&network.Routes))
-	//d.Set("connectors", getConnectorsSlice(&network.Connectors))
+	d.Set("connectors", getConnectorsSliceByNetworkConnectors(&network.Connectors))
 	d.SetId(strconv.FormatInt(time.Now().Unix(), 10))
 	return diags
 }
@@ -151,7 +156,7 @@ func getRoutesSlice(networkRoutes *[]cloudconnexa.Route) []interface{} {
 	return routes
 }
 
-func getConnectorsSlice(connectors *[]cloudconnexa.Connector) []interface{} {
+func getConnectorsSliceByNetworkConnectors(connectors *[]cloudconnexa.NetworkConnector) []interface{} {
 	conns := make([]interface{}, len(*connectors))
 	for i, c := range *connectors {
 		connector := make(map[string]interface{})
@@ -162,6 +167,7 @@ func getConnectorsSlice(connectors *[]cloudconnexa.Connector) []interface{} {
 		connector["vpn_region_id"] = c.VpnRegionId
 		connector["ip_v4_address"] = c.IPv4Address
 		connector["ip_v6_address"] = c.IPv6Address
+		connector["description"] = c.Description
 		conns[i] = connector
 	}
 	return conns
