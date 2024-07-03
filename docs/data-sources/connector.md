@@ -26,5 +26,6 @@ Use an `cloudconnexa_connector` data source to read an existing CloudConnexa con
 - `ip_v6_address` (String) The IPV6 address of the connector.
 - `network_item_id` (String) The id of the network or host with which the connector is associated.
 - `network_item_type` (String) The network object type of the connector. This typically will be set to either `NETWORK` or `HOST`.
-- `profile` (String) OpenVPN profile
 - `vpn_region_id` (String) The id of the region where the connector is deployed.
+
+

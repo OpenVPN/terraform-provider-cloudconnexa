@@ -26,3 +26,5 @@ Use a `cloudconnexa_vpn_region` data source to read an CloudConnexa VPN region.
 - `country_iso` (String) The ISO code of the country of the region.
 - `id` (String) The ID of this resource.
 - `region_name` (String) The name of the region.
+
+
