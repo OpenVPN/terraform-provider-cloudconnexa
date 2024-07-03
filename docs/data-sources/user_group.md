@@ -27,5 +27,3 @@ Use an `cloudconnexa_user_group` data source to read an CloudConnexa user group.
 - `system_subnets` (List of String) The IPV4 and IPV6 addresses of the subnets associated with this user group.
 - `user_group_id` (String) The user group ID.
 - `vpn_region_ids` (List of String) The list of VPN region IDs this user group is associated with.
-
-
