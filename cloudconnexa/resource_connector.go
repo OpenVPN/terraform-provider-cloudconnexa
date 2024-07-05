@@ -90,6 +90,7 @@ func resourceConnectorCreate(ctx context.Context, d *schema.ResourceData, m inte
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
 	name := d.Get("name").(string)
+	description := d.Get("description").(string)
 	networkItemId := d.Get("network_item_id").(string)
 	networkItemType := d.Get("network_item_type").(string)
 	vpnRegionId := d.Get("vpn_region_id").(string)
