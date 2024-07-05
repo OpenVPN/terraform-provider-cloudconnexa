@@ -69,11 +69,10 @@ func resourceConnectorUpdate(ctx context.Context, d *schema.ResourceData, m inte
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
 	connector := cloudconnexa.Connector{
-		Id:              d.Id(),
-		Name:            d.Get("name").(string),
-		NetworkItemId:   d.Get("network_item_id").(string),
-		NetworkItemType: d.Get("network_item_type").(string),
-		VpnRegionId:     d.Get("vpn_region_id").(string),
+		Id:          d.Id(),
+		Name:        d.Get("name").(string),
+		Description: d.Get("description").(string),
+		VpnRegionId: d.Get("vpn_region_id").(string),
 	}
 	_, err := c.Connectors.Update(connector)
 	if err != nil {
