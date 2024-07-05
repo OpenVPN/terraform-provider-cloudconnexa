@@ -20,6 +20,11 @@ func dataSourceConnector() *schema.Resource {
 				Required:    true,
 				Description: "The name of the connector.",
 			},
+			"description": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The description of the connector.",
+			},
 			"network_item_id": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -62,6 +67,7 @@ func dataSourceConnectorRead(ctx context.Context, d *schema.ResourceData, m inte
 		return append(diags, diag.FromErr(err)...)
 	}
 	d.Set("name", connector.Name)
+	d.Set("description", connector.Description)
 	d.Set("network_item_id", connector.NetworkItemId)
 	d.Set("network_item_type", connector.NetworkItemType)
 	d.Set("vpn_region_id", connector.VpnRegionId)
