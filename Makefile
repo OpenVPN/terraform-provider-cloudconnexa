@@ -3,7 +3,7 @@ NAMESPACE=openvpn
 NAME=cloudconnexa
 VERSION=0.0.12
 BINARY=terraform-provider-${NAME}
-OS_ARCH=darwin_arm64
+OS_ARCH ?= $(shell go env GOHOSTOS)_$(shell go env GOHOSTARCH)
 
 default: install
 

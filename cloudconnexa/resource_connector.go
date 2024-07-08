@@ -24,21 +24,18 @@ func resourceConnector() *schema.Resource {
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				ForceNew:    true,
 				Description: "The connector display name.",
 			},
 			"description": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ForceNew:     true,
 				Default:      "Managed by Terraform",
 				ValidateFunc: validation.StringLenBetween(1, 120),
-				Description:  "The display description for this resource. Defaults to `Managed by Terraform`.",
+				Description:  "The description for the UI. Defaults to `Managed by Terraform`.",
 			},
 			"vpn_region_id": {
 				Type:        schema.TypeString,
 				Required:    true,
-				ForceNew:    true,
 				Description: "The id of the region where the connector will be deployed.",
 			},
 			"network_item_type": {
