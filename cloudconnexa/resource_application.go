@@ -231,7 +231,6 @@ func resourceDataToApplication(data *schema.ResourceData) *cloudconnexa.Applicat
 			&cloudconnexa.ApplicationRoute{
 				Value:           route["domain"].(string),
 				AllowEmbeddedIp: route["allow_embedded_ip"].(bool),
-				Description:     "Managed by Terraform",
 			},
 		)
 	}
