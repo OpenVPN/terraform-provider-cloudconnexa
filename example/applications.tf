@@ -18,7 +18,6 @@ resource "cloudconnexa_application" "application_full_access" {
 
 resource "cloudconnexa_application" "application_custom_access" {
   name              = "application-1"
-  routes            = ["application.com"]
   network_item_type = "NETWORK"
   network_item_id   = data.cloudconnexa_network.test-net.network_id
 
