@@ -53,3 +53,36 @@ resource "cloudconnexa_application" "application_custom_access" {
     }
   }
 }
+
+locals {
+  created_by = "managed by terraform"
+}
+
+variable "application_custom_access_advanced" {
+  description = "xxx"
+  type        = any
+  default = {
+    "example-application-3" = { route = [{ domain = "example-application-3.com", allow_embedded_ip = true }, { domain = "example-application-33.com", allow_embedded_ip = false }] }
+    "example-application-4" = { route = [{ domain = "example-application-4.com", allow_embedded_ip = false }] }
+  }
+}
+
+resource "cloudconnexa_application" "application_custom_access_advanced" {
+  for_each          = var.application_custom_access_advanced
+  name              = each.key
+  description       = try(each.value.description, local.created_by)
+  network_item_type = "NETWORK"
+  network_item_id   = data.cloudconnexa_network.test-net.network_id
+  config {
+    service_types = ["ANY"]
+  }
+
+  dynamic "routes" {
+    for_each = each.value.route
+
+    content {
+      domain            = routes.value.domain
+      allow_embedded_ip = routes.value.allow_embedded_ip
+    }
+  }
+}
