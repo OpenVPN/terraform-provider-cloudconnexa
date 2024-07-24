@@ -45,14 +45,15 @@ func Provider() *schema.Provider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"cloudconnexa_network":    resourceNetwork(),
-			"cloudconnexa_connector":  resourceConnector(),
-			"cloudconnexa_route":      resourceRoute(),
-			"cloudconnexa_dns_record": resourceDnsRecord(),
-			"cloudconnexa_user":       resourceUser(),
-			"cloudconnexa_host":       resourceHost(),
-			"cloudconnexa_user_group": resourceUserGroup(),
-			"cloudconnexa_ip_service": resourceIPService(),
+			"cloudconnexa_network":     resourceNetwork(),
+			"cloudconnexa_connector":   resourceConnector(),
+			"cloudconnexa_route":       resourceRoute(),
+			"cloudconnexa_dns_record":  resourceDnsRecord(),
+			"cloudconnexa_user":        resourceUser(),
+			"cloudconnexa_host":        resourceHost(),
+			"cloudconnexa_user_group":  resourceUserGroup(),
+			"cloudconnexa_ip_service":  resourceIPService(),
+			"cloudconnexa_application": resourceApplication(),
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
@@ -64,6 +65,7 @@ func Provider() *schema.Provider {
 			"cloudconnexa_network_routes": dataSourceNetworkRoutes(),
 			"cloudconnexa_host":           dataSourceHost(),
 			"cloudconnexa_ip_service":     dataSourceIPService(),
+			"cloudconnexa_application":    dataSourceApplication(),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}
