@@ -250,8 +250,10 @@ func resourceDataToApplication(data *schema.ResourceData) *cloudconnexa.Applicat
 			var protocol = cstItem["protocol"].(string)
 			var fromPort = cstItem["from_port"].(int)
 			var toPort = cstItem["to_port"].(int)
-			groupedCst[protocol] = append(groupedCst[protocol])
 
+			if groupedCst[protocol] == nil {
+				groupedCst[protocol] = make([]cloudconnexa.Range, 0)
+			}
 			if fromPort > 0 || toPort > 0 {
 				groupedCst[protocol] = append(groupedCst[protocol], cloudconnexa.Range{
 					LowerValue: fromPort,
