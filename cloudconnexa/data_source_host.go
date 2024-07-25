@@ -15,6 +15,11 @@ func dataSourceHost() *schema.Resource {
 		Description: "Use an `cloudconnexa_host` data source to read an existing CloudConnexa connector.",
 		ReadContext: dataSourceHostRead,
 		Schema: map[string]*schema.Schema{
+			"host_id": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The host ID.",
+			},
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
@@ -88,6 +93,7 @@ func dataSourceHostRead(ctx context.Context, d *schema.ResourceData, m interface
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
+	d.Set("host_id", host.Id)
 	d.Set("name", host.Name)
 	d.Set("internet_access", host.InternetAccess)
 	d.Set("system_subnets", host.SystemSubnets)
