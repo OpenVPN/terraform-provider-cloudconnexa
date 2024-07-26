@@ -283,6 +283,7 @@ func resourceNetworkUpdate(ctx context.Context, d *schema.ResourceData, m interf
 			newConnector := cloudconnexa.Connector{
 				Name:            newSlice[0].(map[string]interface{})["name"].(string),
 				VpnRegionId:     newSlice[0].(map[string]interface{})["vpn_region_id"].(string),
+				Description:     newSlice[0].(map[string]interface{})["description"].(string),
 				NetworkItemType: "NETWORK",
 			}
 			_, err := c.Connectors.Create(newConnector, d.Id())
@@ -292,7 +293,10 @@ func resourceNetworkUpdate(ctx context.Context, d *schema.ResourceData, m interf
 		} else {
 			oldMap := oldSlice[0].(map[string]interface{})
 			newMap := newSlice[0].(map[string]interface{})
-			if oldMap["name"].(string) != newMap["name"].(string) || oldMap["vpn_region_id"].(string) != newMap["vpn_region_id"].(string) {
+			if oldMap["name"].(string) != newMap["name"].(string) ||
+				oldMap["description"].(string) != newMap["description"].(string) ||
+				oldMap["vpn_region_id"].(string) != newMap["vpn_region_id"].(string) {
+
 				newConnector := cloudconnexa.Connector{
 					Id:              d.Id(),
 					Name:            newMap["name"].(string),
