@@ -16,6 +16,7 @@ func resourceConnector() *schema.Resource {
 		CreateContext: resourceConnectorCreate,
 		ReadContext:   resourceConnectorRead,
 		DeleteContext: resourceConnectorDelete,
+		UpdateContext: resourceConnectorUpdate,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -23,21 +24,18 @@ func resourceConnector() *schema.Resource {
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				ForceNew:    true,
 				Description: "The connector display name.",
 			},
 			"description": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ForceNew:     true,
 				Default:      "Managed by Terraform",
 				ValidateFunc: validation.StringLenBetween(1, 120),
-				Description:  "The display description for this resource. Defaults to `Managed by Terraform`.",
+				Description:  "The description for the UI. Defaults to `Managed by Terraform`.",
 			},
 			"vpn_region_id": {
 				Type:        schema.TypeString,
 				Required:    true,
-				ForceNew:    true,
 				Description: "The id of the region where the connector will be deployed.",
 			},
 			"network_item_type": {
@@ -72,14 +70,30 @@ func resourceConnector() *schema.Resource {
 	}
 }
 
+func resourceConnectorUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	c := m.(*cloudconnexa.Client)
+	var diags diag.Diagnostics
+	connector := cloudconnexa.Connector{
+		Id:          d.Id(),
+		Name:        d.Get("name").(string),
+		Description: d.Get("description").(string),
+		VpnRegionId: d.Get("vpn_region_id").(string),
+	}
+	_, err := c.Connectors.Update(connector)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	return diags
+}
+
 func resourceConnectorCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
 	name := d.Get("name").(string)
+	description := d.Get("description").(string)
 	networkItemId := d.Get("network_item_id").(string)
 	networkItemType := d.Get("network_item_type").(string)
 	vpnRegionId := d.Get("vpn_region_id").(string)
-	description := d.Get("description").(string)
 	connector := cloudconnexa.Connector{
 		Name:            name,
 		NetworkItemId:   networkItemId,

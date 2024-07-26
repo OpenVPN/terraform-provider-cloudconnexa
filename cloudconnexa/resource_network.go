@@ -283,6 +283,7 @@ func resourceNetworkUpdate(ctx context.Context, d *schema.ResourceData, m interf
 			newConnector := cloudconnexa.Connector{
 				Name:            newSlice[0].(map[string]interface{})["name"].(string),
 				VpnRegionId:     newSlice[0].(map[string]interface{})["vpn_region_id"].(string),
+				Description:     newSlice[0].(map[string]interface{})["description"].(string),
 				NetworkItemType: "NETWORK",
 			}
 			_, err := c.Connectors.Create(newConnector, d.Id())
@@ -292,22 +293,20 @@ func resourceNetworkUpdate(ctx context.Context, d *schema.ResourceData, m interf
 		} else {
 			oldMap := oldSlice[0].(map[string]interface{})
 			newMap := newSlice[0].(map[string]interface{})
-			if oldMap["name"].(string) != newMap["name"].(string) || oldMap["vpn_region_id"].(string) != newMap["vpn_region_id"].(string) {
+			if oldMap["name"].(string) != newMap["name"].(string) ||
+				oldMap["description"].(string) != newMap["description"].(string) ||
+				oldMap["vpn_region_id"].(string) != newMap["vpn_region_id"].(string) {
+
 				newConnector := cloudconnexa.Connector{
+					Id:              oldMap["id"].(string),
 					Name:            newMap["name"].(string),
 					VpnRegionId:     newMap["vpn_region_id"].(string),
+					Description:     newMap["description"].(string),
 					NetworkItemType: "NETWORK",
 				}
-				_, err := c.Connectors.Create(newConnector, d.Id())
+				_, err := c.Connectors.Update(newConnector)
 				if err != nil {
 					return append(diags, diag.FromErr(err)...)
-				}
-				if len(oldMap["id"].(string)) > 0 {
-					// This can sometimes happen when importing the resource
-					err = c.Connectors.Delete(oldMap["id"].(string), d.Id(), oldMap["network_item_type"].(string))
-					if err != nil {
-						return append(diags, diag.FromErr(err)...)
-					}
 				}
 			}
 		}
