@@ -3,3 +3,6 @@ issues:
     - linters:
         - errcheck
       text: "Error return value of `d.Set` is not checked"
+output:
+  formats:
+    - format: colored-line-number
