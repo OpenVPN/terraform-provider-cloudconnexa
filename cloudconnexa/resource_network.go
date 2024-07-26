@@ -294,20 +294,14 @@ func resourceNetworkUpdate(ctx context.Context, d *schema.ResourceData, m interf
 			newMap := newSlice[0].(map[string]interface{})
 			if oldMap["name"].(string) != newMap["name"].(string) || oldMap["vpn_region_id"].(string) != newMap["vpn_region_id"].(string) {
 				newConnector := cloudconnexa.Connector{
+					Id:              d.Id(),
 					Name:            newMap["name"].(string),
 					VpnRegionId:     newMap["vpn_region_id"].(string),
 					NetworkItemType: "NETWORK",
 				}
-				_, err := c.Connectors.Create(newConnector, d.Id())
+				_, err := c.Connectors.Update(newConnector)
 				if err != nil {
 					return append(diags, diag.FromErr(err)...)
-				}
-				if len(oldMap["id"].(string)) > 0 {
-					// This can sometimes happen when importing the resource
-					err = c.Connectors.Delete(oldMap["id"].(string), d.Id(), oldMap["network_item_type"].(string))
-					if err != nil {
-						return append(diags, diag.FromErr(err)...)
-					}
 				}
 			}
 		}
