@@ -298,7 +298,7 @@ func resourceNetworkUpdate(ctx context.Context, d *schema.ResourceData, m interf
 				oldMap["vpn_region_id"].(string) != newMap["vpn_region_id"].(string) {
 
 				newConnector := cloudconnexa.Connector{
-					Id:              d.Id(),
+					Id:              oldMap["id"].(string),
 					Name:            newMap["name"].(string),
 					VpnRegionId:     newMap["vpn_region_id"].(string),
 					NetworkItemType: "NETWORK",
