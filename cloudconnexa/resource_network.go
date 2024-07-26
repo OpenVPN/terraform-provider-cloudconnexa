@@ -301,6 +301,7 @@ func resourceNetworkUpdate(ctx context.Context, d *schema.ResourceData, m interf
 					Id:              oldMap["id"].(string),
 					Name:            newMap["name"].(string),
 					VpnRegionId:     newMap["vpn_region_id"].(string),
+					Description:     newMap["description"].(string),
 					NetworkItemType: "NETWORK",
 				}
 				_, err := c.Connectors.Update(newConnector)
