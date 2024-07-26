@@ -28,7 +28,7 @@ func dataSourceUser() *schema.Resource {
 			},
 			"role": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Computed:    true,
 				Description: "The type of user role. Valid values are `ADMIN`, `MEMBER`, or `OWNER`.",
 			},
 			"email": {
@@ -103,7 +103,7 @@ func dataSourceUserRead(ctx context.Context, d *schema.ResourceData, m interface
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
 	userName := d.Get("username").(string)
-	user, err := c.Users.Get(userName)
+	user, err := c.Users.GetByUsername(userName)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
