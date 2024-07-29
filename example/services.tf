@@ -8,7 +8,7 @@ resource "cloudconnexa_ip_service" "test-service" {
   description       = "test-description"
   routes            = ["10.0.0.2/32"]
   network_item_type = "NETWORK"
-  network_item_id   = data.cloudconnexa_network.test-net.network_id
+  network_item_id   = data.cloudconnexa_network.test-net.id
 
   config {
     service_types = ["ANY"]

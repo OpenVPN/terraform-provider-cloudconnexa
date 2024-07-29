@@ -2,9 +2,6 @@ package cloudconnexa
 
 import (
 	"context"
-	"strconv"
-	"time"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
@@ -15,6 +12,10 @@ func dataSourceConnector() *schema.Resource {
 		Description: "Use an `cloudconnexa_connector` data source to read an existing CloudConnexa connector.",
 		ReadContext: dataSourceConnectorRead,
 		Schema: map[string]*schema.Schema{
+			"id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
@@ -66,6 +67,7 @@ func dataSourceConnectorRead(ctx context.Context, d *schema.ResourceData, m inte
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
+	d.SetId(connector.Id)
 	d.Set("name", connector.Name)
 	d.Set("description", connector.Description)
 	d.Set("network_item_id", connector.NetworkItemId)
@@ -78,6 +80,5 @@ func dataSourceConnectorRead(ctx context.Context, d *schema.ResourceData, m inte
 		return append(diags, diag.FromErr(err)...)
 	}
 	d.Set("profile", profile)
-	d.SetId(strconv.FormatInt(time.Now().Unix(), 10))
 	return diags
 }

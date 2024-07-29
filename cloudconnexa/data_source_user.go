@@ -2,9 +2,6 @@ package cloudconnexa
 
 import (
 	"context"
-	"strconv"
-	"time"
-
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -16,7 +13,7 @@ func dataSourceUser() *schema.Resource {
 		Description: "Use a `cloudconnexa_user` data source to read a specific CloudConnexa user.",
 		ReadContext: dataSourceUserRead,
 		Schema: map[string]*schema.Schema{
-			"user_id": {
+			"id": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The ID of this resource.",
@@ -111,7 +108,7 @@ func dataSourceUserRead(ctx context.Context, d *schema.ResourceData, m interface
 		return append(diags, diag.Errorf("User with name %s was not found", userName)...)
 	}
 
-	d.Set("user_id", user.Id)
+	d.SetId(user.Id)
 	d.Set("username", user.Username)
 	d.Set("role", user.Role)
 	d.Set("email", user.Email)
@@ -121,7 +118,6 @@ func dataSourceUserRead(ctx context.Context, d *schema.ResourceData, m interface
 	d.Set("group_id", user.GroupId)
 	d.Set("status", user.Status)
 	d.Set("devices", getUserDevicesSlice(&user.Devices))
-	d.SetId(strconv.FormatInt(time.Now().Unix(), 10))
 	return diags
 }
 
