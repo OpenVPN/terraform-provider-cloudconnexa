@@ -12,12 +12,14 @@ func dataSourceIPService() *schema.Resource {
 		ReadContext: dataSourceIPServiceRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ExactlyOneOf: []string{"id", "name"},
 			},
 			"name": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ExactlyOneOf: []string{"id", "name"},
 			},
 			"description": {
 				Type:     schema.TypeString,
@@ -53,13 +55,20 @@ func dataSourceIPService() *schema.Resource {
 
 func dataSourceIPServiceRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
-	service, err := c.IPServices.Get(
-		data.Id(),
-	)
+
+	var service *cloudconnexa.IPServiceResponse
+	var err error
+
+	if id, ok := data.GetOk("id"); ok {
+		service, err = c.IPServices.Get(id.(string))
+	} else {
+		service, err = c.IPServices.GetByName(data.Get("name").(string))
+	}
 
 	if err != nil {
 		return diag.FromErr(err)
 	}
+
 	setResourceData(data, service)
 	return nil
 }
