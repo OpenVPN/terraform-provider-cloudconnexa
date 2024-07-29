@@ -15,6 +15,11 @@ func dataSourceConnector() *schema.Resource {
 		Description: "Use an `cloudconnexa_connector` data source to read an existing CloudConnexa connector.",
 		ReadContext: dataSourceConnectorRead,
 		Schema: map[string]*schema.Schema{
+			"connector_id": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The connector ID.",
+			},
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
@@ -66,6 +71,7 @@ func dataSourceConnectorRead(ctx context.Context, d *schema.ResourceData, m inte
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
+	d.Set("connector_id", connector.Id)
 	d.Set("name", connector.Name)
 	d.Set("description", connector.Description)
 	d.Set("network_item_id", connector.NetworkItemId)
