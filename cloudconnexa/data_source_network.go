@@ -62,6 +62,11 @@ func dataSourceNetwork() *schema.Resource {
 							Computed:    true,
 							Description: "The value of the route, either an IPV4 address, an IPV6 address, or a DNS hostname.",
 						},
+						"description": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "The description of the route.",
+						},
 					},
 				},
 			},
@@ -147,6 +152,7 @@ func getRoutesSlice(networkRoutes *[]cloudconnexa.Route) []interface{} {
 		route["id"] = r.Id
 		route["subnet"] = r.Subnet
 		route["type"] = r.Type
+		route["description"] = r.Description
 		routes[i] = route
 	}
 	return routes
