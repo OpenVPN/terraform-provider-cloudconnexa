@@ -66,6 +66,11 @@ func resourceConnector() *schema.Resource {
 				Computed:    true,
 				Description: "OpenVPN profile of the connector.",
 			},
+			"token": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Connector token.",
+			},
 		},
 	}
 }
@@ -111,6 +116,11 @@ func resourceConnectorCreate(ctx context.Context, d *schema.ResourceData, m inte
 		return append(diags, diag.FromErr(err)...)
 	}
 	d.Set("profile", profile)
+	token, err := c.Connectors.GetToken(conn.Id)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	d.Set("token", token)
 	return append(diags, diag.Diagnostic{
 		Severity: diag.Warning,
 		Summary:  "Connector needs to be set up manually",
@@ -125,6 +135,11 @@ func resourceConnectorRead(ctx context.Context, d *schema.ResourceData, m interf
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
+	token, err := c.Connectors.GetToken(connector.Id)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+
 	if connector == nil {
 		d.SetId("")
 	} else {
@@ -135,6 +150,7 @@ func resourceConnectorRead(ctx context.Context, d *schema.ResourceData, m interf
 		d.Set("network_item_id", connector.NetworkItemId)
 		d.Set("ip_v4_address", connector.IPv4Address)
 		d.Set("ip_v6_address", connector.IPv6Address)
+		d.Set("token", token)
 		profile, err := c.Connectors.GetProfile(connector.Id)
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)

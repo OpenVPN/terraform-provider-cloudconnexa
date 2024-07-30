@@ -56,6 +56,11 @@ func dataSourceConnector() *schema.Resource {
 				Computed:    true,
 				Description: "OpenVPN profile",
 			},
+			"token": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Connector token",
+			},
 		},
 	}
 }
@@ -71,6 +76,10 @@ func dataSourceConnectorRead(ctx context.Context, d *schema.ResourceData, m inte
 	if connector == nil {
 		return append(diags, diag.Errorf("Connector with name %s was not found", name)...)
 	}
+	token, err := c.Connectors.GetToken(connector.Id)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
 
 	d.SetId(connector.Id)
 	d.Set("name", connector.Name)
@@ -80,6 +89,8 @@ func dataSourceConnectorRead(ctx context.Context, d *schema.ResourceData, m inte
 	d.Set("vpn_region_id", connector.VpnRegionId)
 	d.Set("ip_v4_address", connector.IPv4Address)
 	d.Set("ip_v6_address", connector.IPv6Address)
+	d.Set("token", token)
+
 	profile, err := c.Connectors.GetProfile(connector.Id)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
