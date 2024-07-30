@@ -101,10 +101,15 @@ func dataSourceHost() *schema.Resource {
 func dataSourceHostRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	host, err := c.Hosts.GetByName(d.Get("name").(string))
+	name := d.Get("name").(string)
+	host, err := c.Hosts.GetByName(name)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
+	if host == nil {
+		return append(diags, diag.Errorf("Host with name %s was not found", name)...)
+	}
+
 	d.SetId(host.Id)
 	d.Set("name", host.Name)
 	d.Set("description", host.Description)
