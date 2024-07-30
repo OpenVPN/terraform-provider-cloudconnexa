@@ -23,6 +23,11 @@ func dataSourceNetwork() *schema.Resource {
 				Required:    true,
 				Description: "The network name.",
 			},
+			"description": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The description of the network.",
+			},
 			"egress": {
 				Type:        schema.TypeBool,
 				Computed:    true,
