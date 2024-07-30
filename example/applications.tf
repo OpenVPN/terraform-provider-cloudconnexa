@@ -5,7 +5,7 @@ data "cloudconnexa_network" "test-net" {
 resource "cloudconnexa_application" "application_full_access" {
   name              = "example-application-1"
   network_item_type = "NETWORK"
-  network_item_id   = data.cloudconnexa_network.test-net.network_id
+  network_item_id   = data.cloudconnexa_network.test-net.id
   routes {
     domain = "example-application-1.com"
     allow_embedded_ip = false
@@ -19,7 +19,7 @@ resource "cloudconnexa_application" "application_full_access" {
 resource "cloudconnexa_application" "application_custom_access" {
   name              = "example-application-2"
   network_item_type = "NETWORK"
-  network_item_id   = data.cloudconnexa_network.test-net.network_id
+  network_item_id   = data.cloudconnexa_network.test-net.id
 
   routes {
     domain = "example-application-2.com"
@@ -72,7 +72,7 @@ resource "cloudconnexa_application" "application_custom_access_advanced" {
   name              = each.key
   description       = try(each.value.description, local.created_by)
   network_item_type = "NETWORK"
-  network_item_id   = data.cloudconnexa_network.test-net.network_id
+  network_item_id   = data.cloudconnexa_network.test-net.id
   config {
     service_types = ["ANY"]
   }

@@ -2,9 +2,6 @@ package cloudconnexa
 
 import (
 	"context"
-	"strconv"
-	"time"
-
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -16,7 +13,7 @@ func dataSourceNetwork() *schema.Resource {
 		Description: "Use a `cloudconnexa_network` data source to read an CloudConnexa network.",
 		ReadContext: dataSourceNetworkRead,
 		Schema: map[string]*schema.Schema{
-			"network_id": {
+			"id": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The network ID.",
@@ -132,7 +129,7 @@ func dataSourceNetworkRead(ctx context.Context, d *schema.ResourceData, m interf
 	if network == nil {
 		return append(diags, diag.Errorf("Network with name %s was not found", networkName)...)
 	}
-	d.Set("network_id", network.Id)
+	d.SetId(network.Id)
 	d.Set("name", network.Name)
 	d.Set("description", network.Description)
 	d.Set("egress", network.Egress)
@@ -140,7 +137,6 @@ func dataSourceNetworkRead(ctx context.Context, d *schema.ResourceData, m interf
 	d.Set("system_subnets", network.SystemSubnets)
 	d.Set("routes", getRoutesSlice(&network.Routes))
 	d.Set("connectors", getConnectorsSliceByNetworkConnectors(&network.Connectors))
-	d.SetId(strconv.FormatInt(time.Now().Unix(), 10))
 	return diags
 }
 

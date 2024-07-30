@@ -2,9 +2,6 @@ package cloudconnexa
 
 import (
 	"context"
-	"strconv"
-	"time"
-
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -16,7 +13,7 @@ func dataSourceUserGroup() *schema.Resource {
 		Description: "Use an `cloudconnexa_user_group` data source to read an CloudConnexa user group.",
 		ReadContext: dataSourceUserGroupRead,
 		Schema: map[string]*schema.Schema{
-			"user_group_id": {
+			"id": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The user group ID.",
@@ -67,12 +64,11 @@ func dataSourceUserGroupRead(ctx context.Context, d *schema.ResourceData, m inte
 	if userGroup == nil {
 		return append(diags, diag.Errorf("User group with name %s was not found", userGroupName)...)
 	}
-	d.Set("user_group_id", userGroup.ID)
+	d.SetId(userGroup.ID)
 	d.Set("name", userGroup.Name)
 	d.Set("vpn_region_ids", userGroup.VpnRegionIds)
 	d.Set("internet_access", userGroup.InternetAccess)
 	d.Set("max_device", userGroup.MaxDevice)
 	d.Set("system_subnets", userGroup.SystemSubnets)
-	d.SetId(strconv.FormatInt(time.Now().Unix(), 10))
 	return diags
 }

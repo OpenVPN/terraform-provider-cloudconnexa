@@ -2,9 +2,6 @@ package cloudconnexa
 
 import (
 	"context"
-	"strconv"
-	"time"
-
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -16,7 +13,7 @@ func dataSourceVpnRegion() *schema.Resource {
 		Description: "Use a `cloudconnexa_vpn_region` data source to read an CloudConnexa VPN region.",
 		ReadContext: dataSourceVpnRegionRead,
 		Schema: map[string]*schema.Schema{
-			"region_id": {
+			"id": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The id of the region.",
@@ -56,11 +53,10 @@ func dataSourceVpnRegionRead(ctx context.Context, d *schema.ResourceData, m inte
 	if vpnRegion == nil {
 		return append(diags, diag.Errorf("VPN region with id %s was not found", vpnRegionId)...)
 	}
-	d.Set("region_id", vpnRegion.Id)
+	d.SetId(vpnRegion.Id)
 	d.Set("continent", vpnRegion.Continent)
 	d.Set("country", vpnRegion.Country)
 	d.Set("country_iso", vpnRegion.CountryISO)
 	d.Set("region_name", vpnRegion.RegionName)
-	d.SetId(strconv.FormatInt(time.Now().Unix(), 10))
 	return diags
 }
