@@ -22,6 +22,16 @@ func dataSourceHost() *schema.Resource {
 				Required:    true,
 				Description: "The name of the host.",
 			},
+			"description": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The description of the host.",
+			},
+			"domain": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The host domain.",
+			},
 			"internet_access": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -50,6 +60,11 @@ func dataSourceHost() *schema.Resource {
 							Type:        schema.TypeString,
 							Computed:    true,
 							Description: "The connector name.",
+						},
+						"description": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "The connector description.",
 						},
 						"network_item_id": {
 							Type:        schema.TypeString,
@@ -92,6 +107,8 @@ func dataSourceHostRead(ctx context.Context, d *schema.ResourceData, m interface
 	}
 	d.SetId(host.Id)
 	d.Set("name", host.Name)
+	d.Set("description", host.Description)
+	d.Set("domain", host.Domain)
 	d.Set("internet_access", host.InternetAccess)
 	d.Set("system_subnets", host.SystemSubnets)
 	d.Set("connectors", getConnectorsSliceByConnectors(&host.Connectors))

@@ -34,6 +34,12 @@ func resourceHost() *schema.Resource {
 				ValidateFunc: validation.StringLenBetween(1, 120),
 				Description:  "The description for the UI. Defaults to `Managed by Terraform`.",
 			},
+			"domain": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringLenBetween(1, 253),
+				Description:  "The domain of the host.",
+			},
 			"internet_access": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -69,6 +75,13 @@ func resourceHost() *schema.Resource {
 							Type:        schema.TypeString,
 							Required:    true,
 							Description: "Name of the connector associated with this host.",
+						},
+						"description": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      "Managed by Terraform",
+							ValidateFunc: validation.StringLenBetween(1, 120),
+							Description:  "The description for the UI. Defaults to `Managed by Terraform`.",
 						},
 						"vpn_region_id": {
 							Type:        schema.TypeString,
@@ -114,11 +127,13 @@ func resourceHostCreate(ctx context.Context, d *schema.ResourceData, m interface
 	for _, c := range configConnectors.List() {
 		connectors = append(connectors, cloudconnexa.Connector{
 			Name:        c.(map[string]interface{})["name"].(string),
+			Description: c.(map[string]interface{})["description"].(string),
 			VpnRegionId: c.(map[string]interface{})["vpn_region_id"].(string),
 		})
 	}
 	h := cloudconnexa.Host{
 		Name:           d.Get("name").(string),
+		Domain:         d.Get("domain").(string),
 		Description:    d.Get("description").(string),
 		InternetAccess: d.Get("internet_access").(string),
 		Connectors:     connectors,
@@ -153,6 +168,7 @@ func resourceHostRead(ctx context.Context, d *schema.ResourceData, m interface{}
 	}
 	d.Set("name", host.Name)
 	d.Set("description", host.Description)
+	d.Set("domain", host.Domain)
 	d.Set("internet_access", host.InternetAccess)
 	d.Set("system_subnets", host.SystemSubnets)
 
@@ -174,6 +190,7 @@ func resourceHostUpdate(ctx context.Context, d *schema.ResourceData, m interface
 			// This happens when importing the resource
 			newConnector := cloudconnexa.Connector{
 				Name:            newSet.List()[0].(map[string]interface{})["name"].(string),
+				Description:     newSet.List()[0].(map[string]interface{})["description"].(string),
 				VpnRegionId:     newSet.List()[0].(map[string]interface{})["vpn_region_id"].(string),
 				NetworkItemType: "HOST",
 			}
@@ -194,6 +211,7 @@ func resourceHostUpdate(ctx context.Context, d *schema.ResourceData, m interface
 				if !oldSet.Contains(n) {
 					newConnector := cloudconnexa.Connector{
 						Name:            n.(map[string]interface{})["name"].(string),
+						Description:     n.(map[string]interface{})["description"].(string),
 						VpnRegionId:     n.(map[string]interface{})["vpn_region_id"].(string),
 						NetworkItemType: "HOST",
 					}
@@ -205,14 +223,16 @@ func resourceHostUpdate(ctx context.Context, d *schema.ResourceData, m interface
 			}
 		}
 	}
-	if d.HasChanges("name", "description", "internet_access") {
+	if d.HasChanges("name", "description", "domain", "internet_access") {
 		_, newName := d.GetChange("name")
 		_, newDescription := d.GetChange("description")
+		_, newDomain := d.GetChange("domain")
 		_, newAccess := d.GetChange("internet_access")
 		err := c.Hosts.Update(cloudconnexa.Host{
 			Id:             d.Id(),
 			Name:           newName.(string),
 			Description:    newDescription.(string),
+			Domain:         newDomain.(string),
 			InternetAccess: newAccess.(string),
 		})
 		if err != nil {
@@ -253,6 +273,7 @@ func getConnectorsListItem(c *cloudconnexa.Client, connector cloudconnexa.Connec
 	connectorsData := map[string]interface{}{
 		"id":                connector.Id,
 		"name":              connector.Name,
+		"description":       connector.Description,
 		"vpn_region_id":     connector.VpnRegionId,
 		"ip_v4_address":     connector.IPv4Address,
 		"ip_v6_address":     connector.IPv6Address,
