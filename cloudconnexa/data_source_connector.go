@@ -63,10 +63,15 @@ func dataSourceConnector() *schema.Resource {
 func dataSourceConnectorRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	connector, err := c.Connectors.GetByName(d.Get("name").(string))
+	name := d.Get("name").(string)
+	connector, err := c.Connectors.GetByName(name)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
+	if connector == nil {
+		return append(diags, diag.Errorf("Connector with name %s was not found", name)...)
+	}
+
 	d.SetId(connector.Id)
 	d.Set("name", connector.Name)
 	d.Set("description", connector.Description)
