@@ -2,6 +2,7 @@ package cloudconnexa
 
 import (
 	"context"
+	"slices"
 
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -11,7 +12,7 @@ import (
 )
 
 var (
-	validValues = []string{"ANY", "BGP", "CUSTOM", "DHCP", "DNS", "FTP", "HTTP", "HTTPS", "IMAP", "IMAPS", "NTP", "POP3", "POP3S", "SMTP", "SMTPS", "SNMP", "SSH", "TELNET", "TFTP"}
+	validValues = []string{"ANY", "BGP", "DHCP", "DNS", "FTP", "HTTP", "HTTPS", "IMAP", "IMAPS", "NTP", "POP3", "POP3S", "SMTP", "SMTPS", "SNMP", "SSH", "TELNET", "TFTP"}
 )
 
 func resourceIPService() *schema.Resource {
@@ -31,7 +32,7 @@ func resourceIPService() *schema.Resource {
 			},
 			"description": {
 				Type:         schema.TypeString,
-				Default:      "Created by Terraform CloudConnexa Provider",
+				Default:      "Managed by Terraform",
 				ValidateFunc: validation.StringLenBetween(1, 255),
 				Optional:     true,
 			},
@@ -42,8 +43,7 @@ func resourceIPService() *schema.Resource {
 			},
 			"routes": {
 				Type:     schema.TypeList,
-				Required: true,
-				MinItems: 1,
+				Optional: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -82,27 +82,10 @@ func resourceServiceConfig() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"custom_service_types": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"icmp_type": {
-							Type:     schema.TypeList,
-							Required: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"lower_value": {
-										Type:     schema.TypeInt,
-										Required: true,
-									},
-									"upper_value": {
-										Type:     schema.TypeInt,
-										Required: true,
-									},
-								},
-							},
-						},
-					},
+					Schema: customServiceTypesConfig(),
 				},
 			},
 			"service_types": {
@@ -122,6 +105,24 @@ func resourceServiceConfig() *schema.Resource {
 					},
 				},
 			},
+		},
+	}
+}
+
+func customServiceTypesConfig() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"protocol": {
+			Type:         schema.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice([]string{"TCP", "UDP", "ICMP"}, false),
+		},
+		"from_port": {
+			Type:     schema.TypeInt,
+			Optional: true,
+		},
+		"to_port": {
+			Type:     schema.TypeInt,
+			Optional: true,
 		},
 	}
 }
@@ -165,36 +166,30 @@ func resourceServiceDelete(ctx context.Context, data *schema.ResourceData, i int
 func flattenServiceConfig(config *cloudconnexa.IPServiceConfig) interface{} {
 	var data = map[string]interface{}{
 		"custom_service_types": flattenCustomServiceTypes(config.CustomServiceTypes),
-		"service_types":        config.ServiceTypes,
+		"service_types":        removeElement(config.ServiceTypes, "CUSTOM"),
 	}
 	return []interface{}{data}
 }
 
 func flattenCustomServiceTypes(types []*cloudconnexa.CustomIPServiceType) interface{} {
-	var data []interface{}
+	var cst []interface{}
 	for _, t := range types {
-		data = append(
-			data,
-			map[string]interface{}{
-				"icmp_type": flattenIcmpType(t.IcmpType),
-			},
-		)
+		var ports = append(t.Port, t.IcmpType...)
+		if len(ports) > 0 {
+			for _, port := range ports {
+				cst = append(cst, map[string]interface{}{
+					"protocol":  t.Protocol,
+					"from_port": port.LowerValue,
+					"to_port":   port.UpperValue,
+				})
+			}
+		} else {
+			cst = append(cst, map[string]interface{}{
+				"protocol": t.Protocol,
+			})
+		}
 	}
-	return data
-}
-
-func flattenIcmpType(icmpType []cloudconnexa.Range) interface{} {
-	var data []interface{}
-	for _, t := range icmpType {
-		data = append(
-			data,
-			map[string]interface{}{
-				"lower_value": t.LowerValue,
-				"upper_value": t.UpperValue,
-			},
-		)
-	}
-	return data
+	return cst
 }
 
 func flattenRoutes(routes []*cloudconnexa.Route) []string {
@@ -241,29 +236,50 @@ func resourceDataToService(data *schema.ResourceData) *cloudconnexa.IPService {
 		config.ServiceTypes = []string{}
 
 		mainConfig := configList[0].(map[string]interface{})
-		for _, r := range mainConfig["custom_service_types"].([]interface{}) {
-			cst := r.(map[string]interface{})
-			var icmpTypes []cloudconnexa.Range
-			for _, r := range cst["icmp_type"].([]interface{}) {
-				icmpType := r.(map[string]interface{})
-				icmpTypes = append(
-					icmpTypes,
-					cloudconnexa.Range{
-						LowerValue: icmpType["lower_value"].(int),
-						UpperValue: icmpType["upper_value"].(int),
+		var cst = mainConfig["custom_service_types"].(*schema.Set)
+		var groupedCst = make(map[string][]cloudconnexa.Range)
+		for _, item := range cst.List() {
+			var cstItem = item.(map[string]interface{})
+			var protocol = cstItem["protocol"].(string)
+			var fromPort = cstItem["from_port"].(int)
+			var toPort = cstItem["to_port"].(int)
+
+			if groupedCst[protocol] == nil {
+				groupedCst[protocol] = make([]cloudconnexa.Range, 0)
+			}
+			if fromPort > 0 || toPort > 0 {
+				groupedCst[protocol] = append(groupedCst[protocol], cloudconnexa.Range{
+					LowerValue: fromPort,
+					UpperValue: toPort,
+				})
+			}
+		}
+
+		for protocol, ports := range groupedCst {
+			if protocol == "ICMP" {
+				config.CustomServiceTypes = append(
+					config.CustomServiceTypes,
+					&cloudconnexa.CustomIPServiceType{
+						Protocol: protocol,
+						IcmpType: ports,
+					},
+				)
+			} else {
+				config.CustomServiceTypes = append(
+					config.CustomServiceTypes,
+					&cloudconnexa.CustomIPServiceType{
+						Protocol: protocol,
+						Port:     ports,
 					},
 				)
 			}
-			config.CustomServiceTypes = append(
-				config.CustomServiceTypes,
-				&cloudconnexa.CustomIPServiceType{
-					IcmpType: icmpTypes,
-				},
-			)
 		}
 
 		for _, r := range mainConfig["service_types"].([]interface{}) {
 			config.ServiceTypes = append(config.ServiceTypes, r.(string))
+		}
+		if len(config.CustomServiceTypes) > 0 && !slices.Contains(config.ServiceTypes, "CUSTOM") {
+			config.ServiceTypes = append(config.ServiceTypes, "CUSTOM")
 		}
 	}
 
