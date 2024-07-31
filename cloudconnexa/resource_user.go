@@ -2,7 +2,6 @@ package cloudconnexa
 
 import (
 	"context"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -145,16 +144,6 @@ func resourceUserRead(ctx context.Context, d *schema.ResourceData, m interface{}
 	userId := d.Id()
 	u, err := c.Users.Get(userId)
 
-	// If group_id is not set, CloudConnexa sets it to the default group.
-	var groupId string
-	if d.Get("group_id") == "" {
-		// The group has not been explicitly set.
-		// Set it to an empty string to keep the default group.
-		groupId = ""
-	} else {
-		groupId = u.GroupId
-	}
-
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -165,7 +154,7 @@ func resourceUserRead(ctx context.Context, d *schema.ResourceData, m interface{}
 		d.Set("email", u.Email)
 		d.Set("first_name", u.FirstName)
 		d.Set("last_name", u.LastName)
-		d.Set("group_id", groupId)
+		d.Set("group_id", u.GroupId)
 		d.Set("devices", u.Devices)
 		d.Set("role", u.Role)
 	}
@@ -189,25 +178,14 @@ func resourceUserUpdate(ctx context.Context, d *schema.ResourceData, m interface
 	_, lastName := d.GetChange("last_name")
 	_, role := d.GetChange("role")
 	status := u.Status
-	oldGroupId, newGroupId := d.GetChange("group_id")
-
-	groupId := newGroupId.(string)
-	// If both are empty strings, then the group has not been set explicitly.
-	// The update endpoint requires group_id to be set, so we should set it to the default group.
-	if oldGroupId.(string) == "" && groupId == "" {
-		g, err := c.UserGroups.GetByName("Default")
-		if err != nil {
-			return append(diags, diag.FromErr(err)...)
-		}
-		groupId = g.ID
-	}
+	_, groupId := d.GetChange("group_id")
 
 	err = c.Users.Update(cloudconnexa.User{
 		Id:        d.Id(),
 		Email:     email.(string),
 		FirstName: firstName.(string),
 		LastName:  lastName.(string),
-		GroupId:   groupId,
+		GroupId:   groupId.(string),
 		Role:      role.(string),
 		Status:    status,
 	})
