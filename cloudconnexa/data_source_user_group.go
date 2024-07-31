@@ -49,6 +49,11 @@ func dataSourceUserGroup() *schema.Resource {
 				},
 				Description: "The IPV4 and IPV6 addresses of the subnets associated with this user group.",
 			},
+			"connect_auth": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The type of connection authentication. Valid values are `AUTH`, `AUTO`, or `STRICT_AUTH`.",
+			},
 		},
 	}
 }
@@ -70,5 +75,6 @@ func dataSourceUserGroupRead(ctx context.Context, d *schema.ResourceData, m inte
 	d.Set("internet_access", userGroup.InternetAccess)
 	d.Set("max_device", userGroup.MaxDevice)
 	d.Set("system_subnets", userGroup.SystemSubnets)
+	d.Set("connect_auth", userGroup.ConnectAuth)
 	return diags
 }

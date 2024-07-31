@@ -58,6 +58,11 @@ func dataSourceUser() *schema.Resource {
 				Computed:    true,
 				Description: "The user's status.",
 			},
+			"connection_status": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The user's connection status.",
+			},
 			"devices": {
 				Type:        schema.TypeList,
 				Computed:    true,
@@ -118,6 +123,7 @@ func dataSourceUserRead(ctx context.Context, d *schema.ResourceData, m interface
 	d.Set("group_id", user.GroupId)
 	d.Set("status", user.Status)
 	d.Set("devices", getUserDevicesSlice(&user.Devices))
+	d.Set("connection_status", user.ConnectionStatus)
 	return diags
 }
 
