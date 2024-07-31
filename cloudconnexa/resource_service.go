@@ -21,6 +21,9 @@ func resourceIPService() *schema.Resource {
 		ReadContext:   resourceServiceRead,
 		DeleteContext: resourceServiceDelete,
 		UpdateContext: resourceServiceUpdate,
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:     schema.TypeString,
