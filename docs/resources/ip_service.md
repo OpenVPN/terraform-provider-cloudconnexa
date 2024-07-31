@@ -37,7 +37,7 @@ description: |-
 
 Optional:
 
-- `custom_service_types` (Block List) (see [below for nested schema](#nestedblock--config--custom_service_types))
+- `custom_service_types` (Block Set) (see [below for nested schema](#nestedblock--config--custom_service_types))
 - `service_types` (List of String)
 
 <a id="nestedblock--config--custom_service_types"></a>
@@ -45,12 +45,9 @@ Optional:
 
 Required:
 
-- `icmp_type` (Block List, Min: 1) (see [below for nested schema](#nestedblock--config--custom_service_types--icmp_type))
+- `protocol` (String)
 
-<a id="nestedblock--config--custom_service_types--icmp_type"></a>
-### Nested Schema for `config.custom_service_types.icmp_type`
+Optional:
 
-Required:
-
-- `lower_value` (Number)
-- `upper_value` (Number)
+- `from_port` (Number)
+- `to_port` (Number)

@@ -27,7 +27,7 @@ resource "cloudconnexa_application" "application_custom_access" {
   }
 
   config {
-    service_types = ["HTTP", "HTTPS", "CUSTOM"]
+    service_types = ["HTTP", "HTTPS"]
     custom_service_types {
       protocol = "TCP" //all tcp ports
     }
@@ -55,7 +55,7 @@ resource "cloudconnexa_application" "application_custom_access" {
 }
 
 locals {
-  created_by = "managed by terraform"
+  created_by = "Managed by terraform"
 }
 
 variable "application_custom_access_advanced" {

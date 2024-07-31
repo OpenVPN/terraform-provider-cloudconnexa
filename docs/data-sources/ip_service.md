@@ -31,7 +31,7 @@ description: |-
 
 Read-Only:
 
-- `custom_service_types` (List of Object) (see [below for nested schema](#nestedobjatt--config--custom_service_types))
+- `custom_service_types` (Set of Object) (see [below for nested schema](#nestedobjatt--config--custom_service_types))
 - `service_types` (List of String)
 
 <a id="nestedobjatt--config--custom_service_types"></a>
@@ -39,12 +39,6 @@ Read-Only:
 
 Read-Only:
 
-- `icmp_type` (List of Object) (see [below for nested schema](#nestedobjatt--config--custom_service_types--icmp_type))
-
-<a id="nestedobjatt--config--custom_service_types--icmp_type"></a>
-### Nested Schema for `config.custom_service_types.icmp_type`
-
-Read-Only:
-
-- `lower_value` (Number)
-- `upper_value` (Number)
+- `from_port` (Number)
+- `protocol` (String)
+- `to_port` (Number)
