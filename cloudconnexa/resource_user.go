@@ -45,9 +45,10 @@ func resourceUser() *schema.Resource {
 				Description:  "User's last name.",
 			},
 			"group_id": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The UUID of a user's group.",
+				Type:         schema.TypeString,
+				Required:     true,
+				Description:  "The UUID of a user's group.",
+				ValidateFunc: validation.IsUUID,
 			},
 			"role": {
 				Type:        schema.TypeString,
