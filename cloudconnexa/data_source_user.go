@@ -2,6 +2,7 @@ package cloudconnexa
 
 import (
 	"context"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -49,9 +50,10 @@ func dataSourceUser() *schema.Resource {
 				Description: "The user's last name.",
 			},
 			"group_id": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The user's group id.",
+				Type:         schema.TypeString,
+				Required:     true,
+				Description:  "The user's group id.",
+				ValidateFunc: validation.IsUUID,
 			},
 			"status": {
 				Type:        schema.TypeString,
