@@ -132,11 +132,7 @@ func resourceUserCreate(ctx context.Context, d *schema.ResourceData, m interface
 		return append(diags, diag.FromErr(err)...)
 	}
 	d.SetId(user.Id)
-	return append(diags, diag.Diagnostic{
-		Severity: diag.Warning,
-		Summary:  "The user's role cannot be changed using the code.",
-		Detail:   "There is a bug in CloudConnexa API that prevents setting the user's role during the creation. All users are created as Members by default. Once it's fixed, the provider will be updated accordingly.",
-	})
+	return diags
 }
 
 func resourceUserRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
