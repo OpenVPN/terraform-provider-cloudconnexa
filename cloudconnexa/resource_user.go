@@ -29,20 +29,20 @@ func resourceUser() *schema.Resource {
 			},
 			"email": {
 				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringLenBetween(0, 120),
+				Required:     true,
+				ValidateFunc: validation.StringLenBetween(1, 120),
 				Description:  "An invitation to CloudConnexa account will be sent to this email. It will include an initial password and a VPN setup guide.",
 			},
 			"first_name": {
 				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringLenBetween(0, 20),
+				Required:     true,
+				ValidateFunc: validation.StringLenBetween(1, 20),
 				Description:  "User's first name.",
 			},
 			"last_name": {
 				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringLenBetween(0, 20),
+				Required:     true,
+				ValidateFunc: validation.StringLenBetween(1, 20),
 				Description:  "User's last name.",
 			},
 			"group_id": {
