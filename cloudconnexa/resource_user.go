@@ -2,6 +2,7 @@ package cloudconnexa
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -28,19 +29,19 @@ func resourceUser() *schema.Resource {
 			},
 			"email": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(1, 120),
 				Description:  "An invitation to CloudConnexa account will be sent to this email. It will include an initial password and a VPN setup guide.",
 			},
 			"first_name": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(1, 20),
 				Description:  "User's first name.",
 			},
 			"last_name": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(1, 20),
 				Description:  "User's last name.",
 			},
@@ -53,7 +54,6 @@ func resourceUser() *schema.Resource {
 			"role": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				ForceNew:    true,
 				Default:     "MEMBER",
 				Description: "The type of user role. Valid values are `ADMIN`, `MEMBER`, or `OWNER`.",
 			},
