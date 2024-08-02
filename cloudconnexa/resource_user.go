@@ -161,7 +161,7 @@ func resourceUserRead(ctx context.Context, d *schema.ResourceData, m interface{}
 func resourceUserUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	if !d.HasChanges("first_name", "last_name", "group_id", "email") {
+	if !d.HasChanges("first_name", "last_name", "group_id", "email", "role") {
 		return diags
 	}
 
@@ -174,8 +174,8 @@ func resourceUserUpdate(ctx context.Context, d *schema.ResourceData, m interface
 	_, firstName := d.GetChange("first_name")
 	_, lastName := d.GetChange("last_name")
 	_, role := d.GetChange("role")
-	status := u.Status
 	_, groupId := d.GetChange("group_id")
+	status := u.Status
 
 	err = c.Users.Update(cloudconnexa.User{
 		Id:        d.Id(),
@@ -187,7 +187,11 @@ func resourceUserUpdate(ctx context.Context, d *schema.ResourceData, m interface
 		Status:    status,
 	})
 
-	return append(diags, diag.FromErr(err)...)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+
+	return diags
 }
 
 func resourceUserDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
