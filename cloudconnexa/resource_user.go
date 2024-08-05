@@ -2,6 +2,7 @@ package cloudconnexa
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -28,19 +29,19 @@ func resourceUser() *schema.Resource {
 			},
 			"email": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(1, 120),
 				Description:  "An invitation to CloudConnexa account will be sent to this email. It will include an initial password and a VPN setup guide.",
 			},
 			"first_name": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(1, 20),
 				Description:  "User's first name.",
 			},
 			"last_name": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(1, 20),
 				Description:  "User's last name.",
 			},
@@ -53,7 +54,6 @@ func resourceUser() *schema.Resource {
 			"role": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				ForceNew:    true,
 				Default:     "MEMBER",
 				Description: "The type of user role. Valid values are `ADMIN`, `MEMBER`, or `OWNER`.",
 			},
@@ -132,11 +132,7 @@ func resourceUserCreate(ctx context.Context, d *schema.ResourceData, m interface
 		return append(diags, diag.FromErr(err)...)
 	}
 	d.SetId(user.Id)
-	return append(diags, diag.Diagnostic{
-		Severity: diag.Warning,
-		Summary:  "The user's role cannot be changed using the code.",
-		Detail:   "There is a bug in CloudConnexa API that prevents setting the user's role during the creation. All users are created as Members by default. Once it's fixed, the provider will be updated accordingly.",
-	})
+	return diags
 }
 
 func resourceUserRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -165,7 +161,7 @@ func resourceUserRead(ctx context.Context, d *schema.ResourceData, m interface{}
 func resourceUserUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	if !d.HasChanges("first_name", "last_name", "group_id", "email") {
+	if !d.HasChanges("first_name", "last_name", "group_id", "email", "role") {
 		return diags
 	}
 
@@ -178,8 +174,8 @@ func resourceUserUpdate(ctx context.Context, d *schema.ResourceData, m interface
 	_, firstName := d.GetChange("first_name")
 	_, lastName := d.GetChange("last_name")
 	_, role := d.GetChange("role")
-	status := u.Status
 	_, groupId := d.GetChange("group_id")
+	status := u.Status
 
 	err = c.Users.Update(cloudconnexa.User{
 		Id:        d.Id(),
@@ -191,7 +187,11 @@ func resourceUserUpdate(ctx context.Context, d *schema.ResourceData, m interface
 		Status:    status,
 	})
 
-	return append(diags, diag.FromErr(err)...)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+
+	return diags
 }
 
 func resourceUserDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
