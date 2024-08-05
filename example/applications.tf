@@ -7,7 +7,7 @@ resource "cloudconnexa_application" "application_full_access" {
   network_item_type = "NETWORK"
   network_item_id   = data.cloudconnexa_network.test-net.id
   routes {
-    domain = "example-application-1.com"
+    domain            = "example-application-1.com"
     allow_embedded_ip = false
   }
 
@@ -22,7 +22,7 @@ resource "cloudconnexa_application" "application_custom_access" {
   network_item_id   = data.cloudconnexa_network.test-net.id
 
   routes {
-    domain = "example-application-2.com"
+    domain            = "example-application-2.com"
     allow_embedded_ip = false
   }
 

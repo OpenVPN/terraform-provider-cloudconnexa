@@ -14,13 +14,13 @@ variable "users" {
     })
   )
   default = {
-    "Username1" = {
+    "John_Doe" = {
       username = "Username1"
       email    = "username1@company.com"
       group    = "Default"
       role     = "ADMIN"
     }
-    "Username2" = {
+    "Jane_Doe" = {
       username = "Username2"
       email    = "username2@company.com"
       group    = "Developer"
@@ -55,15 +55,15 @@ variable "routes" {
   type = list(map(string))
   default = [
     {
-      subnet       = "10.0.0.0/18"
+      subnet      = "10.0.0.0/18"
       description = "Example Route with subnet /18"
     },
     {
-      subnet       = "10.10.0.0/20"
+      subnet      = "10.10.0.0/20"
       description = "Example Route with subnet /20"
     },
     {
-      subnet       = "10.20.0.0/24"
+      subnet      = "10.20.0.0/24"
       description = "Example Route with subnet /24"
     },
   ]

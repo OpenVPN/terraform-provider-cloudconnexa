@@ -20,13 +20,13 @@ description: |-
 - `name` (String)
 - `network_item_id` (String)
 - `network_item_type` (String)
-- `routes` (List of String)
 - `type` (String)
 
 ### Optional
 
 - `config` (Block List, Max: 1) (see [below for nested schema](#nestedblock--config))
 - `description` (String)
+- `routes` (List of String)
 
 ### Read-Only
 
