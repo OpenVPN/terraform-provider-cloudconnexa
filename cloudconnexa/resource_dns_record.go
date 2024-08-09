@@ -34,17 +34,22 @@ func resourceDnsRecord() *schema.Resource {
 				Description:  "The description for the UI. Defaults to `Managed by Terraform`.",
 			},
 			"ip_v4_addresses": {
-				Type:     schema.TypeList,
-				Optional: true,
+				Type:         schema.TypeList,
+				Optional:     true,
+				AtLeastOneOf: []string{"ip_v4_addresses", "ip_v6_addresses"},
+				MinItems:     1,
 				Elem: &schema.Schema{
+
 					Type:         schema.TypeString,
 					ValidateFunc: validation.IsIPv4Address,
 				},
 				Description: "The list of IPV4 addresses to which this record will resolve.",
 			},
 			"ip_v6_addresses": {
-				Type:     schema.TypeList,
-				Optional: true,
+				Type:         schema.TypeList,
+				Optional:     true,
+				AtLeastOneOf: []string{"ip_v4_addresses", "ip_v6_addresses"},
+				MinItems:     1,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: validation.IsIPv6Address,
