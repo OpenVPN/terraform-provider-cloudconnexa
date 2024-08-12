@@ -20,7 +20,7 @@ func TestAccCloudConnexaDnsRecord_basic(t *testing.T) {
 		CheckDestroy:      testAccCheckCloudConnexaDnsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCloudConnexaDnsRecordConfigWithoutIPs(domainName),
+				Config: testAccCloudConnexaDnsRecordConfig(domainName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "domain", domainName),
 					resource.TestCheckResourceAttr(resourceName, "description", "test description"),
