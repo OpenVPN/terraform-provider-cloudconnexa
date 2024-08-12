@@ -67,7 +67,7 @@ jobs:
         env:
           TF_ACC: "1"
           CLOUDCONNEXA_TEST_ORGANIZATION: "terraform-community"
-          CLOUDCONNEXA_CLIENT_ID: ${{ secrets.CVPN_CLIENT_ID }}
-          CLOUDCONNEXA_CLIENT_SECRET: ${{ secrets.CVPN_CLIENT_SECRET }}
+          CLOUDCONNEXA_CLIENT_ID: ${{ secrets.CLOUDCONNEXA_CLIENT_ID }}
+          CLOUDCONNEXA_CLIENT_SECRET: ${{ secrets.CLOUDCONNEXA_CLIENT_SECRET }}
         run: |
           go test -v -cover ./cloudconnexa
