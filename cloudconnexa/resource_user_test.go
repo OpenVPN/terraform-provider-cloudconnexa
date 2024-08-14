@@ -117,10 +117,10 @@ resource "cloudconnexa_user_group" "test" {
 }
 
 resource "cloudconnexa_user" "test" {
-	username   = "%s"
-	email      = "%s"
-	first_name = "%s"
-	last_name  = "%s"
+	username   = "%[2]s"
+	email      = "%[3]s"
+	first_name = "%[4]s"
+	last_name  = "%[5]s"
 	group_id   = cloudconnexa_user_group.test.id
 }
 `, testCloudID, user.Username, user.Email, user.FirstName, user.LastName)

@@ -100,8 +100,8 @@ provider "cloudconnexa" {
 	base_url = "https://%[1]s.api.openvpn.com"
 }
 resource "cloudconnexa_user_group" "test" {
-	name = "%s"
-	vpn_region_ids = %s
+	name = "%[2]s"
+	vpn_region_ids = %[3]s
 
 }
 `, testCloudID, userGroup.Name, idsStr)

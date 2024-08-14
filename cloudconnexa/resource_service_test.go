@@ -86,11 +86,11 @@ provider "cloudconnexa" {
 }
 
 resource "cloudconnexa_network" "test" {
-	name = "%s"
+	name = "%[2]s"
 	description = "test"
 
 	default_connector {
-	  name          = "%s"
+	  name          = "%[3]s"
 	  vpn_region_id = "fi-hel"
 	}
 	default_route {
@@ -100,7 +100,7 @@ resource "cloudconnexa_network" "test" {
 }
 
 resource "cloudconnexa_ip_service" "test" {
-	name = "%s"
+	name = "%[4]s"
 	type = "SERVICE_DESTINATION"
 	description = "test"
 	network_item_type = "NETWORK"

@@ -2,8 +2,9 @@ package cloudconnexa
 
 import (
 	"fmt"
-	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 	"testing"
+
+	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -78,7 +79,7 @@ provider "cloudconnexa" {
 }
 
 resource "cloudconnexa_connector" "test" {
-  name              = "%s"
+  name              = "%[2]s"
   vpn_region_id     = "us-west-1"
   network_item_type = "HOST"
   network_item_id   = "example_network_item_id"
