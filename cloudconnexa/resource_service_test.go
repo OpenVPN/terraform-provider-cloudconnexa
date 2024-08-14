@@ -3,9 +3,10 @@ package cloudconnexa
 import (
 	"errors"
 	"fmt"
+	"testing"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
-	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -81,30 +82,30 @@ func testAccCheckCloudConnexaServiceDestroy(state *terraform.State) error {
 func testAccCloudConnexaServiceConfig(service cloudconnexa.IPService, networkName string) string {
 	return fmt.Sprintf(`
 provider "cloudconnexa" {
-	base_url = "https://%s.api.openvpn.com"
+	base_url = "https://%[1]s.api.openvpn.com"
 }
 
 resource "cloudconnexa_network" "test" {
-	name = "%s"
+	name = "%[2]s"
 	description = "test"
 
 	default_connector {
-	  name          = "%s"
+	  name          = "%[3]s"
 	  vpn_region_id = "fi-hel"
 	}
 	default_route {
-	  value = "10.1.2.0/24"
+	  subnet = "10.1.2.0/24"
 	  type  = "IP_V4"
 	}
 }
 
 resource "cloudconnexa_ip_service" "test" {
-	name = "%s"
+	name = "%[4]s"
 	type = "SERVICE_DESTINATION"
 	description = "test"
 	network_item_type = "NETWORK"
 	network_item_id = cloudconnexa_network.test.id
-	routes = ["test.ua" ]
+	routes = ["10.1.2.1/32" ]
 	config {
 		service_types = ["ANY"]
 	}

@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 	"testing"
+
+	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -96,11 +97,11 @@ func testAccCloudConnexaUserGroupConfig(userGroup cloudconnexa.UserGroup) string
 
 	return fmt.Sprintf(`
 provider "cloudconnexa" {
-	base_url = "https://%s.api.openvpn.com"
+	base_url = "https://%[1]s.api.openvpn.com"
 }
 resource "cloudconnexa_user_group" "test" {
-	name = "%s"
-	vpn_region_ids = %s
+	name = "%[2]s"
+	vpn_region_ids = %[3]s
 
 }
 `, testCloudID, userGroup.Name, idsStr)
