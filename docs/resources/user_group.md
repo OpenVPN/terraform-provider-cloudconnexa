@@ -18,7 +18,6 @@ Use `cloudconnexa_user_group` to create an CloudConnexa user group.
 ### Required
 
 - `name` (String) The name of the user group.
-- `vpn_region_ids` (List of String) A list of VPN regions that are accessible to the user group.
 
 ### Optional
 
@@ -26,6 +25,7 @@ Use `cloudconnexa_user_group` to create an CloudConnexa user group.
 - `internet_access` (String)
 - `max_device` (Number) The maximum number of devices that can be connected to the user group.
 - `system_subnets` (List of String) A list of subnets that are accessible to the user group.
+- `vpn_region_ids` (List of String) A list of regions that are accessible to the user group.
 
 ### Read-Only
 

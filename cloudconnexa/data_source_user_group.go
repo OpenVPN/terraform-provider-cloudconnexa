@@ -29,7 +29,7 @@ func dataSourceUserGroup() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
-				Description: "The list of VPN region IDs this user group is associated with.",
+				Description: "The list of region IDs this user group is associated with.",
 			},
 			"internet_access": {
 				Type:        schema.TypeString,
