@@ -70,7 +70,7 @@ func resourceUserGroup() *schema.Resource {
 			"all_regions_included": {
 				Type:         schema.TypeBool,
 				Optional:     true,
-				AtLeastOneOf: []string{"vpn_region_ids", "all_regions_included"},
+				ExactlyOneOf: []string{"vpn_region_ids", "all_regions_included"},
 				Description:  "If true all regions will be available for this user group.",
 			},
 		},
