@@ -31,6 +31,11 @@ func dataSourceUserGroup() *schema.Resource {
 				},
 				Description: "The list of region IDs this user group is associated with.",
 			},
+			"all_regions_included": {
+				Type:        schema.TypeBool,
+				Computed:    true,
+				Description: "If true all regions will be available for this user group.",
+			},
 			"internet_access": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -72,6 +77,7 @@ func dataSourceUserGroupRead(ctx context.Context, d *schema.ResourceData, m inte
 	d.SetId(userGroup.ID)
 	d.Set("name", userGroup.Name)
 	d.Set("vpn_region_ids", userGroup.VpnRegionIds)
+	d.Set("all_regions_included", userGroup.AllRegionsIncluded)
 	d.Set("internet_access", userGroup.InternetAccess)
 	d.Set("max_device", userGroup.MaxDevice)
 	d.Set("system_subnets", userGroup.SystemSubnets)

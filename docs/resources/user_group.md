@@ -26,6 +26,7 @@ Use `cloudconnexa_user_group` to create an CloudConnexa user group.
 - `max_device` (Number) The maximum number of devices that can be connected to the user group.
 - `system_subnets` (List of String) A list of subnets that are accessible to the user group.
 - `vpn_region_ids` (List of String) A list of regions that are accessible to the user group.
+- `all_regions_included` (Boolean) If true all regions will be available for this user group.
 
 ### Read-Only
 

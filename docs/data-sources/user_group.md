@@ -27,3 +27,4 @@ Use an `cloudconnexa_user_group` data source to read an CloudConnexa user group.
 - `max_device` (Number) The maximum number of devices per user.
 - `system_subnets` (List of String) The IPV4 and IPV6 addresses of the subnets associated with this user group.
 - `vpn_region_ids` (List of String) The list of region IDs this user group is associated with.
+- `all_regions_included` (Boolean) If true all regions will be available for this user group.

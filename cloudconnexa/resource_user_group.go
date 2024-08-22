@@ -60,13 +60,18 @@ func resourceUserGroup() *schema.Resource {
 				},
 			},
 			"vpn_region_ids": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Description: "A list of regions that are accessible to the user group. " +
-					"If not selected all regions will be available.",
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "A list of regions that are accessible to the user group.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
+			},
+			"all_regions_included": {
+				Type:         schema.TypeBool,
+				Optional:     true,
+				AtLeastOneOf: []string{"vpn_region_ids", "all_regions_included"},
+				Description:  "If true all regions will be available for this user group.",
 			},
 		},
 	}
@@ -106,6 +111,7 @@ func resourceDataToUserGroup(data *schema.ResourceData) *cloudconnexa.UserGroup 
 	for _, r := range configVpnRegionIds {
 		vpnRegionIds = append(vpnRegionIds, r.(string))
 	}
+	allRegionsIncluded := data.Get("all_regions_included").(bool)
 
 	ug := &cloudconnexa.UserGroup{
 		Name:               name,
@@ -114,7 +120,7 @@ func resourceDataToUserGroup(data *schema.ResourceData) *cloudconnexa.UserGroup 
 		SystemSubnets:      systemSubnets,
 		VpnRegionIds:       vpnRegionIds,
 		InternetAccess:     internetAccess,
-		AllRegionsIncluded: len(vpnRegionIds) == 0,
+		AllRegionsIncluded: allRegionsIncluded,
 	}
 	return ug
 }
@@ -129,6 +135,7 @@ func updateUserGroupData(data *schema.ResourceData, userGroup *cloudconnexa.User
 	if !userGroup.AllRegionsIncluded {
 		_ = data.Set("vpn_region_ids", userGroup.VpnRegionIds)
 	}
+	_ = data.Set("all_regions_included", userGroup.AllRegionsIncluded)
 }
 
 func resourceUserGroupDelete(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
