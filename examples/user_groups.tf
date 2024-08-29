@@ -1,11 +1,11 @@
-# Simple example
+# Simple examples
 resource "cloudconnexa_user_group" "this" {
   name           = "test-group"
   vpn_region_ids = ["eu-central-1"]
   connect_auth   = "AUTH"
 }
 
-# Advanced example
+# Advanced examples
 resource "cloudconnexa_user_group" "this" {
   for_each             = var.user_groups
   name                 = each.key
