@@ -26,7 +26,7 @@ variable "users" {
       group    = "Developer"
       role     = "MEMBER"
     }
-    "Username3" = {
+    "Max_Mustermann" = {
       username = "Username3"
       email    = "username3@company.com"
       group    = "Support"
@@ -67,4 +67,19 @@ variable "routes" {
       description = "Example Route with subnet /24"
     },
   ]
+}
+
+variable "user_groups" {
+  description = "Variable for specifying configuration for User Groups"
+  type = map(object({
+    connect_auth    = optional(string)
+    internet_access = optional(string)
+    max_device      = optional(number)
+  }))
+  default = {
+    admins    = { max_device = 10 }
+    users     = { max_device = 6 }
+    support   = {}
+    marketing = {}
+  }
 }
