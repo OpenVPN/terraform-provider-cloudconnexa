@@ -26,7 +26,7 @@ description: |-
 - `id` (String) The ID of this resource.
 - `network_item_id` (String)
 - `network_item_type` (String)
-- `routes` (List of String)
+- `routes` (List of Object) (see [below for nested schema](#nestedatt--routes))
 
 <a id="nestedatt--config"></a>
 ### Nested Schema for `config`
@@ -44,3 +44,13 @@ Read-Only:
 - `from_port` (Number)
 - `protocol` (String)
 - `to_port` (Number)
+
+
+
+<a id="nestedatt--routes"></a>
+### Nested Schema for `routes`
+
+Read-Only:
+
+- `allow_embedded_ip` (Boolean)
+- `domain` (String)

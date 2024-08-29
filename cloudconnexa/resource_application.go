@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
+	"slices"
 )
 
 func resourceApplication() *schema.Resource {
@@ -92,7 +93,7 @@ func resourceApplicationConfig() *schema.Resource {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
-					Schema: customServiceTypesConfig(),
+					Schema: customApplicationTypesConfig(),
 				},
 			},
 			"service_types": {
@@ -116,7 +117,7 @@ func resourceApplicationConfig() *schema.Resource {
 	}
 }
 
-func customServiceTypesConfig() map[string]*schema.Schema {
+func customApplicationTypesConfig() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"protocol": {
 			Type:         schema.TypeString,
@@ -172,7 +173,7 @@ func resourceApplicationDelete(ctx context.Context, data *schema.ResourceData, i
 func flattenApplicationConfig(config *cloudconnexa.ApplicationConfig) interface{} {
 	var data = map[string]interface{}{
 		"custom_service_types": flattenApplicationCustomTypes(config.CustomServiceTypes),
-		"service_types":        config.ServiceTypes,
+		"service_types":        removeElement(config.ServiceTypes, "CUSTOM"),
 	}
 	return []interface{}{data}
 }
@@ -285,6 +286,9 @@ func resourceDataToApplication(data *schema.ResourceData) *cloudconnexa.Applicat
 		for _, r := range mainConfig["service_types"].([]interface{}) {
 			config.ServiceTypes = append(config.ServiceTypes, r.(string))
 		}
+		if len(config.CustomServiceTypes) > 0 && !slices.Contains(config.ServiceTypes, "CUSTOM") {
+			config.ServiceTypes = append(config.ServiceTypes, "CUSTOM")
+		}
 	}
 
 	s := &cloudconnexa.Application{
@@ -296,4 +300,14 @@ func resourceDataToApplication(data *schema.ResourceData) *cloudconnexa.Applicat
 		Config:          &config,
 	}
 	return s
+}
+
+func removeElement(slice []string, element string) []string {
+	var result []string
+	for _, item := range slice {
+		if item != element {
+			result = append(result, item)
+		}
+	}
+	return result
 }

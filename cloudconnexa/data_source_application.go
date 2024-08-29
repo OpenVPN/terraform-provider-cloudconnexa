@@ -11,6 +11,10 @@ func dataSourceApplication() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceApplicationRead,
 		Schema: map[string]*schema.Schema{
+			"id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,

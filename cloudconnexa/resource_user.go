@@ -29,31 +29,31 @@ func resourceUser() *schema.Resource {
 			},
 			"email": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(1, 120),
 				Description:  "An invitation to CloudConnexa account will be sent to this email. It will include an initial password and a VPN setup guide.",
 			},
 			"first_name": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(1, 20),
 				Description:  "User's first name.",
 			},
 			"last_name": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(1, 20),
 				Description:  "User's last name.",
 			},
 			"group_id": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The UUID of a user's group.",
+				Type:         schema.TypeString,
+				Required:     true,
+				Description:  "The UUID of a user's group.",
+				ValidateFunc: validation.IsUUID,
 			},
 			"role": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				ForceNew:    true,
 				Default:     "MEMBER",
 				Description: "The type of user role. Valid values are `ADMIN`, `MEMBER`, or `OWNER`.",
 			},
@@ -132,11 +132,7 @@ func resourceUserCreate(ctx context.Context, d *schema.ResourceData, m interface
 		return append(diags, diag.FromErr(err)...)
 	}
 	d.SetId(user.Id)
-	return append(diags, diag.Diagnostic{
-		Severity: diag.Warning,
-		Summary:  "The user's role cannot be changed using the code.",
-		Detail:   "There is a bug in CloudConnexa API that prevents setting the user's role during the creation. All users are created as Members by default. Once it's fixed, the provider will be updated accordingly.",
-	})
+	return diags
 }
 
 func resourceUserRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -144,16 +140,6 @@ func resourceUserRead(ctx context.Context, d *schema.ResourceData, m interface{}
 	var diags diag.Diagnostics
 	userId := d.Id()
 	u, err := c.Users.Get(userId)
-
-	// If group_id is not set, CloudConnexa sets it to the default group.
-	var groupId string
-	if d.Get("group_id") == "" {
-		// The group has not been explicitly set.
-		// Set it to an empty string to keep the default group.
-		groupId = ""
-	} else {
-		groupId = u.GroupId
-	}
 
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
@@ -165,7 +151,7 @@ func resourceUserRead(ctx context.Context, d *schema.ResourceData, m interface{}
 		d.Set("email", u.Email)
 		d.Set("first_name", u.FirstName)
 		d.Set("last_name", u.LastName)
-		d.Set("group_id", groupId)
+		d.Set("group_id", u.GroupId)
 		d.Set("devices", u.Devices)
 		d.Set("role", u.Role)
 	}
@@ -175,7 +161,7 @@ func resourceUserRead(ctx context.Context, d *schema.ResourceData, m interface{}
 func resourceUserUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	if !d.HasChanges("first_name", "last_name", "group_id", "email") {
+	if !d.HasChanges("first_name", "last_name", "group_id", "email", "role") {
 		return diags
 	}
 
@@ -188,31 +174,24 @@ func resourceUserUpdate(ctx context.Context, d *schema.ResourceData, m interface
 	_, firstName := d.GetChange("first_name")
 	_, lastName := d.GetChange("last_name")
 	_, role := d.GetChange("role")
+	_, groupId := d.GetChange("group_id")
 	status := u.Status
-	oldGroupId, newGroupId := d.GetChange("group_id")
-
-	groupId := newGroupId.(string)
-	// If both are empty strings, then the group has not been set explicitly.
-	// The update endpoint requires group_id to be set, so we should set it to the default group.
-	if oldGroupId.(string) == "" && groupId == "" {
-		g, err := c.UserGroups.GetByName("Default")
-		if err != nil {
-			return append(diags, diag.FromErr(err)...)
-		}
-		groupId = g.ID
-	}
 
 	err = c.Users.Update(cloudconnexa.User{
 		Id:        d.Id(),
 		Email:     email.(string),
 		FirstName: firstName.(string),
 		LastName:  lastName.(string),
-		GroupId:   groupId,
+		GroupId:   groupId.(string),
 		Role:      role.(string),
 		Status:    status,
 	})
 
-	return append(diags, diag.FromErr(err)...)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+
+	return diags
 }
 
 func resourceUserDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {

@@ -4,6 +4,6 @@ resource "cloudconnexa_route" "this" {
   }
   network_item_id = var.networks["example-network"]
   type            = "IP_V4"
-  subnet           = each.value.subnet
+  subnet          = each.value.subnet
   description     = each.value.description
 }

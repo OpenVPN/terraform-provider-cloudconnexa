@@ -61,12 +61,17 @@ func resourceUserGroup() *schema.Resource {
 			},
 			"vpn_region_ids": {
 				Type:        schema.TypeList,
-				Required:    true,
-				MinItems:    1,
-				Description: "A list of VPN regions that are accessible to the user group.",
+				Optional:    true,
+				Description: "A list of regions that are accessible to the user group.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
+			},
+			"all_regions_included": {
+				Type:         schema.TypeBool,
+				Optional:     true,
+				ExactlyOneOf: []string{"vpn_region_ids", "all_regions_included"},
+				Description:  "If true all regions will be available for this user group.",
 			},
 		},
 	}
@@ -106,14 +111,16 @@ func resourceDataToUserGroup(data *schema.ResourceData) *cloudconnexa.UserGroup 
 	for _, r := range configVpnRegionIds {
 		vpnRegionIds = append(vpnRegionIds, r.(string))
 	}
+	allRegionsIncluded := data.Get("all_regions_included").(bool)
 
 	ug := &cloudconnexa.UserGroup{
-		Name:           name,
-		ConnectAuth:    connectAuth,
-		MaxDevice:      maxDevice,
-		SystemSubnets:  systemSubnets,
-		VpnRegionIds:   vpnRegionIds,
-		InternetAccess: internetAccess,
+		Name:               name,
+		ConnectAuth:        connectAuth,
+		MaxDevice:          maxDevice,
+		SystemSubnets:      systemSubnets,
+		VpnRegionIds:       vpnRegionIds,
+		InternetAccess:     internetAccess,
+		AllRegionsIncluded: allRegionsIncluded,
 	}
 	return ug
 }
@@ -124,8 +131,11 @@ func updateUserGroupData(data *schema.ResourceData, userGroup *cloudconnexa.User
 	_ = data.Set("max_device", userGroup.MaxDevice)
 	_ = data.Set("name", userGroup.Name)
 	_ = data.Set("system_subnets", userGroup.SystemSubnets)
-	_ = data.Set("vpn_region_ids", userGroup.VpnRegionIds)
 	_ = data.Set("internet_access", userGroup.InternetAccess)
+	if !userGroup.AllRegionsIncluded {
+		_ = data.Set("vpn_region_ids", userGroup.VpnRegionIds)
+	}
+	_ = data.Set("all_regions_included", userGroup.AllRegionsIncluded)
 }
 
 func resourceUserGroupDelete(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {

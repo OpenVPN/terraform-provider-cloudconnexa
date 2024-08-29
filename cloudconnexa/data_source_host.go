@@ -2,9 +2,6 @@ package cloudconnexa
 
 import (
 	"context"
-	"strconv"
-	"time"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
@@ -15,7 +12,7 @@ func dataSourceHost() *schema.Resource {
 		Description: "Use an `cloudconnexa_host` data source to read an existing CloudConnexa connector.",
 		ReadContext: dataSourceHostRead,
 		Schema: map[string]*schema.Schema{
-			"host_id": {
+			"id": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The host ID.",
@@ -24,6 +21,16 @@ func dataSourceHost() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The name of the host.",
+			},
+			"description": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The description of the host.",
+			},
+			"domain": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The host domain.",
 			},
 			"internet_access": {
 				Type:        schema.TypeString,
@@ -53,6 +60,11 @@ func dataSourceHost() *schema.Resource {
 							Type:        schema.TypeString,
 							Computed:    true,
 							Description: "The connector name.",
+						},
+						"description": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "The connector description.",
 						},
 						"network_item_id": {
 							Type:        schema.TypeString,
@@ -89,16 +101,22 @@ func dataSourceHost() *schema.Resource {
 func dataSourceHostRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	host, err := c.Hosts.GetByName(d.Get("name").(string))
+	name := d.Get("name").(string)
+	host, err := c.Hosts.GetByName(name)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	d.Set("host_id", host.Id)
+	if host == nil {
+		return append(diags, diag.Errorf("Host with name %s was not found", name)...)
+	}
+
+	d.SetId(host.Id)
 	d.Set("name", host.Name)
+	d.Set("description", host.Description)
+	d.Set("domain", host.Domain)
 	d.Set("internet_access", host.InternetAccess)
 	d.Set("system_subnets", host.SystemSubnets)
 	d.Set("connectors", getConnectorsSliceByConnectors(&host.Connectors))
-	d.SetId(strconv.FormatInt(time.Now().Unix(), 10))
 	return diags
 }
 

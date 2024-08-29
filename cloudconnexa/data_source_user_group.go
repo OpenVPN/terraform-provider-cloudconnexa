@@ -2,9 +2,6 @@ package cloudconnexa
 
 import (
 	"context"
-	"strconv"
-	"time"
-
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -16,7 +13,7 @@ func dataSourceUserGroup() *schema.Resource {
 		Description: "Use an `cloudconnexa_user_group` data source to read an CloudConnexa user group.",
 		ReadContext: dataSourceUserGroupRead,
 		Schema: map[string]*schema.Schema{
-			"user_group_id": {
+			"id": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The user group ID.",
@@ -32,7 +29,12 @@ func dataSourceUserGroup() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
-				Description: "The list of VPN region IDs this user group is associated with.",
+				Description: "The list of region IDs this user group is associated with.",
+			},
+			"all_regions_included": {
+				Type:        schema.TypeBool,
+				Computed:    true,
+				Description: "If true all regions will be available for this user group.",
 			},
 			"internet_access": {
 				Type:        schema.TypeString,
@@ -52,6 +54,11 @@ func dataSourceUserGroup() *schema.Resource {
 				},
 				Description: "The IPV4 and IPV6 addresses of the subnets associated with this user group.",
 			},
+			"connect_auth": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The type of connection authentication. Valid values are `AUTH`, `AUTO`, or `STRICT_AUTH`.",
+			},
 		},
 	}
 }
@@ -67,12 +74,13 @@ func dataSourceUserGroupRead(ctx context.Context, d *schema.ResourceData, m inte
 	if userGroup == nil {
 		return append(diags, diag.Errorf("User group with name %s was not found", userGroupName)...)
 	}
-	d.Set("user_group_id", userGroup.ID)
+	d.SetId(userGroup.ID)
 	d.Set("name", userGroup.Name)
 	d.Set("vpn_region_ids", userGroup.VpnRegionIds)
+	d.Set("all_regions_included", userGroup.AllRegionsIncluded)
 	d.Set("internet_access", userGroup.InternetAccess)
 	d.Set("max_device", userGroup.MaxDevice)
 	d.Set("system_subnets", userGroup.SystemSubnets)
-	d.SetId(strconv.FormatInt(time.Now().Unix(), 10))
+	d.Set("connect_auth", userGroup.ConnectAuth)
 	return diags
 }
