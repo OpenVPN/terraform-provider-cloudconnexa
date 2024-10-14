@@ -4,7 +4,15 @@ on:
     branches:
       - main
     paths-ignore:
-      - "README.md"
+      - "**/*.md"
+      - ".github/**"
+      - ".golangci.yml"
+      - ".goreleaser.yml"
+      - "docs/**"
+      - "examples/**"
+      - "templates/**"
+      - "Makefile"
+
   push:
     branches:
       - main
