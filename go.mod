@@ -8,7 +8,7 @@ require (
 	github.com/gruntwork-io/terratest v0.47.0
 	github.com/hashicorp/go-cty v1.4.1-0.20200414143053-d3edf31b6320
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.33.0
-	github.com/openvpn/cloudconnexa-go-client/v2 v2.0.15
+	github.com/openvpn/cloudconnexa-go-client/v2 v2.0.16
 	github.com/stretchr/testify v1.9.0
 )
 
@@ -89,7 +89,7 @@ require (
 	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/sys v0.19.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
-	golang.org/x/time v0.6.0 // indirect
+	golang.org/x/time v0.7.0 // indirect
 	golang.org/x/tools v0.20.0 // indirect
 	google.golang.org/api v0.162.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
