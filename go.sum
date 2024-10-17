@@ -485,8 +485,8 @@ github.com/mitchellh/reflectwalk v1.0.2 h1:G2LzWKi524PWgd3mLHV8Y5k7s6XUvT0Gef6zx
 github.com/mitchellh/reflectwalk v1.0.2/go.mod h1:mSTlrgnPZtwu0c4WaC2kGObEpuNDbx0jmZXqmk4esnw=
 github.com/oklog/run v1.1.0 h1:GEenZ1cK0+q0+wsJew9qUg/DyD8k3JzYsZAi5gYi2mA=
 github.com/oklog/run v1.1.0/go.mod h1:sVPdnTZT1zYwAJeCMu2Th4T21pA3FPOQRfWjQlk7DVU=
-github.com/openvpn/cloudconnexa-go-client/v2 v2.0.16 h1:KX3OEU1RegZZ4E9TAgMFsP/KtFiugaRfLnnLMb9H0uI=
-github.com/openvpn/cloudconnexa-go-client/v2 v2.0.16/go.mod h1:aky93nehxFyRZ/rE6sjhQ7aLW9IU7XHOpAMCFbTgYIw=
+github.com/openvpn/cloudconnexa-go-client/v2 v2.0.17 h1:sWTmQu/7smhJDgoF3on9dexwwB1jQE/0hNzxjGCcVPA=
+github.com/openvpn/cloudconnexa-go-client/v2 v2.0.17/go.mod h1:aky93nehxFyRZ/rE6sjhQ7aLW9IU7XHOpAMCFbTgYIw=
 github.com/pjbgf/sha1cd v0.3.0 h1:4D5XXmUUBUl/xQ6IjCkEAbqXskkq/4O7LmGn0AqMDs4=
 github.com/pjbgf/sha1cd v0.3.0/go.mod h1:nZ1rrWOcGJ5uZgEEVL1VUM9iRQiZvWdbZjkKyFzPPsI=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
