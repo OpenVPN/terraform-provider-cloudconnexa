@@ -15,12 +15,12 @@ func dataSourceUserGroup() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
-				Computed:    true,
+				Required:    true,
 				Description: "The user group ID.",
 			},
 			"name": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Computed:    true,
 				Description: "The user group name.",
 			},
 			"vpn_region_ids": {
@@ -66,13 +66,13 @@ func dataSourceUserGroup() *schema.Resource {
 func dataSourceUserGroupRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	userGroupName := d.Get("name").(string)
-	userGroup, err := c.UserGroups.GetByName(userGroupName)
+	userGroupId := d.Get("id").(string)
+	userGroup, err := c.UserGroups.Get(userGroupId)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
 	if userGroup == nil {
-		return append(diags, diag.Errorf("User group with name %s was not found", userGroupName)...)
+		return append(diags, diag.Errorf("User group with id %s was not found", userGroupId)...)
 	}
 	d.SetId(userGroup.ID)
 	d.Set("name", userGroup.Name)
