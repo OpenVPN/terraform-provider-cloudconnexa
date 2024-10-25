@@ -93,8 +93,7 @@ resource "cloudconnexa_network" "test" {
 	  vpn_region_id = "fi-hel"
 	}
 	default_route {
-	  value = "10.1.2.0/24"
-	  type  = "IP_V4"
+		subnet = "192.168.0.0/24"
 	}
 }
 
