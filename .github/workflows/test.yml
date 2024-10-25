@@ -3,7 +3,6 @@ on:
   pull_request:
     branches:
       - main
-      - feature/workflowfix
     paths-ignore:
       - "**/*.md"
       - ".github/**"
@@ -17,6 +16,7 @@ on:
   push:
     branches:
       - main
+      - feature/workflowfix
     paths-ignore:
       - "README.md"
   # We test at a regular interval to ensure we are alerted to something breaking due
