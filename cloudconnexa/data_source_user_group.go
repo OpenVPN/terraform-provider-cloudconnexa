@@ -67,11 +67,12 @@ func dataSourceUserGroup() *schema.Resource {
 func dataSourceUserGroupRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	var userGroup cloudconnexa.UserGroup
+	var userGroup *cloudconnexa.UserGroup
+	var err error
 	userGroupId := d.Get("id").(string)
 	userGroupName := d.Get("name").(string)
 	if userGroupId != "" {
-		userGroup, err := c.UserGroups.Get(userGroupId)
+		userGroup, err = c.UserGroups.Get(userGroupId)
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
@@ -79,7 +80,7 @@ func dataSourceUserGroupRead(ctx context.Context, d *schema.ResourceData, m inte
 			return append(diags, diag.Errorf("User group with id %s was not found", userGroupId)...)
 		}
 	} else if userGroupName != "" {
-		userGroup, err := c.UserGroups.GetByName(userGroupName)
+		userGroup, err = c.UserGroups.GetByName(userGroupName)
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
