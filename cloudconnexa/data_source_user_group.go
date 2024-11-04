@@ -2,6 +2,7 @@ package cloudconnexa
 
 import (
 	"context"
+
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -15,12 +16,12 @@ func dataSourceUserGroup() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Description: "The user group ID.",
 			},
 			"name": {
 				Type:        schema.TypeString,
-				Computed:    true,
+				Optional:    true,
 				Description: "The user group name.",
 			},
 			"vpn_region_ids": {
@@ -66,13 +67,27 @@ func dataSourceUserGroup() *schema.Resource {
 func dataSourceUserGroupRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
+	var userGroup cloudconnexa.UserGroup
 	userGroupId := d.Get("id").(string)
-	userGroup, err := c.UserGroups.Get(userGroupId)
-	if err != nil {
-		return append(diags, diag.FromErr(err)...)
-	}
-	if userGroup == nil {
-		return append(diags, diag.Errorf("User group with id %s was not found", userGroupId)...)
+	userGroupName := d.Get("name").(string)
+	if userGroupId != "" {
+		userGroup, err := c.UserGroups.Get(userGroupId)
+		if err != nil {
+			return append(diags, diag.FromErr(err)...)
+		}
+		if userGroup == nil {
+			return append(diags, diag.Errorf("User group with id %s was not found", userGroupId)...)
+		}
+	} else if userGroupName != "" {
+		userGroup, err := c.UserGroups.GetByName(userGroupName)
+		if err != nil {
+			return append(diags, diag.FromErr(err)...)
+		}
+		if userGroup == nil {
+			return append(diags, diag.Errorf("User group with name %s was not found", userGroupName)...)
+		}
+	} else {
+		return append(diags, diag.Errorf("User group name or group id is missing")...)
 	}
 	d.SetId(userGroup.ID)
 	d.Set("name", userGroup.Name)
