@@ -16,13 +16,13 @@ func dataSourceConnector() *schema.Resource {
 			"id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				AtLeastOneOf: []string{"id", "name"},
+				ExactlyOneOf: []string{"id", "name"},
 				Description:  "The ID of the connector.",
 			},
 			"name": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				AtLeastOneOf: []string{"id", "name"},
+				ExactlyOneOf: []string{"id", "name"},
 				Description:  "The name of the connector.",
 			},
 			"description": {

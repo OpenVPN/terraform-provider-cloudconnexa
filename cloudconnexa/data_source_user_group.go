@@ -17,13 +17,13 @@ func dataSourceUserGroup() *schema.Resource {
 			"id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				AtLeastOneOf: []string{"id", "name"},
+				ExactlyOneOf: []string{"id", "name"},
 				Description:  "The user group ID.",
 			},
 			"name": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				AtLeastOneOf: []string{"id", "name"},
+				ExactlyOneOf: []string{"id", "name"},
 				Description:  "The user group name.",
 			},
 			"vpn_region_ids": {

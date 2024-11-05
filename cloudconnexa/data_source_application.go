@@ -15,13 +15,13 @@ func dataSourceApplication() *schema.Resource {
 			"id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				AtLeastOneOf: []string{"id", "name"},
+				ExactlyOneOf: []string{"id", "name"},
 				Description:  "Application ID",
 			},
 			"name": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				AtLeastOneOf: []string{"id", "name"},
+				ExactlyOneOf: []string{"id", "name"},
 				Description:  "Application name",
 			},
 			"description": {

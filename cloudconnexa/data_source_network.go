@@ -17,13 +17,13 @@ func dataSourceNetwork() *schema.Resource {
 			"id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				AtLeastOneOf: []string{"id", "name"},
+				ExactlyOneOf: []string{"id", "name"},
 				Description:  "The network ID.",
 			},
 			"name": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				AtLeastOneOf: []string{"id", "name"},
+				ExactlyOneOf: []string{"id", "name"},
 				Description:  "The network name.",
 			},
 			"description": {
