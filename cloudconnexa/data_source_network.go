@@ -2,6 +2,7 @@ package cloudconnexa
 
 import (
 	"context"
+
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -14,14 +15,16 @@ func dataSourceNetwork() *schema.Resource {
 		ReadContext: dataSourceNetworkRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The network ID.",
+				Type:         schema.TypeString,
+				Optional:     true,
+				AtLeastOneOf: []string{"id", "name"},
+				Description:  "The network ID.",
 			},
 			"name": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The network name.",
+				Type:         schema.TypeString,
+				Optional:     true,
+				AtLeastOneOf: []string{"id", "name"},
+				Description:  "The network name.",
 			},
 			"description": {
 				Type:        schema.TypeString,
@@ -131,13 +134,28 @@ func dataSourceNetwork() *schema.Resource {
 func dataSourceNetworkRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
+	var network *cloudconnexa.Network
+	var err error
+	networkId := d.Get("id").(string)
 	networkName := d.Get("name").(string)
-	network, err := c.Networks.GetByName(networkName)
-	if err != nil {
-		return append(diags, diag.FromErr(err)...)
-	}
-	if network == nil {
-		return append(diags, diag.Errorf("Network with name %s was not found", networkName)...)
+	if networkId != "" {
+		network, err = c.Networks.Get(networkId)
+		if err != nil {
+			return append(diags, diag.FromErr(err)...)
+		}
+		if network == nil {
+			return append(diags, diag.Errorf("Network with id %s was not found", networkId)...)
+		}
+	} else if networkName != "" {
+		network, err = c.Networks.GetByName(networkName)
+		if err != nil {
+			return append(diags, diag.FromErr(err)...)
+		}
+		if network == nil {
+			return append(diags, diag.Errorf("Network with name %s was not found", networkName)...)
+		}
+	} else {
+		return append(diags, diag.Errorf("Network  name or id is missing")...)
 	}
 	d.SetId(network.Id)
 	d.Set("name", network.Name)

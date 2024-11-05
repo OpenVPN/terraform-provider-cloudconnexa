@@ -15,14 +15,16 @@ func dataSourceUserGroup() *schema.Resource {
 		ReadContext: dataSourceUserGroupRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The user group ID.",
+				Type:         schema.TypeString,
+				Optional:     true,
+				AtLeastOneOf: []string{"id", "name"},
+				Description:  "The user group ID.",
 			},
 			"name": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The user group name.",
+				Type:         schema.TypeString,
+				Optional:     true,
+				AtLeastOneOf: []string{"id", "name"},
+				Description:  "The user group name.",
 			},
 			"vpn_region_ids": {
 				Type:     schema.TypeList,
