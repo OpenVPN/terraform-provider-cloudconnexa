@@ -66,12 +66,27 @@ func dataSourceApplicationRead(ctx context.Context, data *schema.ResourceData, i
 			return append(diags, diag.Errorf("Application with id %s was not found", applicationId)...)
 		}
 	} else if applicationName != "" {
-		application, err = c.Applications.GetByName(applicationName)
+		applicationsAll, err := c.Applications.List()
+		var applicationCount int
 		if err != nil {
 			return diag.FromErr(err)
 		}
-		if application == nil {
+
+		for _, app := range applicationsAll {
+			if app.Name == applicationName {
+				applicationCount++
+			}
+		}
+
+		if applicationCount == 0 {
 			return append(diags, diag.Errorf("Application with name %s was not found", applicationName)...)
+		} else if applicationCount > 1 {
+			return append(diags, diag.Errorf("More than 1 application with name %s was found. Please use id instead", applicationName)...)
+		} else {
+			application, err = c.Applications.GetByName(applicationName)
+			if err != nil {
+				return diag.FromErr(err)
+			}
 		}
 	} else {
 		return append(diags, diag.Errorf("Application name or id is missing")...)

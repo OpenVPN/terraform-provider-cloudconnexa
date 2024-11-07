@@ -90,13 +90,29 @@ func dataSourceConnectorRead(ctx context.Context, d *schema.ResourceData, m inte
 			return append(diags, diag.FromErr(err)...)
 		}
 	} else if connectorName != "" {
-		connector, err = c.Connectors.GetByName(connectorName)
+		connectorsAll, err := c.Connectors.List()
+		var connectorCount int
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
-		if connector == nil {
-			return append(diags, diag.Errorf("Connector with name %s was not found", connectorName)...)
+
+		for _, con := range connectorsAll {
+			if con.Name == connectorName {
+				connectorCount++
+			}
 		}
+
+		if connectorCount == 0 {
+			return append(diags, diag.Errorf("Connector with name %s was not found", connectorName)...)
+		} else if connectorCount > 1 {
+			return append(diags, diag.Errorf("More than 1 connector with name %s was found. Please use id instead", connectorName)...)
+		} else {
+			connector, err = c.Connectors.GetByName(connectorName)
+			if err != nil {
+				return append(diags, diag.FromErr(err)...)
+			}
+		}
+
 		token, err = c.Connectors.GetToken(connector.Id)
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
