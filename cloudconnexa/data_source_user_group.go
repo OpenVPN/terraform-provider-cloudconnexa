@@ -2,6 +2,7 @@ package cloudconnexa
 
 import (
 	"context"
+	"strings"
 
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 
@@ -76,7 +77,11 @@ func dataSourceUserGroupRead(ctx context.Context, d *schema.ResourceData, m inte
 	if userGroupId != "" {
 		userGroup, err = c.UserGroups.Get(userGroupId)
 		if err != nil {
-			return append(diags, diag.FromErr(err)...)
+			if strings.Contains(err.Error(), "user group not found") {
+				return append(diags, diag.Errorf("User group with id %s was not found", userGroupId)...)
+			} else {
+				return append(diags, diag.FromErr(err)...)
+			}
 		}
 		if userGroup == nil {
 			return append(diags, diag.Errorf("User group with id %s was not found", userGroupId)...)
@@ -84,13 +89,17 @@ func dataSourceUserGroupRead(ctx context.Context, d *schema.ResourceData, m inte
 	} else if userGroupName != "" {
 		userGroup, err = c.UserGroups.GetByName(userGroupName)
 		if err != nil {
-			return append(diags, diag.FromErr(err)...)
+			if strings.Contains(err.Error(), "user group not found") {
+				return append(diags, diag.Errorf("User group with name %s was not found", userGroupName)...)
+			} else {
+				return append(diags, diag.FromErr(err)...)
+			}
 		}
 		if userGroup == nil {
 			return append(diags, diag.Errorf("User group with name %s was not found", userGroupName)...)
 		}
 	} else {
-		return append(diags, diag.Errorf("User group name or group id is missing")...)
+		return append(diags, diag.Errorf("User group name or id is missing")...)
 	}
 	d.SetId(userGroup.ID)
 	d.Set("name", userGroup.Name)

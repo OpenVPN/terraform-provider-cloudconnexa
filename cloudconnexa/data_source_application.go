@@ -2,6 +2,7 @@ package cloudconnexa
 
 import (
 	"context"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -60,7 +61,11 @@ func dataSourceApplicationRead(ctx context.Context, data *schema.ResourceData, i
 	if applicationId != "" {
 		application, err = c.Applications.Get(applicationId)
 		if err != nil {
-			return diag.FromErr(err)
+			if strings.Contains(err.Error(), "status code: 404") {
+				return append(diags, diag.Errorf("Application with id %s was not found", applicationId)...)
+			} else {
+				return append(diags, diag.FromErr(err)...)
+			}
 		}
 		if application == nil {
 			return append(diags, diag.Errorf("Application with id %s was not found", applicationId)...)
@@ -91,6 +96,9 @@ func dataSourceApplicationRead(ctx context.Context, data *schema.ResourceData, i
 	} else {
 		return append(diags, diag.Errorf("Application name or id is missing")...)
 	}
-	setApplicationData(data, application)
-	return nil
+	// setApplicationData(data, application)
+	data.SetId(application.Id)
+	data.Set("name", application.Name)
+	return diags
+	// return nil
 }

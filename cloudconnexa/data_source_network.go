@@ -155,7 +155,7 @@ func dataSourceNetworkRead(ctx context.Context, d *schema.ResourceData, m interf
 			return append(diags, diag.Errorf("Network with name %s was not found", networkName)...)
 		}
 	} else {
-		return append(diags, diag.Errorf("Network  name or id is missing")...)
+		return append(diags, diag.Errorf("Network name or id is missing")...)
 	}
 	d.SetId(network.Id)
 	d.Set("name", network.Name)
