@@ -96,9 +96,6 @@ func dataSourceApplicationRead(ctx context.Context, data *schema.ResourceData, i
 	} else {
 		return append(diags, diag.Errorf("Application name or id is missing")...)
 	}
-	// setApplicationData(data, application)
-	data.SetId(application.Id)
-	data.Set("name", application.Name)
-	return diags
-	// return nil
+	setApplicationData(data, application)
+	return nil
 }
