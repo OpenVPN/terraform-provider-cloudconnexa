@@ -2,6 +2,8 @@ package cloudconnexa
 
 import (
 	"context"
+	"strings"
+
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -14,14 +16,16 @@ func dataSourceUserGroup() *schema.Resource {
 		ReadContext: dataSourceUserGroupRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The user group ID.",
+				Type:         schema.TypeString,
+				Optional:     true,
+				ExactlyOneOf: []string{"id", "name"},
+				Description:  "The user group ID.",
 			},
 			"name": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The user group name.",
+				Type:         schema.TypeString,
+				Optional:     true,
+				ExactlyOneOf: []string{"id", "name"},
+				Description:  "The user group name.",
 			},
 			"vpn_region_ids": {
 				Type:     schema.TypeList,
@@ -66,13 +70,36 @@ func dataSourceUserGroup() *schema.Resource {
 func dataSourceUserGroupRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
+	var userGroup *cloudconnexa.UserGroup
+	var err error
+	userGroupId := d.Get("id").(string)
 	userGroupName := d.Get("name").(string)
-	userGroup, err := c.UserGroups.GetByName(userGroupName)
-	if err != nil {
-		return append(diags, diag.FromErr(err)...)
-	}
-	if userGroup == nil {
-		return append(diags, diag.Errorf("User group with name %s was not found", userGroupName)...)
+	if userGroupId != "" {
+		userGroup, err = c.UserGroups.Get(userGroupId)
+		if err != nil {
+			if strings.Contains(err.Error(), "user group not found") {
+				return append(diags, diag.Errorf("User group with id %s was not found", userGroupId)...)
+			} else {
+				return append(diags, diag.FromErr(err)...)
+			}
+		}
+		if userGroup == nil {
+			return append(diags, diag.Errorf("User group with id %s was not found", userGroupId)...)
+		}
+	} else if userGroupName != "" {
+		userGroup, err = c.UserGroups.GetByName(userGroupName)
+		if err != nil {
+			if strings.Contains(err.Error(), "user group not found") {
+				return append(diags, diag.Errorf("User group with name %s was not found", userGroupName)...)
+			} else {
+				return append(diags, diag.FromErr(err)...)
+			}
+		}
+		if userGroup == nil {
+			return append(diags, diag.Errorf("User group with name %s was not found", userGroupName)...)
+		}
+	} else {
+		return append(diags, diag.Errorf("User group name or id is missing")...)
 	}
 	d.SetId(userGroup.ID)
 	d.Set("name", userGroup.Name)
