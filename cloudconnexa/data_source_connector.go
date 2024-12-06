@@ -2,6 +2,7 @@ package cloudconnexa
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
@@ -13,13 +14,16 @@ func dataSourceConnector() *schema.Resource {
 		ReadContext: dataSourceConnectorRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ExactlyOneOf: []string{"id", "name"},
+				Description:  "The ID of the connector.",
 			},
 			"name": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The name of the connector.",
+				Type:         schema.TypeString,
+				Optional:     true,
+				ExactlyOneOf: []string{"id", "name"},
+				Description:  "The name of the connector.",
 			},
 			"description": {
 				Type:        schema.TypeString,
@@ -68,17 +72,54 @@ func dataSourceConnector() *schema.Resource {
 func dataSourceConnectorRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	name := d.Get("name").(string)
-	connector, err := c.Connectors.GetByName(name)
-	if err != nil {
-		return append(diags, diag.FromErr(err)...)
-	}
-	if connector == nil {
-		return append(diags, diag.Errorf("Connector with name %s was not found", name)...)
-	}
-	token, err := c.Connectors.GetToken(connector.Id)
-	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+	var connector *cloudconnexa.Connector
+	var err error
+	var token string
+	connectorName := d.Get("name").(string)
+	connectorId := d.Get("id").(string)
+	if connectorId != "" {
+		connector, err = c.Connectors.GetByID(connectorId)
+		if err != nil {
+			return append(diags, diag.FromErr(err)...)
+		}
+		if connector == nil {
+			return append(diags, diag.Errorf("Connector with id %s was not found", connectorId)...)
+		}
+		token, err = c.Connectors.GetToken(connector.Id)
+		if err != nil {
+			return append(diags, diag.FromErr(err)...)
+		}
+	} else if connectorName != "" {
+		connectorsAll, err := c.Connectors.List()
+		var connectorCount int
+		if err != nil {
+			return append(diags, diag.FromErr(err)...)
+		}
+
+		for _, con := range connectorsAll {
+			if con.Name == connectorName {
+				connectorCount++
+			}
+		}
+
+		if connectorCount == 0 {
+			return append(diags, diag.Errorf("Connector with name %s was not found", connectorName)...)
+		} else if connectorCount > 1 {
+			return append(diags, diag.Errorf("More than 1 connector with name %s was found. Please use id instead", connectorName)...)
+		} else {
+			connector, err = c.Connectors.GetByName(connectorName)
+			if err != nil {
+				return append(diags, diag.FromErr(err)...)
+			}
+		}
+
+		token, err = c.Connectors.GetToken(connector.Id)
+		if err != nil {
+			return append(diags, diag.FromErr(err)...)
+		}
+
+	} else {
+		return append(diags, diag.Errorf("Connector name or id is missing")...)
 	}
 
 	d.SetId(connector.Id)
