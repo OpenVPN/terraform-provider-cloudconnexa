@@ -55,6 +55,7 @@ func Provider() *schema.Provider {
 			"cloudconnexa_ip_service":       resourceIPService(),
 			"cloudconnexa_application":      resourceApplication(),
 			"cloudconnexa_location_context": resourceLocationContext(),
+			"cloudconnexa_access_group":     resourceAccessGroup(),
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
@@ -68,6 +69,7 @@ func Provider() *schema.Provider {
 			"cloudconnexa_ip_service":       dataSourceIPService(),
 			"cloudconnexa_application":      dataSourceApplication(),
 			"cloudconnexa_location_context": dataSourceLocationContext(),
+			"cloudconnexa_access_group":     dataSourceAccessGroup(),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}
