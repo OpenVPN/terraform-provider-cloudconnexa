@@ -3,7 +3,7 @@
 page_title: "cloudconnexa Provider"
 subcategory: ""
 description: |-
-  
+
 ---
 
 # CloudConnexa Provider
@@ -26,10 +26,10 @@ Use this provider to interact with the [CloudConnexa API](https://openvpn.net/cl
 
 ### Credentials
 
-To authenticate with the CloudConnexa API, you'll need the client_id and client_secret. 
-These credentials can be found in the CloudConnexa Portal. 
-Go to the Settings page and click on the API tab. 
-From there, you can enable the API and generate new authentication credentials. 
+To authenticate with the CloudConnexa API, you'll need the client_id and client_secret.
+These credentials can be found in the CloudConnexa Portal.
+Go to the Settings page and click on the API tab.
+From there, you can enable the API and generate new authentication credentials.
 Additionally, you'll find Swagger documentation for the API in the same location.
 
 More documentation on the OpenVPN API can be found here:
