@@ -45,6 +45,8 @@ jobs:
           go build -v .
   # run acceptance tests in a matrix with Terraform core versions
   test:
+    if: github.event.pull_request.head.repo.name == github.repository
+    environment: TestingEnv
     name: Matrix Test
     needs: build
     runs-on: ubuntu-latest
@@ -73,9 +75,10 @@ jobs:
       - name: TF acceptance tests
         timeout-minutes: 10
         env:
+          OVPN_HOST: ${{ vars.OVPN_HOST }}
+          CLOUDCONNEXA_TEST_ORGANIZATION: ${{ secrets.CLOUDCONNEXA_TEST_ORGANIZATION }}
+          CLOUDCONNEXA_CLIENT_ID: ${{ secrets.CLOUDCONNEXA_CLIENT_ID }}
+          CLOUDCONNEXA_CLIENT_SECRET: ${{ secrets.CLOUDCONNEXA_CLIENT_SECRET }}
           TF_ACC: "1"
-          CLOUDCONNEXA_TEST_ORGANIZATION: "terraform-community"
-          CLOUDCONNEXA_CLIENT_ID: ${{ secrets.CVPN_CLIENT_ID }}
-          CLOUDCONNEXA_CLIENT_SECRET: ${{ secrets.CVPN_CLIENT_SECRET }}
         run: |
           go test -v -cover ./cloudconnexa

@@ -108,11 +108,18 @@ func testAccCloudConnexaUserConfig(user cloudconnexa.User) string {
 provider "cloudconnexa" {
 	base_url = "https://%s.api.openvpn.com"
 }
+resource "cloudconnexa_user_group" "userGroup1" {
+  name           = "test-group"
+  vpn_region_ids = ["eu-central-1"]
+  connect_auth   = "AUTH"
+}
+
 resource "cloudconnexa_user" "test" {
 	username   = "%s"
 	email      = "%s"
 	first_name = "%s"
 	last_name  = "%s"
+	group_id   = cloudconnexa_user_group.userGroup1.id
 }
 `, testCloudID, user.Username, user.Email, user.FirstName, user.LastName)
 }

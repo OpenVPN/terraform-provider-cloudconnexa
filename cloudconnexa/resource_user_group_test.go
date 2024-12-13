@@ -99,9 +99,9 @@ provider "cloudconnexa" {
 	base_url = "https://%s.api.openvpn.com"
 }
 resource "cloudconnexa_user_group" "test" {
-	name = "%s"
-	vpn_region_ids = %s
-
+  name           = "%s"
+  vpn_region_ids = %s
+  connect_auth   = "AUTH"
 }
 `, testCloudID, userGroup.Name, idsStr)
 }
