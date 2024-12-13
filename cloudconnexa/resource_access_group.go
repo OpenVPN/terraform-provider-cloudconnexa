@@ -193,7 +193,7 @@ func setAccessGroupData(d *schema.ResourceData, ag *cloudconnexa.AccessGroupResp
 			parent = source.Parent.Id
 		}
 		var children []interface{}
-		if source.Type == "USER_GROUP" || source.AllCovered == false {
+		if source.Type == "USER_GROUP" || !source.AllCovered {
 			for _, child := range source.Children {
 				children = append(children, child.Id)
 			}
@@ -215,7 +215,7 @@ func setAccessGroupData(d *schema.ResourceData, ag *cloudconnexa.AccessGroupResp
 			parent = destination.Parent.Id
 		}
 		var children []interface{}
-		if destination.Type == "USER_GROUP" || destination.AllCovered == false {
+		if destination.Type == "USER_GROUP" || !destination.AllCovered {
 			for _, child := range destination.Children {
 				children = append(children, child.Id)
 			}
