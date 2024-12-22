@@ -47,7 +47,7 @@ func resourceAccessGroup() *schema.Resource {
 			},
 			"description": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Description: "The Access group description.",
 			},
 			"source": {
@@ -88,7 +88,7 @@ func resourceSource() *schema.Resource {
 				Description: "ID of the entity assigned to access group source.",
 			},
 			"children": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "ID of child entities assigned to access group source.",
 				Elem: &schema.Schema{
@@ -119,7 +119,7 @@ func resourceDestination() *schema.Resource {
 				Description: "ID of the entity assigned to access group destination.",
 			},
 			"children": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "ID of child entities assigned to access group destination.",
 				Elem: &schema.Schema{
@@ -249,7 +249,7 @@ func resourceDataToAccessGroup(data *schema.ResourceData) *cloudconnexa.AccessGr
 			AllCovered: convertedSource["all_covered"].(bool),
 			Parent:     convertedSource["parent"].(string),
 		}
-		for _, child := range convertedSource["children"].([]interface{}) {
+		for _, child := range convertedSource["children"].(*schema.Set).List() {
 			newSource.Children = append(newSource.Children, child.(string))
 		}
 		request.Source = append(request.Source, newSource)
@@ -264,7 +264,7 @@ func resourceDataToAccessGroup(data *schema.ResourceData) *cloudconnexa.AccessGr
 			AllCovered: mappedDestination["all_covered"].(bool),
 			Parent:     mappedDestination["parent"].(string),
 		}
-		for _, child := range mappedDestination["children"].([]interface{}) {
+		for _, child := range mappedDestination["children"].(*schema.Set).List() {
 			newDestination.Children = append(newDestination.Children, child.(string))
 		}
 		request.Destination = append(request.Destination, newDestination)
