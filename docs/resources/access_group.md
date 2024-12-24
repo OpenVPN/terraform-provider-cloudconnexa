@@ -17,10 +17,13 @@ Use `cloudconnexa_access_group` to create an Access group.
 
 ### Required
 
-- `description` (String) The Access group description.
 - `destination` (Block Set, Min: 1) (see [below for nested schema](#nestedblock--destination))
 - `name` (String) The Access group name.
 - `source` (Block Set, Min: 1) (see [below for nested schema](#nestedblock--source))
+
+### Optional
+
+- `description` (String) The Access group description.
 
 ### Read-Only
 
@@ -36,7 +39,7 @@ Required:
 
 Optional:
 
-- `children` (List of String) ID of child entities assigned to access group destination.
+- `children` (Set of String) ID of child entities assigned to access group destination.
 - `parent` (String) ID of the entity assigned to access group destination.
 
 
@@ -50,5 +53,5 @@ Required:
 
 Optional:
 
-- `children` (List of String) ID of child entities assigned to access group source.
+- `children` (Set of String) ID of child entities assigned to access group source.
 - `parent` (String) ID of the entity assigned to access group source.

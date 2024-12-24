@@ -29,7 +29,7 @@ description: |-
 Read-Only:
 
 - `all_covered` (Boolean)
-- `children` (List of String)
+- `children` (Set of String)
 - `parent` (String)
 - `type` (String)
 
@@ -40,6 +40,6 @@ Read-Only:
 Read-Only:
 
 - `all_covered` (Boolean)
-- `children` (List of String)
+- `children` (Set of String)
 - `parent` (String)
 - `type` (String)
