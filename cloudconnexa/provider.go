@@ -15,6 +15,10 @@ const (
 	ClientSecretEnvVar = "CLOUDCONNEXA_CLIENT_SECRET"
 )
 
+var (
+	version = "v0.5.1"
+)
+
 type Token struct {
 	AccessToken string `json:"access_token"`
 }
@@ -80,6 +84,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	clientSecret := d.Get("client_secret").(string)
 	baseUrl := d.Get("base_url").(string)
 	cloudConnexaClient, err := cloudconnexa.NewClient(baseUrl, clientId, clientSecret)
+	cloudConnexaClient.UserAgent = fmt.Sprintf("terraform-provider-cloudconnexa/%v", version)
 	var diags diag.Diagnostics
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
