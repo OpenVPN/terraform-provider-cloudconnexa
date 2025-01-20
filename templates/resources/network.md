@@ -54,7 +54,7 @@ Read-Only:
 
 Required:
 
-- `value` (String) The target value of the default route.
+- `subnet` (String) The target value of the default route.
 
 Optional:
 
