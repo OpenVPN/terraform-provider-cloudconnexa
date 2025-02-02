@@ -43,9 +43,9 @@ func resourceHost() *schema.Resource {
 			"internet_access": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Default:      "LOCAL",
-				ValidateFunc: validation.StringInSlice([]string{"BLOCKED", "GLOBAL_INTERNET", "LOCAL"}, false),
-				Description:  "The type of internet access provided. Valid values are `BLOCKED`, `GLOBAL_INTERNET`, or `LOCAL`. Defaults to `LOCAL`.",
+				Default:      "SPLIT_TUNNEL_ON",
+				ValidateFunc: validation.StringInSlice([]string{"SPLIT_TUNNEL_ON", "SPLIT_TUNNEL_OFF", "RESTRICTED_INTERNET"}, false),
+				Description:  "The type of internet access provided. Valid values are `SPLIT_TUNNEL_ON`, `SPLIT_TUNNEL_OFF`, or `RESTRICTED_INTERNET`. Defaults to `SPLIT_TUNNEL_ON`.",
 			},
 			"system_subnets": {
 				Type:     schema.TypeSet,
@@ -281,7 +281,7 @@ func getConnectorsListItem(c *cloudconnexa.Client, connector cloudconnexa.Connec
 		"network_item_type": connector.NetworkItemType,
 	}
 
-	connectorProfile, err := c.Connectors.GetProfile(connector.Id)
+	connectorProfile, err := c.Connectors.GetProfile(connector.Id, connector.NetworkItemType)
 	if err != nil {
 		return nil, err
 	}

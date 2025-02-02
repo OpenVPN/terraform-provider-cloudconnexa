@@ -111,7 +111,7 @@ provider "cloudconnexa" {
 resource "cloudconnexa_user_group" "userGroup1" {
   name           = "test-group"
   vpn_region_ids = ["eu-central-1"]
-  connect_auth   = "AUTH"
+  connect_auth   = "ON_PRIOR_AUTH"
 }
 
 resource "cloudconnexa_user" "test" {

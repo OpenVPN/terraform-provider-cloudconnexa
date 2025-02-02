@@ -42,9 +42,9 @@ func resourceNetwork() *schema.Resource {
 			"internet_access": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Default:      "LOCAL",
-				ValidateFunc: validation.StringInSlice([]string{"BLOCKED", "GLOBAL_INTERNET", "LOCAL"}, false),
-				Description:  "The type of internet access provided. Valid values are `BLOCKED`, `GLOBAL_INTERNET`, or `LOCAL`. Defaults to `LOCAL`.",
+				Default:      "SPLIT_TUNNEL_ON",
+				ValidateFunc: validation.StringInSlice([]string{"SPLIT_TUNNEL_ON", "SPLIT_TUNNEL_OFF", "RESTRICTED_INTERNET"}, false),
+				Description:  "The type of internet access provided. Valid values are `SPLIT_TUNNEL_ON`, `SPLIT_TUNNEL_OFF`, or `RESTRICTED_INTERNET`. Defaults to `SPLIT_TUNNEL_ON`.",
 			},
 			"system_subnets": {
 				Type:     schema.TypeSet,
@@ -197,7 +197,7 @@ func resourceNetworkCreate(ctx context.Context, d *schema.ResourceData, m interf
 	connector["ip_v4_address"] = network.Connectors[0].IPv4Address
 	connector["ip_v6_address"] = network.Connectors[0].IPv6Address
 	client := m.(*cloudconnexa.Client)
-	profile, err := client.Connectors.GetProfile(network.Connectors[0].Id)
+	profile, err := client.Connectors.GetProfile(network.Connectors[0].Id, "NETWORK")
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -351,7 +351,7 @@ func resourceNetworkUpdate(ctx context.Context, d *schema.ResourceData, m interf
 				Description: routeDesc.(string),
 				Subnet:      routeSubnet.(string),
 			}
-			err := c.Routes.Update(d.Id(), route)
+			err := c.Routes.Update(route)
 			if err != nil {
 				diags = append(diags, diag.FromErr(err)...)
 			}

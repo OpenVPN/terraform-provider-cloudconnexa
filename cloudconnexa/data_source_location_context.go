@@ -32,17 +32,17 @@ func dataSourceLocationContext() *schema.Resource {
 			},
 			"ip_policy": {
 				Type:     schema.TypeList,
-				Elem:     ipPolicyConfig(),
+				Elem:     ipCheckConfig(),
 				Computed: true,
 			},
 			"country_policy": {
 				Type:     schema.TypeList,
-				Elem:     countryPolicyConfig(),
+				Elem:     countryCheckConfig(),
 				Computed: true,
 			},
 			"default_policy": {
 				Type:     schema.TypeList,
-				Elem:     defaultPolicyConfig(),
+				Elem:     defaultCheckConfig(),
 				Computed: true,
 			},
 		},

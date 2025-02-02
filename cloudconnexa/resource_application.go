@@ -138,7 +138,8 @@ func customApplicationTypesConfig() map[string]*schema.Schema {
 func resourceApplicationRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	application, err := c.Applications.Get(data.Id())
+	networkItemType := data.Get("network_item_type").(string)
+	application, err := c.Applications.Get(data.Id(), networkItemType)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -163,7 +164,8 @@ func setApplicationData(data *schema.ResourceData, application *cloudconnexa.App
 func resourceApplicationDelete(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	err := c.Applications.Delete(data.Id())
+	networkItemType := data.Get("network_item_type").(string)
+	err := c.Applications.Delete(data.Id(), networkItemType)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}

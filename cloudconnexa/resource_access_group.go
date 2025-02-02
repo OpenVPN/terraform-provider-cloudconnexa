@@ -179,7 +179,7 @@ func resourceAccessGroupDelete(ctx context.Context, d *schema.ResourceData, m in
 	return diags
 }
 
-func setAccessGroupData(d *schema.ResourceData, ag *cloudconnexa.AccessGroupResponse) {
+func setAccessGroupData(d *schema.ResourceData, ag *cloudconnexa.AccessGroup) {
 	d.SetId(ag.Id)
 	d.Set("name", ag.Name)
 	d.Set("description", ag.Description)
@@ -187,13 +187,13 @@ func setAccessGroupData(d *schema.ResourceData, ag *cloudconnexa.AccessGroupResp
 	var sources []interface{}
 	for _, source := range ag.Source {
 		var parent = ""
-		if source.Parent != nil {
-			parent = source.Parent.Id
+		if source.Parent != "" {
+			parent = source.Parent
 		}
 		var children []interface{}
 		if source.Type == "USER_GROUP" || !source.AllCovered {
 			for _, child := range source.Children {
-				children = append(children, child.Id)
+				children = append(children, child)
 			}
 		}
 
@@ -209,13 +209,13 @@ func setAccessGroupData(d *schema.ResourceData, ag *cloudconnexa.AccessGroupResp
 	var destinations []interface{}
 	for _, destination := range ag.Destination {
 		var parent = ""
-		if destination.Parent != nil {
-			parent = destination.Parent.Id
+		if destination.Parent != "" {
+			parent = destination.Parent
 		}
 		var children []interface{}
 		if destination.Type == "USER_GROUP" || !destination.AllCovered {
 			for _, child := range destination.Children {
-				children = append(children, child.Id)
+				children = append(children, child)
 			}
 		}
 
@@ -229,11 +229,11 @@ func setAccessGroupData(d *schema.ResourceData, ag *cloudconnexa.AccessGroupResp
 	d.Set("destination", destinations)
 }
 
-func resourceDataToAccessGroup(data *schema.ResourceData) *cloudconnexa.AccessGroupRequest {
+func resourceDataToAccessGroup(data *schema.ResourceData) *cloudconnexa.AccessGroup {
 	name := data.Get("name").(string)
 	description := data.Get("description").(string)
 
-	request := &cloudconnexa.AccessGroupRequest{
+	request := &cloudconnexa.AccessGroup{
 		Name:        name,
 		Description: description,
 	}
@@ -242,7 +242,7 @@ func resourceDataToAccessGroup(data *schema.ResourceData) *cloudconnexa.AccessGr
 
 	for _, source := range sources {
 		var convertedSource = source.(map[string]interface{})
-		newSource := cloudconnexa.AccessItemRequest{
+		newSource := cloudconnexa.AccessItem{
 			Type:       convert(convertedSource["type"].(string), sourceRequestConversions),
 			AllCovered: convertedSource["all_covered"].(bool),
 			Parent:     convertedSource["parent"].(string),
@@ -257,7 +257,7 @@ func resourceDataToAccessGroup(data *schema.ResourceData) *cloudconnexa.AccessGr
 
 	for _, destination := range destinations {
 		var mappedDestination = destination.(map[string]interface{})
-		newDestination := cloudconnexa.AccessItemRequest{
+		newDestination := cloudconnexa.AccessItem{
 			Type:       convert(mappedDestination["type"].(string), destinationRequestConversions),
 			AllCovered: mappedDestination["all_covered"].(bool),
 			Parent:     mappedDestination["parent"].(string),

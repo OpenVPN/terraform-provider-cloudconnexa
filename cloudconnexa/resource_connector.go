@@ -111,12 +111,12 @@ func resourceConnectorCreate(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(err)
 	}
 	d.SetId(conn.Id)
-	profile, err := c.Connectors.GetProfile(conn.Id)
+	profile, err := c.Connectors.GetProfile(conn.Id, networkItemType)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
 	d.Set("profile", profile)
-	token, err := c.Connectors.GetToken(conn.Id)
+	token, err := c.Connectors.GetToken(conn.Id, networkItemType)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -131,11 +131,12 @@ func resourceConnectorCreate(ctx context.Context, d *schema.ResourceData, m inte
 func resourceConnectorRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	connector, err := c.Connectors.GetByID(d.Id())
+	networkItemType := d.Get("network_item_type").(string)
+	connector, err := c.Connectors.GetByID(d.Id(), networkItemType)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	token, err := c.Connectors.GetToken(connector.Id)
+	token, err := c.Connectors.GetToken(connector.Id, networkItemType)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -151,7 +152,7 @@ func resourceConnectorRead(ctx context.Context, d *schema.ResourceData, m interf
 		d.Set("ip_v4_address", connector.IPv4Address)
 		d.Set("ip_v6_address", connector.IPv6Address)
 		d.Set("token", token)
-		profile, err := c.Connectors.GetProfile(connector.Id)
+		profile, err := c.Connectors.GetProfile(connector.Id, connector.NetworkItemType)
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
@@ -187,7 +188,7 @@ func getConnectorSlice(connectors []cloudconnexa.Connector, networkItemId string
 			connector["ip_v4_address"] = c.IPv4Address
 			connector["ip_v6_address"] = c.IPv6Address
 			client := m.(*cloudconnexa.Client)
-			profile, err := client.Connectors.GetProfile(c.Id)
+			profile, err := client.Connectors.GetProfile(c.Id, c.NetworkItemType)
 			if err != nil {
 				return nil, err
 			}

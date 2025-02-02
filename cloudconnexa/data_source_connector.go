@@ -77,20 +77,21 @@ func dataSourceConnectorRead(ctx context.Context, d *schema.ResourceData, m inte
 	var token string
 	connectorName := d.Get("name").(string)
 	connectorId := d.Get("id").(string)
+	networkItemType := d.Get("network_item_type").(string)
 	if connectorId != "" {
-		connector, err = c.Connectors.GetByID(connectorId)
+		connector, err = c.Connectors.GetByID(connectorId, networkItemType)
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
 		if connector == nil {
 			return append(diags, diag.Errorf("Connector with id %s was not found", connectorId)...)
 		}
-		token, err = c.Connectors.GetToken(connector.Id)
+		token, err = c.Connectors.GetToken(connector.Id, networkItemType)
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
 	} else if connectorName != "" {
-		connectorsAll, err := c.Connectors.List()
+		connectorsAll, err := c.Connectors.List(networkItemType)
 		var connectorCount int
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
@@ -107,13 +108,13 @@ func dataSourceConnectorRead(ctx context.Context, d *schema.ResourceData, m inte
 		} else if connectorCount > 1 {
 			return append(diags, diag.Errorf("More than 1 connector with name %s was found. Please use id instead", connectorName)...)
 		} else {
-			connector, err = c.Connectors.GetByName(connectorName)
+			connector, err = c.Connectors.GetByName(connectorName, networkItemType)
 			if err != nil {
 				return append(diags, diag.FromErr(err)...)
 			}
 		}
 
-		token, err = c.Connectors.GetToken(connector.Id)
+		token, err = c.Connectors.GetToken(connector.Id, networkItemType)
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
@@ -132,7 +133,7 @@ func dataSourceConnectorRead(ctx context.Context, d *schema.ResourceData, m inte
 	d.Set("ip_v6_address", connector.IPv6Address)
 	d.Set("token", token)
 
-	profile, err := c.Connectors.GetProfile(connector.Id)
+	profile, err := c.Connectors.GetProfile(connector.Id, networkItemType)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}

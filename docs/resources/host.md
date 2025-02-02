@@ -23,7 +23,7 @@ Use `cloudconnexa_host` to create an CloudConnexa host.
 ### Optional
 
 - `description` (String) The description for the UI. Defaults to `Managed by Terraform`.
-- `internet_access` (String) The type of internet access provided. Valid values are `BLOCKED`, `GLOBAL_INTERNET`, or `LOCAL`. Defaults to `LOCAL`.
+- `internet_access` (String) The type of internet access provided. Valid values are `SPLIT_TUNNEL_ON`, `SPLIT_TUNNEL_OFF`, or `RESTRICTED_INTERNET`. Defaults to `SPLIT_TUNNEL_ON`.
 
 ### Read-Only
 

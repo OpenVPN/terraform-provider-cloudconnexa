@@ -53,9 +53,7 @@ func dataSourceIPService() *schema.Resource {
 
 func dataSourceIPServiceRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
-	service, err := c.IPServices.Get(
-		data.Id(),
-	)
+	service, err := c.IPServices.Get(data.Id(), data.Get("network_item_type").(string))
 
 	if err != nil {
 		return diag.FromErr(err)

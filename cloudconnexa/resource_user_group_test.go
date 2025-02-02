@@ -101,7 +101,7 @@ provider "cloudconnexa" {
 resource "cloudconnexa_user_group" "test" {
   name           = "%s"
   vpn_region_ids = %s
-  connect_auth   = "AUTH"
+  connect_auth   = "ON_PRIOR_AUTH"
 }
 `, testCloudID, userGroup.Name, idsStr)
 }

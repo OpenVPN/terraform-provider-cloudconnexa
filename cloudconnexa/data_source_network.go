@@ -39,7 +39,7 @@ func dataSourceNetwork() *schema.Resource {
 			"internet_access": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The type of internet access provided. Valid values are `BLOCKED`, `GLOBAL_INTERNET`, or `LOCAL`. Defaults to `LOCAL`.",
+				Description: "The type of internet access provided. Valid values are `SPLIT_TUNNEL_ON`, `SPLIT_TUNNEL_OFF`, or `RESTRICTED_INTERNET`. Defaults to `SPLIT_TUNNEL_ON`.",
 			},
 			"system_subnets": {
 				Type:     schema.TypeList,

@@ -43,7 +43,7 @@ func dataSourceUserGroup() *schema.Resource {
 			"internet_access": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The type of internet access provided. Valid values are `BLOCKED`, `GLOBAL_INTERNET`, or `LOCAL`. Defaults to `LOCAL`.",
+				Description: "The type of internet access provided. Valid values are `SPLIT_TUNNEL_ON`, `SPLIT_TUNNEL_OFF`, or `RESTRICTED_INTERNET`. Defaults to `SPLIT_TUNNEL_ON`.",
 			},
 			"max_device": {
 				Type:        schema.TypeInt,
@@ -61,7 +61,7 @@ func dataSourceUserGroup() *schema.Resource {
 			"connect_auth": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The type of connection authentication. Valid values are `AUTH`, `AUTO`, or `STRICT_AUTH`.",
+				Description: "The type of connection authentication. Valid values are `NO_AUTH`, `ON_PRIOR_AUTH`, or `EVERY_TIME`.",
 			},
 		},
 	}

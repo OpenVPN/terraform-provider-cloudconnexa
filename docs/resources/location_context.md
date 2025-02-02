@@ -3,12 +3,12 @@
 page_title: "cloudconnexa_location_context Resource - terraform-provider-cloudconnexa"
 subcategory: ""
 description: |-
-  Use cloudconnexa_location_context to create a Location Context policy.
+  Use cloudconnexa_location_context to create a Location Context Check.
 ---
 
 # cloudconnexa_location_context (Resource)
 
-Use `cloudconnexa_location_context` to create a Location Context policy.
+Use `cloudconnexa_location_context` to create a Location Context Check.
 
 
 
@@ -17,30 +17,30 @@ Use `cloudconnexa_location_context` to create a Location Context policy.
 
 ### Required
 
-- `default_policy` (Block List, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--default_policy))
+- `default_check` (Block List, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--default_check))
 - `name` (String) The Location Context name.
 - `user_groups_ids` (List of String) List of User Group IDs assigned to this policy.
 
 ### Optional
 
-- `country_policy` (Block List, Max: 1) (see [below for nested schema](#nestedblock--country_policy))
+- `country_check` (Block List, Max: 1) (see [below for nested schema](#nestedblock--country_check))
 - `description` (String) The description for the UI. Defaults to `Managed by Terraform`.
-- `ip_policy` (Block List, Max: 1) (see [below for nested schema](#nestedblock--ip_policy))
+- `ip_check` (Block List, Max: 1) (see [below for nested schema](#nestedblock--ip_check))
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
 
-<a id="nestedblock--default_policy"></a>
-### Nested Schema for `default_policy`
+<a id="nestedblock--default_check"></a>
+### Nested Schema for `default_check`
 
 Required:
 
 - `allowed` (Boolean)
 
 
-<a id="nestedblock--country_policy"></a>
-### Nested Schema for `country_policy`
+<a id="nestedblock--country_check"></a>
+### Nested Schema for `country_check`
 
 Required:
 
@@ -48,16 +48,16 @@ Required:
 - `countries` (List of String)
 
 
-<a id="nestedblock--ip_policy"></a>
-### Nested Schema for `ip_policy`
+<a id="nestedblock--ip_check"></a>
+### Nested Schema for `ip_check`
 
 Required:
 
 - `allowed` (Boolean)
-- `ips` (Block List, Min: 1) (see [below for nested schema](#nestedblock--ip_policy--ips))
+- `ips` (Block List, Min: 1) (see [below for nested schema](#nestedblock--ip_check--ips))
 
-<a id="nestedblock--ip_policy--ips"></a>
-### Nested Schema for `ip_policy.ips`
+<a id="nestedblock--ip_check--ips"></a>
+### Nested Schema for `ip_check.ips`
 
 Required:
 

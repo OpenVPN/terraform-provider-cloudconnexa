@@ -133,7 +133,8 @@ func customServiceTypesConfig() map[string]*schema.Schema {
 func resourceServiceRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	service, err := c.IPServices.Get(data.Id())
+	networkItemType := data.Get("network_item_type").(string)
+	service, err := c.IPServices.Get(data.Id(), networkItemType)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -159,7 +160,8 @@ func setResourceData(data *schema.ResourceData, service *cloudconnexa.IPServiceR
 func resourceServiceDelete(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	err := c.IPServices.Delete(data.Id())
+	networkItemType := data.Get("network_item_type").(string)
+	err := c.IPServices.Delete(data.Id(), networkItemType)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}

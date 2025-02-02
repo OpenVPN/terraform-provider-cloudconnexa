@@ -29,13 +29,13 @@ func resourceUserGroup() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Default:      "AUTO",
-				ValidateFunc: validation.StringInSlice([]string{"AUTH", "AUTO", "STRICT_AUTH"}, false),
+				ValidateFunc: validation.StringInSlice([]string{"NO_AUTH", "ON_PRIOR_AUTH", "EVERY_TIME"}, false),
 			},
 			"internet_access": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Default:      "LOCAL",
-				ValidateFunc: validation.StringInSlice([]string{"LOCAL", "BLOCKED", "GLOBAL_INTERNET"}, false),
+				Default:      "SPLIT_TUNNEL_ON",
+				ValidateFunc: validation.StringInSlice([]string{"SPLIT_TUNNEL_ON", "SPLIT_TUNNEL_OFF", "RESTRICTED_INTERNET"}, false),
 			},
 			"max_device": {
 				Type:        schema.TypeInt,

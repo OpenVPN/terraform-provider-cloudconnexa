@@ -58,8 +58,9 @@ func dataSourceApplicationRead(ctx context.Context, data *schema.ResourceData, i
 	var err error
 	applicationId := data.Get("id").(string)
 	applicationName := data.Get("name").(string)
+	networkItemType := data.Get("network_item_type").(string)
 	if applicationId != "" {
-		application, err = c.Applications.Get(applicationId)
+		application, err = c.Applications.Get(applicationId, networkItemType)
 		if err != nil {
 			if strings.Contains(err.Error(), "status code: 404") {
 				return append(diags, diag.Errorf("Application with id %s was not found", applicationId)...)
@@ -71,7 +72,7 @@ func dataSourceApplicationRead(ctx context.Context, data *schema.ResourceData, i
 			return append(diags, diag.Errorf("Application with id %s was not found", applicationId)...)
 		}
 	} else if applicationName != "" {
-		applicationsAll, err := c.Applications.List()
+		applicationsAll, err := c.Applications.List(networkItemType)
 		var applicationCount int
 		if err != nil {
 			return diag.FromErr(err)
@@ -88,7 +89,7 @@ func dataSourceApplicationRead(ctx context.Context, data *schema.ResourceData, i
 		} else if applicationCount > 1 {
 			return append(diags, diag.Errorf("More than 1 application with name %s was found. Please use id instead", applicationName)...)
 		} else {
-			application, err = c.Applications.GetByName(applicationName)
+			application, err = c.Applications.GetByName(applicationName, networkItemType)
 			if err != nil {
 				return diag.FromErr(err)
 			}
