@@ -99,15 +99,10 @@ func dataSourceNetwork() *schema.Resource {
 							Computed:    true,
 							Description: "The default connection description.",
 						},
-						"network_item_id": {
+						"network_id": {
 							Type:        schema.TypeString,
 							Computed:    true,
 							Description: "The id of the network with which the connector is associated.",
-						},
-						"network_item_type": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "The network object type of the connector. This typically will be set to `NETWORK`.",
 						},
 						"vpn_region_id": {
 							Type:        schema.TypeString,
@@ -187,8 +182,7 @@ func getConnectorsSliceByNetworkConnectors(connectors *[]cloudconnexa.NetworkCon
 		connector := make(map[string]interface{})
 		connector["id"] = c.Id
 		connector["name"] = c.Name
-		connector["network_item_id"] = c.NetworkItemId
-		connector["network_item_type"] = c.NetworkItemType
+		connector["network_id"] = c.NetworkItemId
 		connector["vpn_region_id"] = c.VpnRegionId
 		connector["ip_v4_address"] = c.IPv4Address
 		connector["ip_v6_address"] = c.IPv6Address

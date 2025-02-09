@@ -10,12 +10,12 @@ import (
 	"slices"
 )
 
-func resourceApplication() *schema.Resource {
+func resourceHostApplication() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceApplicationCreate,
-		ReadContext:   resourceApplicationRead,
-		DeleteContext: resourceApplicationDelete,
-		UpdateContext: resourceApplicationUpdate,
+		CreateContext: resourceHostApplicationCreate,
+		ReadContext:   resourceHostApplicationRead,
+		DeleteContext: resourceHostApplicationDelete,
+		UpdateContext: resourceHostApplicationUpdate,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -39,20 +39,15 @@ func resourceApplication() *schema.Resource {
 				Type:     schema.TypeList,
 				Required: true,
 				MinItems: 1,
-				Elem:     resourceApplicationRoute(),
+				Elem:     resourceHostApplicationRoute(),
 			},
 			"config": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
 				Optional: true,
-				Elem:     resourceApplicationConfig(),
+				Elem:     resourceHostApplicationConfig(),
 			},
-			"network_item_type": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringInSlice([]string{"NETWORK", "HOST"}, false),
-			},
-			"network_item_id": {
+			"host_id": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -60,10 +55,10 @@ func resourceApplication() *schema.Resource {
 	}
 }
 
-func resourceApplicationUpdate(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
+func resourceHostApplicationUpdate(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 
-	s, err := c.Applications.Update(data.Id(), resourceDataToApplication(data))
+	s, err := c.Applications.Update(data.Id(), resourceDataToHostApplication(data))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -71,7 +66,7 @@ func resourceApplicationUpdate(ctx context.Context, data *schema.ResourceData, i
 	return nil
 }
 
-func resourceApplicationRoute() *schema.Resource {
+func resourceHostApplicationRoute() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"domain": {
@@ -86,7 +81,7 @@ func resourceApplicationRoute() *schema.Resource {
 	}
 }
 
-func resourceApplicationConfig() *schema.Resource {
+func resourceHostApplicationConfig() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"custom_service_types": {
@@ -135,11 +130,10 @@ func customApplicationTypesConfig() map[string]*schema.Schema {
 	}
 }
 
-func resourceApplicationRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
+func resourceHostApplicationRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	networkItemType := data.Get("network_item_type").(string)
-	application, err := c.Applications.Get(data.Id(), networkItemType)
+	application, err := c.Applications.Get(data.Id(), "HOST")
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -157,15 +151,13 @@ func setApplicationData(data *schema.ResourceData, application *cloudconnexa.App
 	_ = data.Set("description", application.Description)
 	_ = data.Set("routes", flattenApplicationRoutes(application.Routes))
 	_ = data.Set("config", flattenApplicationConfig(application.Config))
-	_ = data.Set("network_item_type", application.NetworkItemType)
-	_ = data.Set("network_item_id", application.NetworkItemId)
+	_ = data.Set("host_id", application.NetworkItemId)
 }
 
-func resourceApplicationDelete(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
+func resourceHostApplicationDelete(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	networkItemType := data.Get("network_item_type").(string)
-	err := c.Applications.Delete(data.Id(), networkItemType)
+	err := c.Applications.Delete(data.Id(), "HOST")
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -212,10 +204,10 @@ func flattenApplicationRoutes(routes []*cloudconnexa.Route) []map[string]interfa
 	return data
 }
 
-func resourceApplicationCreate(ctx context.Context, data *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceHostApplicationCreate(ctx context.Context, data *schema.ResourceData, m interface{}) diag.Diagnostics {
 	client := m.(*cloudconnexa.Client)
 
-	application := resourceDataToApplication(data)
+	application := resourceDataToHostApplication(data)
 	createdApplication, err := client.Applications.Create(application)
 	if err != nil {
 		return diag.FromErr(err)
@@ -224,7 +216,7 @@ func resourceApplicationCreate(ctx context.Context, data *schema.ResourceData, m
 	return nil
 }
 
-func resourceDataToApplication(data *schema.ResourceData) *cloudconnexa.Application {
+func resourceDataToHostApplication(data *schema.ResourceData) *cloudconnexa.Application {
 	routes := data.Get("routes").([]interface{})
 	var configRoutes []*cloudconnexa.ApplicationRoute
 	for _, r := range routes {
@@ -296,8 +288,8 @@ func resourceDataToApplication(data *schema.ResourceData) *cloudconnexa.Applicat
 	s := &cloudconnexa.Application{
 		Name:            data.Get("name").(string),
 		Description:     data.Get("description").(string),
-		NetworkItemId:   data.Get("network_item_id").(string),
-		NetworkItemType: data.Get("network_item_type").(string),
+		NetworkItemId:   data.Get("host_id").(string),
+		NetworkItemType: "HOST",
 		Routes:          configRoutes,
 		Config:          &config,
 	}

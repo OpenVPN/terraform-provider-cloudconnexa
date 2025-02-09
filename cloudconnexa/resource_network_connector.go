@@ -10,13 +10,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func resourceConnector() *schema.Resource {
+func resourceNetworkConnector() *schema.Resource {
 	return &schema.Resource{
 		Description:   "Use `cloudconnexa_connector` to create an CloudConnexa connector.\n\n~> NOTE: This only creates the CloudConnexa connector object. Additional manual steps are required to associate a host in your infrastructure with the connector. Go to https://openvpn.net/cloud-docs/connector/ for more information.",
-		CreateContext: resourceConnectorCreate,
-		ReadContext:   resourceConnectorRead,
-		DeleteContext: resourceConnectorDelete,
-		UpdateContext: resourceConnectorUpdate,
+		CreateContext: resourceNetworkConnectorCreate,
+		ReadContext:   resourceNetworkConnectorRead,
+		DeleteContext: resourceNetworkConnectorDelete,
+		UpdateContext: resourceNetworkConnectorUpdate,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -38,14 +38,7 @@ func resourceConnector() *schema.Resource {
 				Required:    true,
 				Description: "The id of the region where the connector will be deployed.",
 			},
-			"network_item_type": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice([]string{"HOST", "NETWORK"}, false),
-				Description:  "The type of network item of the connector. Supported values are `HOST` and `NETWORK`.",
-			},
-			"network_item_id": {
+			"network_id": {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
@@ -75,7 +68,7 @@ func resourceConnector() *schema.Resource {
 	}
 }
 
-func resourceConnectorUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceNetworkConnectorUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
 	connector := cloudconnexa.Connector{
@@ -91,18 +84,17 @@ func resourceConnectorUpdate(ctx context.Context, d *schema.ResourceData, m inte
 	return diags
 }
 
-func resourceConnectorCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceNetworkConnectorCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
 	name := d.Get("name").(string)
 	description := d.Get("description").(string)
-	networkItemId := d.Get("network_item_id").(string)
-	networkItemType := d.Get("network_item_type").(string)
+	networkItemId := d.Get("network_id").(string)
 	vpnRegionId := d.Get("vpn_region_id").(string)
 	connector := cloudconnexa.Connector{
 		Name:            name,
 		NetworkItemId:   networkItemId,
-		NetworkItemType: networkItemType,
+		NetworkItemType: "NETWORK",
 		VpnRegionId:     vpnRegionId,
 		Description:     description,
 	}
@@ -111,12 +103,12 @@ func resourceConnectorCreate(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(err)
 	}
 	d.SetId(conn.Id)
-	profile, err := c.Connectors.GetProfile(conn.Id, networkItemType)
+	profile, err := c.Connectors.GetProfile(conn.Id, "NETWORK")
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
 	d.Set("profile", profile)
-	token, err := c.Connectors.GetToken(conn.Id, networkItemType)
+	token, err := c.Connectors.GetToken(conn.Id, "NETWORK")
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -128,15 +120,14 @@ func resourceConnectorCreate(ctx context.Context, d *schema.ResourceData, m inte
 	})
 }
 
-func resourceConnectorRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceNetworkConnectorRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	networkItemType := d.Get("network_item_type").(string)
-	connector, err := c.Connectors.GetByID(d.Id(), networkItemType)
+	connector, err := c.Connectors.GetByID(d.Id(), "NETWORK")
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	token, err := c.Connectors.GetToken(connector.Id, networkItemType)
+	token, err := c.Connectors.GetToken(connector.Id, "NETWORK")
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -147,8 +138,7 @@ func resourceConnectorRead(ctx context.Context, d *schema.ResourceData, m interf
 		d.SetId(connector.Id)
 		d.Set("name", connector.Name)
 		d.Set("vpn_region_id", connector.VpnRegionId)
-		d.Set("network_item_type", connector.NetworkItemType)
-		d.Set("network_item_id", connector.NetworkItemId)
+		d.Set("network_id", connector.NetworkItemId)
 		d.Set("ip_v4_address", connector.IPv4Address)
 		d.Set("ip_v6_address", connector.IPv6Address)
 		d.Set("token", token)
@@ -161,10 +151,10 @@ func resourceConnectorRead(ctx context.Context, d *schema.ResourceData, m interf
 	return diags
 }
 
-func resourceConnectorDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceNetworkConnectorDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	err := c.Connectors.Delete(d.Id(), d.Get("network_item_id").(string), d.Get("network_item_type").(string))
+	err := c.Connectors.Delete(d.Id(), d.Get("network_id").(string), "NETWORK")
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -181,9 +171,8 @@ func getConnectorSlice(connectors []cloudconnexa.Connector, networkItemId string
 			connector := make(map[string]interface{})
 			connector["id"] = c.Id
 			connector["name"] = c.Name
-			connector["network_item_id"] = c.NetworkItemId
+			connector["network_id"] = c.NetworkItemId
 			connector["description"] = c.Description
-			connector["network_item_type"] = c.NetworkItemType
 			connector["vpn_region_id"] = c.VpnRegionId
 			connector["ip_v4_address"] = c.IPv4Address
 			connector["ip_v6_address"] = c.IPv6Address

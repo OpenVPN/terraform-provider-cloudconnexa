@@ -2,24 +2,22 @@ data "cloudconnexa_network" "test-net" {
   name = "test-net"
 }
 
-resource "cloudconnexa_ip_service" "service_full_access" {
-  name              = "example-service-1"
-  type              = "IP_SOURCE"
-  description       = "test-description"
-  routes            = ["10.0.0.2/32"]
-  network_item_type = "NETWORK"
-  network_item_id   = data.cloudconnexa_network.test-net.id
+resource "cloudconnexa_network_ip_service" "service_full_access" {
+  name        = "example-service-1"
+  type        = "IP_SOURCE"
+  description = "test-description"
+  routes = ["10.0.0.2/32"]
+  network_id  = data.cloudconnexa_network.test-net.id
   config {
     service_types = ["ANY"]
   }
 }
 
-resource "cloudconnexa_ip_service" "service_custom_access" {
-  name              = "example-service-2"
-  type              = "IP_SOURCE"
-  network_item_type = "NETWORK"
-  network_item_id   = data.cloudconnexa_network.test-net.id
-  routes            = ["10.0.0.2/32"]
+resource "cloudconnexa_network_ip_service" "service_custom_access" {
+  name       = "example-service-2"
+  type       = "IP_SOURCE"
+  network_id = data.cloudconnexa_network.test-net.id
+  routes = ["10.0.0.2/32"]
   config {
     service_types = ["HTTP", "HTTPS"]
     custom_service_types {
@@ -61,14 +59,13 @@ variable "service_custom_access_advanced" {
   }
 }
 
-resource "cloudconnexa_ip_service" "service_custom_access_advanced" {
-  for_each          = var.service_custom_access_advanced
-  name              = each.key
-  type              = "SERVICE_DESTINATION"
-  description       = try(each.value.description, local.created_by)
-  network_item_type = "NETWORK"
-  network_item_id   = data.cloudconnexa_network.test-net.id
-  routes            = each.value.route
+resource "cloudconnexa_netork_ip_service" "service_custom_access_advanced" {
+  for_each   = var.service_custom_access_advanced
+  name       = each.key
+  type       = "SERVICE_DESTINATION"
+  description = try(each.value.description, local.created_by)
+  network_id = data.cloudconnexa_network.test-net.id
+  routes     = each.value.route
   config {
     service_types = ["ANY"]
   }

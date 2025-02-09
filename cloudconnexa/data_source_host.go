@@ -66,15 +66,10 @@ func dataSourceHost() *schema.Resource {
 							Computed:    true,
 							Description: "The connector description.",
 						},
-						"network_item_id": {
+						"host_id": {
 							Type:        schema.TypeString,
 							Computed:    true,
 							Description: "The id of the host with which the connector is associated.",
-						},
-						"network_item_type": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "The network object type of the connector. This typically will be set to `HOST`.",
 						},
 						"vpn_region_id": {
 							Type:        schema.TypeString,
@@ -126,8 +121,7 @@ func getConnectorsSliceByConnectors(connectors *[]cloudconnexa.Connector) []inte
 		connector := make(map[string]interface{})
 		connector["id"] = c.Id
 		connector["name"] = c.Name
-		connector["network_item_id"] = c.NetworkItemId
-		connector["network_item_type"] = c.NetworkItemType
+		connector["host_id"] = c.NetworkItemId
 		connector["vpn_region_id"] = c.VpnRegionId
 		connector["ip_v4_address"] = c.IPv4Address
 		connector["ip_v6_address"] = c.IPv6Address

@@ -115,12 +115,7 @@ func resourceNetwork() *schema.Resource {
 							Required:    true,
 							Description: "The id of the region where the default connector will be deployed.",
 						},
-						"network_item_type": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "The network object type. This typically will be set to `NETWORK`.",
-						},
-						"network_item_id": {
+						"network_id": {
 							Type:        schema.TypeString,
 							Computed:    true,
 							Description: "The parent network id.",
@@ -191,8 +186,7 @@ func resourceNetworkCreate(ctx context.Context, d *schema.ResourceData, m interf
 	connector := make(map[string]interface{})
 	connector["id"] = network.Connectors[0].Id
 	connector["name"] = network.Connectors[0].Name
-	connector["network_item_id"] = network.Connectors[0].NetworkItemId
-	connector["network_item_type"] = network.Connectors[0].NetworkItemType
+	connector["network_id"] = network.Connectors[0].NetworkItemId
 	connector["vpn_region_id"] = network.Connectors[0].VpnRegionId
 	connector["ip_v4_address"] = network.Connectors[0].IPv4Address
 	connector["ip_v6_address"] = network.Connectors[0].IPv6Address

@@ -9,9 +9,9 @@ import (
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 )
 
-func dataSourceApplication() *schema.Resource {
+func dataSourceNetworkApplication() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceApplicationRead,
+		ReadContext: dataSourceNetworkApplicationRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:         schema.TypeString,
@@ -32,18 +32,14 @@ func dataSourceApplication() *schema.Resource {
 			"routes": {
 				Type:     schema.TypeList,
 				Computed: true,
-				Elem:     resourceApplicationRoute(),
+				Elem:     resourceNetworkApplicationRoute(),
 			},
 			"config": {
 				Type:     schema.TypeList,
 				Computed: true,
-				Elem:     resourceApplicationConfig(),
+				Elem:     resourceNetworkApplicationConfig(),
 			},
-			"network_item_type": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"network_item_id": {
+			"network_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -51,16 +47,15 @@ func dataSourceApplication() *schema.Resource {
 	}
 }
 
-func dataSourceApplicationRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
+func dataSourceNetworkApplicationRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
 	var application *cloudconnexa.ApplicationResponse
 	var err error
 	applicationId := data.Get("id").(string)
 	applicationName := data.Get("name").(string)
-	networkItemType := data.Get("network_item_type").(string)
 	if applicationId != "" {
-		application, err = c.Applications.Get(applicationId, networkItemType)
+		application, err = c.Applications.Get(applicationId, "NETWORK")
 		if err != nil {
 			if strings.Contains(err.Error(), "status code: 404") {
 				return append(diags, diag.Errorf("Application with id %s was not found", applicationId)...)
@@ -72,7 +67,7 @@ func dataSourceApplicationRead(ctx context.Context, data *schema.ResourceData, i
 			return append(diags, diag.Errorf("Application with id %s was not found", applicationId)...)
 		}
 	} else if applicationName != "" {
-		applicationsAll, err := c.Applications.List(networkItemType)
+		applicationsAll, err := c.Applications.List("NETWORK")
 		var applicationCount int
 		if err != nil {
 			return diag.FromErr(err)
@@ -89,7 +84,7 @@ func dataSourceApplicationRead(ctx context.Context, data *schema.ResourceData, i
 		} else if applicationCount > 1 {
 			return append(diags, diag.Errorf("More than 1 application with name %s was found. Please use id instead", applicationName)...)
 		} else {
-			application, err = c.Applications.GetByName(applicationName, networkItemType)
+			application, err = c.Applications.GetByName(applicationName, "NETWORK")
 			if err != nil {
 				return diag.FromErr(err)
 			}

@@ -8,10 +8,10 @@ import (
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 )
 
-func dataSourceConnector() *schema.Resource {
+func dataSourceHostConnector() *schema.Resource {
 	return &schema.Resource{
 		Description: "Use an `cloudconnexa_connector` data source to read an existing CloudConnexa connector.",
-		ReadContext: dataSourceConnectorRead,
+		ReadContext: dataSourceHostConnectorRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:         schema.TypeString,
@@ -30,15 +30,10 @@ func dataSourceConnector() *schema.Resource {
 				Computed:    true,
 				Description: "The description of the connector.",
 			},
-			"network_item_id": {
+			"host_id": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The id of the network or host with which the connector is associated.",
-			},
-			"network_item_type": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The network object type of the connector. This typically will be set to either `NETWORK` or `HOST`.",
+				Description: "The id of the host with which the connector is associated.",
 			},
 			"vpn_region_id": {
 				Type:        schema.TypeString,
@@ -69,7 +64,7 @@ func dataSourceConnector() *schema.Resource {
 	}
 }
 
-func dataSourceConnectorRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func dataSourceHostConnectorRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
 	var connector *cloudconnexa.Connector
@@ -77,21 +72,20 @@ func dataSourceConnectorRead(ctx context.Context, d *schema.ResourceData, m inte
 	var token string
 	connectorName := d.Get("name").(string)
 	connectorId := d.Get("id").(string)
-	networkItemType := d.Get("network_item_type").(string)
 	if connectorId != "" {
-		connector, err = c.Connectors.GetByID(connectorId, networkItemType)
+		connector, err = c.Connectors.GetByID(connectorId, "HOST")
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
 		if connector == nil {
 			return append(diags, diag.Errorf("Connector with id %s was not found", connectorId)...)
 		}
-		token, err = c.Connectors.GetToken(connector.Id, networkItemType)
+		token, err = c.Connectors.GetToken(connector.Id, "HOST")
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
 	} else if connectorName != "" {
-		connectorsAll, err := c.Connectors.List(networkItemType)
+		connectorsAll, err := c.Connectors.List("HOST")
 		var connectorCount int
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
@@ -108,13 +102,13 @@ func dataSourceConnectorRead(ctx context.Context, d *schema.ResourceData, m inte
 		} else if connectorCount > 1 {
 			return append(diags, diag.Errorf("More than 1 connector with name %s was found. Please use id instead", connectorName)...)
 		} else {
-			connector, err = c.Connectors.GetByName(connectorName, networkItemType)
+			connector, err = c.Connectors.GetByName(connectorName, "HOST")
 			if err != nil {
 				return append(diags, diag.FromErr(err)...)
 			}
 		}
 
-		token, err = c.Connectors.GetToken(connector.Id, networkItemType)
+		token, err = c.Connectors.GetToken(connector.Id, "HOST")
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
@@ -126,14 +120,13 @@ func dataSourceConnectorRead(ctx context.Context, d *schema.ResourceData, m inte
 	d.SetId(connector.Id)
 	d.Set("name", connector.Name)
 	d.Set("description", connector.Description)
-	d.Set("network_item_id", connector.NetworkItemId)
-	d.Set("network_item_type", connector.NetworkItemType)
+	d.Set("host_id", connector.NetworkItemId)
 	d.Set("vpn_region_id", connector.VpnRegionId)
 	d.Set("ip_v4_address", connector.IPv4Address)
 	d.Set("ip_v6_address", connector.IPv6Address)
 	d.Set("token", token)
 
-	profile, err := c.Connectors.GetProfile(connector.Id, networkItemType)
+	profile, err := c.Connectors.GetProfile(connector.Id, "HOST")
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
