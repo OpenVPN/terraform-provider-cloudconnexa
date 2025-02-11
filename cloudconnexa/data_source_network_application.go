@@ -14,16 +14,14 @@ func dataSourceNetworkApplication() *schema.Resource {
 		ReadContext: dataSourceNetworkApplicationRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ExactlyOneOf: []string{"id", "name"},
-				Description:  "Application ID",
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Application ID",
 			},
 			"name": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ExactlyOneOf: []string{"id", "name"},
-				Description:  "Application name",
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Application name",
 			},
 			"description": {
 				Type:     schema.TypeString,
@@ -52,45 +50,17 @@ func dataSourceNetworkApplicationRead(ctx context.Context, data *schema.Resource
 	var diags diag.Diagnostics
 	var application *cloudconnexa.ApplicationResponse
 	var err error
-	applicationId := data.Get("id").(string)
-	applicationName := data.Get("name").(string)
-	if applicationId != "" {
-		application, err = c.Applications.Get(applicationId, "NETWORK")
-		if err != nil {
-			if strings.Contains(err.Error(), "status code: 404") {
-				return append(diags, diag.Errorf("Application with id %s was not found", applicationId)...)
-			} else {
-				return append(diags, diag.FromErr(err)...)
-			}
-		}
-		if application == nil {
-			return append(diags, diag.Errorf("Application with id %s was not found", applicationId)...)
-		}
-	} else if applicationName != "" {
-		applicationsAll, err := c.Applications.List("NETWORK")
-		var applicationCount int
-		if err != nil {
-			return diag.FromErr(err)
-		}
-
-		for _, app := range applicationsAll {
-			if app.Name == applicationName {
-				applicationCount++
-			}
-		}
-
-		if applicationCount == 0 {
-			return append(diags, diag.Errorf("Application with name %s was not found", applicationName)...)
-		} else if applicationCount > 1 {
-			return append(diags, diag.Errorf("More than 1 application with name %s was found. Please use id instead", applicationName)...)
+	id := data.Get("id").(string)
+	application, err = c.NetworkApplications.Get(id)
+	if err != nil {
+		if strings.Contains(err.Error(), "status code: 404") {
+			return append(diags, diag.Errorf("Application with id %s was not found", id)...)
 		} else {
-			application, err = c.Applications.GetByName(applicationName, "NETWORK")
-			if err != nil {
-				return diag.FromErr(err)
-			}
+			return append(diags, diag.FromErr(err)...)
 		}
-	} else {
-		return append(diags, diag.Errorf("Application name or id is missing")...)
+	}
+	if application == nil {
+		return append(diags, diag.Errorf("Application with id %s was not found", id)...)
 	}
 	setApplicationData(data, application)
 	return nil

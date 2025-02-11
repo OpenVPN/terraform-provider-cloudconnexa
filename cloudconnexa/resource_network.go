@@ -191,7 +191,7 @@ func resourceNetworkCreate(ctx context.Context, d *schema.ResourceData, m interf
 	connector["ip_v4_address"] = network.Connectors[0].IPv4Address
 	connector["ip_v6_address"] = network.Connectors[0].IPv6Address
 	client := m.(*cloudconnexa.Client)
-	profile, err := client.Connectors.GetProfile(network.Connectors[0].Id, "NETWORK")
+	profile, err := client.NetworkConnectors.GetProfile(network.Connectors[0].Id)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -227,7 +227,7 @@ func resourceNetworkRead(ctx context.Context, d *schema.ResourceData, m interfac
 	if len(d.Get("default_connector").([]interface{})) > 0 {
 		configConnector := d.Get("default_connector").([]interface{})[0].(map[string]interface{})
 		connectorName := configConnector["name"].(string)
-		networkConnectors, err := c.Connectors.GetByNetworkID(network.Id)
+		networkConnectors, err := c.NetworkConnectors.ListByNetworkId(network.Id)
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
@@ -274,13 +274,13 @@ func resourceNetworkUpdate(ctx context.Context, d *schema.ResourceData, m interf
 		newSlice := new.([]interface{})
 		if len(oldSlice) == 0 && len(newSlice) == 1 {
 			// This happens when importing the resource
-			newConnector := cloudconnexa.Connector{
+			newConnector := cloudconnexa.NetworkConnector{
 				Name:            newSlice[0].(map[string]interface{})["name"].(string),
 				VpnRegionId:     newSlice[0].(map[string]interface{})["vpn_region_id"].(string),
 				Description:     newSlice[0].(map[string]interface{})["description"].(string),
 				NetworkItemType: "NETWORK",
 			}
-			_, err := c.Connectors.Create(newConnector, d.Id())
+			_, err := c.NetworkConnectors.Create(newConnector, d.Id())
 			if err != nil {
 				return append(diags, diag.FromErr(err)...)
 			}
@@ -291,14 +291,14 @@ func resourceNetworkUpdate(ctx context.Context, d *schema.ResourceData, m interf
 				oldMap["description"].(string) != newMap["description"].(string) ||
 				oldMap["vpn_region_id"].(string) != newMap["vpn_region_id"].(string) {
 
-				newConnector := cloudconnexa.Connector{
+				newConnector := cloudconnexa.NetworkConnector{
 					Id:              oldMap["id"].(string),
 					Name:            newMap["name"].(string),
 					VpnRegionId:     newMap["vpn_region_id"].(string),
 					Description:     newMap["description"].(string),
 					NetworkItemType: "NETWORK",
 				}
-				_, err := c.Connectors.Update(newConnector)
+				_, err := c.NetworkConnectors.Update(newConnector)
 				if err != nil {
 					return append(diags, diag.FromErr(err)...)
 				}

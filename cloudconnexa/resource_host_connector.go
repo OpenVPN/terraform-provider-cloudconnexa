@@ -71,13 +71,13 @@ func resourceHostConnector() *schema.Resource {
 func resourceHostConnectorUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	connector := cloudconnexa.Connector{
+	connector := cloudconnexa.HostConnector{
 		Id:          d.Id(),
 		Name:        d.Get("name").(string),
 		Description: d.Get("description").(string),
 		VpnRegionId: d.Get("vpn_region_id").(string),
 	}
-	_, err := c.Connectors.Update(connector)
+	_, err := c.HostConnectors.Update(connector)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -91,24 +91,24 @@ func resourceHostConnectorCreate(ctx context.Context, d *schema.ResourceData, m 
 	description := d.Get("description").(string)
 	networkItemId := d.Get("host_id").(string)
 	vpnRegionId := d.Get("vpn_region_id").(string)
-	connector := cloudconnexa.Connector{
+	connector := cloudconnexa.HostConnector{
 		Name:            name,
 		NetworkItemId:   networkItemId,
 		NetworkItemType: "HOST",
 		VpnRegionId:     vpnRegionId,
 		Description:     description,
 	}
-	conn, err := c.Connectors.Create(connector, networkItemId)
+	conn, err := c.HostConnectors.Create(connector, networkItemId)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	d.SetId(conn.Id)
-	profile, err := c.Connectors.GetProfile(conn.Id, "HOST")
+	profile, err := c.HostConnectors.GetProfile(conn.Id)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
 	d.Set("profile", profile)
-	token, err := c.Connectors.GetToken(conn.Id, "HOST")
+	token, err := c.HostConnectors.GetToken(conn.Id)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -123,11 +123,11 @@ func resourceHostConnectorCreate(ctx context.Context, d *schema.ResourceData, m 
 func resourceHostConnectorRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	connector, err := c.Connectors.GetByID(d.Id(), "HOST")
+	connector, err := c.HostConnectors.GetByID(d.Id())
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	token, err := c.Connectors.GetToken(connector.Id, "HOST")
+	token, err := c.HostConnectors.GetToken(d.Id())
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -142,7 +142,7 @@ func resourceHostConnectorRead(ctx context.Context, d *schema.ResourceData, m in
 		d.Set("ip_v4_address", connector.IPv4Address)
 		d.Set("ip_v6_address", connector.IPv6Address)
 		d.Set("token", token)
-		profile, err := c.Connectors.GetProfile(connector.Id, connector.NetworkItemType)
+		profile, err := c.HostConnectors.GetProfile(connector.Id)
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
@@ -154,7 +154,7 @@ func resourceHostConnectorRead(ctx context.Context, d *schema.ResourceData, m in
 func resourceHostConnectorDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	err := c.Connectors.Delete(d.Id(), d.Get("host_id").(string), "HOST")
+	err := c.HostConnectors.Delete(d.Id(), d.Get("host_id").(string))
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}

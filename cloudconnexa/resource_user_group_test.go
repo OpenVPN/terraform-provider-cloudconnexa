@@ -60,8 +60,8 @@ func testAccCheckCloudConnexaUserGroupDestroy(s *terraform.State) error {
 		if rs.Type != "cloudconnexa_user_group" {
 			continue
 		}
-		username := rs.Primary.Attributes["username"]
-		u, err := c.UserGroups.GetByName(username)
+		id := rs.Primary.Attributes["id"]
+		u, err := c.UserGroups.Get(id)
 		if err == nil {
 			if u != nil {
 				return errors.New("user still exists")

@@ -35,11 +35,6 @@ func resourceHostIPService() *schema.Resource {
 				ValidateFunc: validation.StringLenBetween(1, 255),
 				Optional:     true,
 			},
-			"type": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringInSlice([]string{"IP_SOURCE", "SERVICE_DESTINATION"}, false),
-			},
 			"routes": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -64,7 +59,7 @@ func resourceHostIPService() *schema.Resource {
 func resourceHostIpServiceUpdate(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 
-	s, err := c.IPServices.Update(data.Id(), resourceDataToHostIpService(data))
+	s, err := c.HostIPServices.Update(data.Id(), resourceDataToHostIpService(data))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -124,7 +119,7 @@ func customHostServiceTypesConfig() map[string]*schema.Schema {
 func resourceHostIpServiceRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	service, err := c.IPServices.Get(data.Id(), "HOST")
+	service, err := c.HostIPServices.Get(data.Id())
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -140,7 +135,6 @@ func setHostIpServiceResourceData(data *schema.ResourceData, service *cloudconne
 	data.SetId(service.Id)
 	_ = data.Set("name", service.Name)
 	_ = data.Set("description", service.Description)
-	_ = data.Set("type", service.Type)
 	_ = data.Set("routes", flattenHostIpServiceRoutes(service.Routes))
 	_ = data.Set("config", flattenHostServiceConfig(service.Config))
 	_ = data.Set("host_id", service.NetworkItemId)
@@ -149,7 +143,7 @@ func setHostIpServiceResourceData(data *schema.ResourceData, service *cloudconne
 func resourceHostIpServiceDelete(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	err := c.IPServices.Delete(data.Id(), "HOST")
+	err := c.HostIPServices.Delete(data.Id())
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -200,7 +194,7 @@ func resourceHostIpServiceCreate(ctx context.Context, data *schema.ResourceData,
 	client := m.(*cloudconnexa.Client)
 
 	service := resourceDataToHostIpService(data)
-	createdService, err := client.IPServices.Create(service)
+	createdService, err := client.HostIPServices.Create(service)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -281,7 +275,7 @@ func resourceDataToHostIpService(data *schema.ResourceData) *cloudconnexa.IPServ
 		Description:     data.Get("description").(string),
 		NetworkItemId:   data.Get("host_id").(string),
 		NetworkItemType: "HOST",
-		Type:            data.Get("type").(string),
+		Type:            "SERVICE_DESTINATION",
 		Routes:          configRoutes,
 		Config:          &config,
 	}

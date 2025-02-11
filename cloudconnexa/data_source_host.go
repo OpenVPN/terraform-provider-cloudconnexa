@@ -14,12 +14,12 @@ func dataSourceHost() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
-				Computed:    true,
+				Required:    true,
 				Description: "The host ID.",
 			},
 			"name": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Computed:    true,
 				Description: "The name of the host.",
 			},
 			"description": {
@@ -96,13 +96,13 @@ func dataSourceHost() *schema.Resource {
 func dataSourceHostRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	name := d.Get("name").(string)
-	host, err := c.Hosts.GetByName(name)
+	id := d.Get("id").(string)
+	host, err := c.Hosts.Get(id)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
 	if host == nil {
-		return append(diags, diag.Errorf("Host with name %s was not found", name)...)
+		return append(diags, diag.Errorf("Host with id %s was not found", id)...)
 	}
 
 	d.SetId(host.Id)
@@ -115,7 +115,7 @@ func dataSourceHostRead(ctx context.Context, d *schema.ResourceData, m interface
 	return diags
 }
 
-func getConnectorsSliceByConnectors(connectors *[]cloudconnexa.Connector) []interface{} {
+func getConnectorsSliceByConnectors(connectors *[]cloudconnexa.HostConnector) []interface{} {
 	conns := make([]interface{}, len(*connectors))
 	for i, c := range *connectors {
 		connector := make(map[string]interface{})

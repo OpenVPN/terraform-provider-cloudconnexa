@@ -58,7 +58,7 @@ func resourceHostApplication() *schema.Resource {
 func resourceHostApplicationUpdate(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 
-	s, err := c.Applications.Update(data.Id(), resourceDataToHostApplication(data))
+	s, err := c.HostApplications.Update(data.Id(), resourceDataToHostApplication(data))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -133,7 +133,7 @@ func customApplicationTypesConfig() map[string]*schema.Schema {
 func resourceHostApplicationRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	application, err := c.Applications.Get(data.Id(), "HOST")
+	application, err := c.HostApplications.Get(data.Id())
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -157,7 +157,7 @@ func setApplicationData(data *schema.ResourceData, application *cloudconnexa.App
 func resourceHostApplicationDelete(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	err := c.Applications.Delete(data.Id(), "HOST")
+	err := c.HostApplications.Delete(data.Id())
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -208,7 +208,7 @@ func resourceHostApplicationCreate(ctx context.Context, data *schema.ResourceDat
 	client := m.(*cloudconnexa.Client)
 
 	application := resourceDataToHostApplication(data)
-	createdApplication, err := client.Applications.Create(application)
+	createdApplication, err := client.HostApplications.Create(application)
 	if err != nil {
 		return diag.FromErr(err)
 	}

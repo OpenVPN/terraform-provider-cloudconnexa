@@ -15,16 +15,14 @@ func dataSourceNetwork() *schema.Resource {
 		ReadContext: dataSourceNetworkRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ExactlyOneOf: []string{"id", "name"},
-				Description:  "The network ID.",
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The network ID.",
 			},
 			"name": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ExactlyOneOf: []string{"id", "name"},
-				Description:  "The network name.",
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The network name.",
 			},
 			"description": {
 				Type:        schema.TypeString,
@@ -131,26 +129,13 @@ func dataSourceNetworkRead(ctx context.Context, d *schema.ResourceData, m interf
 	var diags diag.Diagnostics
 	var network *cloudconnexa.Network
 	var err error
-	networkId := d.Get("id").(string)
-	networkName := d.Get("name").(string)
-	if networkId != "" {
-		network, err = c.Networks.Get(networkId)
-		if err != nil {
-			return append(diags, diag.FromErr(err)...)
-		}
-		if network == nil {
-			return append(diags, diag.Errorf("Network with id %s was not found", networkId)...)
-		}
-	} else if networkName != "" {
-		network, err = c.Networks.GetByName(networkName)
-		if err != nil {
-			return append(diags, diag.FromErr(err)...)
-		}
-		if network == nil {
-			return append(diags, diag.Errorf("Network with name %s was not found", networkName)...)
-		}
-	} else {
-		return append(diags, diag.Errorf("Network name or id is missing")...)
+	id := d.Get("id").(string)
+	network, err = c.Networks.Get(id)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	if network == nil {
+		return append(diags, diag.Errorf("Network with id %s was not found", id)...)
 	}
 	d.SetId(network.Id)
 	d.Set("name", network.Name)

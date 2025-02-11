@@ -88,12 +88,7 @@ func resourceHost() *schema.Resource {
 							Required:    true,
 							Description: "The id of the region where the connector will be deployed.",
 						},
-						"network_item_type": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "The network object type. This typically will be set to `HOST`.",
-						},
-						"network_item_id": {
+						"host_id": {
 							Type:        schema.TypeString,
 							Computed:    true,
 							Description: "The host id.",
@@ -122,10 +117,10 @@ func resourceHost() *schema.Resource {
 func resourceHostCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	var connectors []cloudconnexa.Connector
+	var connectors []cloudconnexa.HostConnector
 	configConnectors := d.Get("connector").(*schema.Set)
 	for _, c := range configConnectors.List() {
-		connectors = append(connectors, cloudconnexa.Connector{
+		connectors = append(connectors, cloudconnexa.HostConnector{
 			Name:        c.(map[string]interface{})["name"].(string),
 			Description: c.(map[string]interface{})["description"].(string),
 			VpnRegionId: c.(map[string]interface{})["vpn_region_id"].(string),
@@ -188,20 +183,20 @@ func resourceHostUpdate(ctx context.Context, d *schema.ResourceData, m interface
 		newSet := new.(*schema.Set)
 		if oldSet.Len() == 0 && newSet.Len() > 0 {
 			// This happens when importing the resource
-			newConnector := cloudconnexa.Connector{
+			newConnector := cloudconnexa.HostConnector{
 				Name:            newSet.List()[0].(map[string]interface{})["name"].(string),
 				Description:     newSet.List()[0].(map[string]interface{})["description"].(string),
 				VpnRegionId:     newSet.List()[0].(map[string]interface{})["vpn_region_id"].(string),
 				NetworkItemType: "HOST",
 			}
-			_, err := c.Connectors.Create(newConnector, d.Id())
+			_, err := c.HostConnectors.Create(newConnector, d.Id())
 			if err != nil {
 				return append(diags, diag.FromErr(err)...)
 			}
 		} else {
 			for _, o := range oldSet.List() {
 				if !newSet.Contains(o) {
-					err := c.Connectors.Delete(o.(map[string]interface{})["id"].(string), d.Id(), "HOST")
+					err := c.HostConnectors.Delete(o.(map[string]interface{})["id"].(string), d.Id())
 					if err != nil {
 						diags = append(diags, diag.FromErr(err)...)
 					}
@@ -209,13 +204,13 @@ func resourceHostUpdate(ctx context.Context, d *schema.ResourceData, m interface
 			}
 			for _, n := range newSet.List() {
 				if !oldSet.Contains(n) {
-					newConnector := cloudconnexa.Connector{
+					newConnector := cloudconnexa.HostConnector{
 						Name:            n.(map[string]interface{})["name"].(string),
 						Description:     n.(map[string]interface{})["description"].(string),
 						VpnRegionId:     n.(map[string]interface{})["vpn_region_id"].(string),
 						NetworkItemType: "HOST",
 					}
-					_, err := c.Connectors.Create(newConnector, d.Id())
+					_, err := c.HostConnectors.Create(newConnector, d.Id())
 					if err != nil {
 						diags = append(diags, diag.FromErr(err)...)
 					}
@@ -253,7 +248,7 @@ func resourceHostDelete(ctx context.Context, d *schema.ResourceData, m interface
 	return diags
 }
 
-func setConnectorsList(data *schema.ResourceData, c *cloudconnexa.Client, connectors []cloudconnexa.Connector) diag.Diagnostics {
+func setConnectorsList(data *schema.ResourceData, c *cloudconnexa.Client, connectors []cloudconnexa.HostConnector) diag.Diagnostics {
 	connectorsList := make([]interface{}, len(connectors))
 	for i, connector := range connectors {
 		connectorsData, err := getConnectorsListItem(c, connector)
@@ -269,19 +264,18 @@ func setConnectorsList(data *schema.ResourceData, c *cloudconnexa.Client, connec
 	return nil
 }
 
-func getConnectorsListItem(c *cloudconnexa.Client, connector cloudconnexa.Connector) (map[string]interface{}, error) {
+func getConnectorsListItem(c *cloudconnexa.Client, connector cloudconnexa.HostConnector) (map[string]interface{}, error) {
 	connectorsData := map[string]interface{}{
-		"id":                connector.Id,
-		"name":              connector.Name,
-		"description":       connector.Description,
-		"vpn_region_id":     connector.VpnRegionId,
-		"ip_v4_address":     connector.IPv4Address,
-		"ip_v6_address":     connector.IPv6Address,
-		"network_item_id":   connector.NetworkItemId,
-		"network_item_type": connector.NetworkItemType,
+		"id":            connector.Id,
+		"name":          connector.Name,
+		"description":   connector.Description,
+		"vpn_region_id": connector.VpnRegionId,
+		"ip_v4_address": connector.IPv4Address,
+		"ip_v6_address": connector.IPv6Address,
+		"host_id":       connector.NetworkItemId,
 	}
 
-	connectorProfile, err := c.Connectors.GetProfile(connector.Id, connector.NetworkItemType)
+	connectorProfile, err := c.HostConnectors.GetProfile(connector.Id)
 	if err != nil {
 		return nil, err
 	}

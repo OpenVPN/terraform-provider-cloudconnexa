@@ -68,7 +68,7 @@ func resourceNetworkIPService() *schema.Resource {
 func resourceNetworkIpServiceUpdate(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 
-	s, err := c.IPServices.Update(data.Id(), resourceDataToNetworkIpService(data))
+	s, err := c.NetworkIPServices.Update(data.Id(), resourceDataToNetworkIpService(data))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -128,7 +128,7 @@ func customNetworkIpServiceTypesConfig() map[string]*schema.Schema {
 func resourceNetworkIpServiceRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	service, err := c.IPServices.Get(data.Id(), "NETWORK")
+	service, err := c.NetworkIPServices.Get(data.Id())
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -153,7 +153,7 @@ func setNetworkIpServiceResourceData(data *schema.ResourceData, service *cloudco
 func resourceNetworkIpServiceDelete(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	err := c.IPServices.Delete(data.Id(), "NETWORK")
+	err := c.NetworkIPServices.Delete(data.Id())
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -204,7 +204,7 @@ func resourceNetworkIpServiceCreate(ctx context.Context, data *schema.ResourceDa
 	client := m.(*cloudconnexa.Client)
 
 	service := resourceDataToNetworkIpService(data)
-	createdService, err := client.IPServices.Create(service)
+	createdService, err := client.NetworkIPServices.Create(service)
 	if err != nil {
 		return diag.FromErr(err)
 	}

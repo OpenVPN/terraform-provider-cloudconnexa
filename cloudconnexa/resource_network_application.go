@@ -58,7 +58,7 @@ func resourceNetworkApplication() *schema.Resource {
 func resourceNetworkApplicationUpdate(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 
-	s, err := c.Applications.Update(data.Id(), resourceDataToNetworkApplication(data))
+	s, err := c.NetworkApplications.Update(data.Id(), resourceDataToNetworkApplication(data))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -115,7 +115,7 @@ func resourceNetworkApplicationConfig() *schema.Resource {
 func resourceNetworkApplicationRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	application, err := c.Applications.Get(data.Id(), "NETWORK")
+	application, err := c.NetworkApplications.Get(data.Id())
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -130,7 +130,7 @@ func resourceNetworkApplicationRead(ctx context.Context, data *schema.ResourceDa
 func resourceNetworkApplicationDelete(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	err := c.Applications.Delete(data.Id(), "NETWORK")
+	err := c.NetworkApplications.Delete(data.Id())
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -141,7 +141,7 @@ func resourceNetworkApplicationCreate(ctx context.Context, data *schema.Resource
 	client := m.(*cloudconnexa.Client)
 
 	application := resourceDataToNetworkApplication(data)
-	createdApplication, err := client.Applications.Create(application)
+	createdApplication, err := client.NetworkApplications.Create(application)
 	if err != nil {
 		return diag.FromErr(err)
 	}
