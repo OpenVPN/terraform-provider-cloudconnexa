@@ -49,7 +49,7 @@ func dataSourceHostIPService() *schema.Resource {
 
 func dataSourceHostIPServiceRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
-	service, err := c.HostIPServices.Get(data.Id())
+	service, err := c.HostIPServices.Get(data.Get("id").(string))
 
 	if err != nil {
 		return diag.FromErr(err)
