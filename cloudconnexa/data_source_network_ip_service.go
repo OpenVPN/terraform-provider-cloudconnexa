@@ -7,9 +7,9 @@ import (
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 )
 
-func dataSourceIPService() *schema.Resource {
+func dataSourceNetworkIPService() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceIPServiceRead,
+		ReadContext: dataSourceNetworkIPServiceRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:     schema.TypeString,
@@ -37,13 +37,9 @@ func dataSourceIPService() *schema.Resource {
 			"config": {
 				Type:     schema.TypeList,
 				Computed: true,
-				Elem:     resourceServiceConfig(),
+				Elem:     resourceNetworkIpServiceConfig(),
 			},
-			"network_item_type": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"network_item_id": {
+			"network_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -51,15 +47,13 @@ func dataSourceIPService() *schema.Resource {
 	}
 }
 
-func dataSourceIPServiceRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
+func dataSourceNetworkIPServiceRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
-	service, err := c.IPServices.Get(
-		data.Id(),
-	)
+	service, err := c.NetworkIPServices.Get(data.Get("id").(string))
 
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	setResourceData(data, service)
+	setNetworkIpServiceResourceData(data, service)
 	return nil
 }

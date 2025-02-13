@@ -19,7 +19,7 @@ variable "host_name" {
 resource "cloudconnexa_host" "host" {
   name            = "TEST_HOST_NAME"
   description     = "Terraform test description 2"
-  internet_access = "LOCAL"
+  internet_access = "SPLIT_TUNNEL_ON"
 
   connector {
     name          = "test"

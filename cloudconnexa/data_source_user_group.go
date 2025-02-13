@@ -16,16 +16,14 @@ func dataSourceUserGroup() *schema.Resource {
 		ReadContext: dataSourceUserGroupRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ExactlyOneOf: []string{"id", "name"},
-				Description:  "The user group ID.",
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The user group ID.",
 			},
 			"name": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ExactlyOneOf: []string{"id", "name"},
-				Description:  "The user group name.",
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The user group name.",
 			},
 			"vpn_region_ids": {
 				Type:     schema.TypeList,
@@ -43,7 +41,7 @@ func dataSourceUserGroup() *schema.Resource {
 			"internet_access": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The type of internet access provided. Valid values are `BLOCKED`, `GLOBAL_INTERNET`, or `LOCAL`. Defaults to `LOCAL`.",
+				Description: "The type of internet access provided. Valid values are `SPLIT_TUNNEL_ON`, `SPLIT_TUNNEL_OFF`, or `RESTRICTED_INTERNET`. Defaults to `SPLIT_TUNNEL_ON`.",
 			},
 			"max_device": {
 				Type:        schema.TypeInt,
@@ -61,7 +59,7 @@ func dataSourceUserGroup() *schema.Resource {
 			"connect_auth": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The type of connection authentication. Valid values are `AUTH`, `AUTO`, or `STRICT_AUTH`.",
+				Description: "The type of connection authentication. Valid values are `NO_AUTH`, `ON_PRIOR_AUTH`, or `EVERY_TIME`.",
 			},
 		},
 	}
@@ -72,34 +70,17 @@ func dataSourceUserGroupRead(ctx context.Context, d *schema.ResourceData, m inte
 	var diags diag.Diagnostics
 	var userGroup *cloudconnexa.UserGroup
 	var err error
-	userGroupId := d.Get("id").(string)
-	userGroupName := d.Get("name").(string)
-	if userGroupId != "" {
-		userGroup, err = c.UserGroups.Get(userGroupId)
-		if err != nil {
-			if strings.Contains(err.Error(), "user group not found") {
-				return append(diags, diag.Errorf("User group with id %s was not found", userGroupId)...)
-			} else {
-				return append(diags, diag.FromErr(err)...)
-			}
+	id := d.Get("id").(string)
+	userGroup, err = c.UserGroups.Get(id)
+	if err != nil {
+		if strings.Contains(err.Error(), "user group not found") {
+			return append(diags, diag.Errorf("User group with id %s was not found", id)...)
+		} else {
+			return append(diags, diag.FromErr(err)...)
 		}
-		if userGroup == nil {
-			return append(diags, diag.Errorf("User group with id %s was not found", userGroupId)...)
-		}
-	} else if userGroupName != "" {
-		userGroup, err = c.UserGroups.GetByName(userGroupName)
-		if err != nil {
-			if strings.Contains(err.Error(), "user group not found") {
-				return append(diags, diag.Errorf("User group with name %s was not found", userGroupName)...)
-			} else {
-				return append(diags, diag.FromErr(err)...)
-			}
-		}
-		if userGroup == nil {
-			return append(diags, diag.Errorf("User group with name %s was not found", userGroupName)...)
-		}
-	} else {
-		return append(diags, diag.Errorf("User group name or id is missing")...)
+	}
+	if userGroup == nil {
+		return append(diags, diag.Errorf("User group with id %s was not found", id)...)
 	}
 	d.SetId(userGroup.ID)
 	d.Set("name", userGroup.Name)

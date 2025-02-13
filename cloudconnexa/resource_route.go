@@ -100,7 +100,6 @@ func resourceRouteUpdate(ctx context.Context, d *schema.ResourceData, m interfac
 		return diags
 	}
 
-	networkItemId := d.Get("network_item_id").(string)
 	_, description := d.GetChange("description")
 	_, subnet := d.GetChange("subnet")
 	r := cloudconnexa.Route{
@@ -109,7 +108,7 @@ func resourceRouteUpdate(ctx context.Context, d *schema.ResourceData, m interfac
 		Subnet:      subnet.(string),
 	}
 
-	err := c.Routes.Update(networkItemId, r)
+	err := c.Routes.Update(r)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -120,8 +119,7 @@ func resourceRouteDelete(ctx context.Context, d *schema.ResourceData, m interfac
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
 	routeId := d.Id()
-	networkItemId := d.Get("network_item_id").(string)
-	err := c.Routes.Delete(networkItemId, routeId)
+	err := c.Routes.Delete(routeId)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}

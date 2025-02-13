@@ -60,7 +60,7 @@ func TestCreationDeletion(t *testing.T) {
 	connectorWasOnline := false
 	for i := 0; i < totalAttempts; i++ {
 		t.Logf("Waiting for connector to be online (%d/%d)", i+1, totalAttempts)
-		connector, err := client.Connectors.GetByID(connectorID)
+		connector, err := client.NetworkConnectors.GetByID(connectorID)
 		require.NoError(t, err, "Invalid connector ID in output")
 		if connector.ConnectionStatus == "online" {
 			connectorWasOnline = true

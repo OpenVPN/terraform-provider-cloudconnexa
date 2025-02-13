@@ -56,7 +56,7 @@ func testAccCheckCloudConnexaServiceExists(rn, networkId string) resource.TestCh
 		}
 
 		c := testAccProvider.Meta().(*cloudconnexa.Client)
-		_, err := c.IPServices.Get(rs.Primary.ID)
+		_, err := c.HostIPServices.Get(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -71,7 +71,7 @@ func testAccCheckCloudConnexaServiceDestroy(state *terraform.State) error {
 			continue
 		}
 		id := rs.Primary.Attributes["id"]
-		s, err := c.IPServices.Get(id)
+		s, err := c.HostIPServices.Get(id)
 		if err == nil || s != nil {
 			return fmt.Errorf("service still exists")
 		}

@@ -11,7 +11,7 @@ import (
 
 func resourceLocationContext() *schema.Resource {
 	return &schema.Resource{
-		Description:   "Use `cloudconnexa_location_context` to create a Location Context policy.",
+		Description:   "Use `cloudconnexa_location_context` to create a Location Context Check.",
 		CreateContext: resourceLocationContextCreate,
 		ReadContext:   resourceLocationContextRead,
 		DeleteContext: resourceLocationContextDelete,
@@ -40,30 +40,30 @@ func resourceLocationContext() *schema.Resource {
 				},
 				Description: "List of User Group IDs assigned to this policy.",
 			},
-			"ip_policy": {
+			"ip_check": {
 				Type:         schema.TypeList,
 				MaxItems:     1,
 				Optional:     true,
-				AtLeastOneOf: []string{"ip_policy", "country_policy"},
-				Elem:         ipPolicyConfig(),
+				AtLeastOneOf: []string{"ip_check", "country_check"},
+				Elem:         ipCheckConfig(),
 			},
-			"country_policy": {
+			"country_check": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
 				Optional: true,
-				Elem:     countryPolicyConfig(),
+				Elem:     countryCheckConfig(),
 			},
-			"default_policy": {
+			"default_check": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
 				Required: true,
-				Elem:     defaultPolicyConfig(),
+				Elem:     defaultCheckConfig(),
 			},
 		},
 	}
 }
 
-func ipPolicyConfig() *schema.Resource {
+func ipCheckConfig() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"allowed": {
@@ -94,7 +94,7 @@ func ipConfig() *schema.Resource {
 	}
 }
 
-func countryPolicyConfig() *schema.Resource {
+func countryCheckConfig() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"allowed": {
@@ -112,7 +112,7 @@ func countryPolicyConfig() *schema.Resource {
 	}
 }
 
-func defaultPolicyConfig() *schema.Resource {
+func defaultCheckConfig() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"allowed": {
@@ -179,73 +179,73 @@ func setLocationContextData(d *schema.ResourceData, lc *cloudconnexa.LocationCon
 	d.Set("description", lc.Description)
 	d.Set("user_groups_ids", lc.UserGroupsIds)
 
-	if lc.IpPolicy != nil {
-		ipPolicy := make(map[string]interface{})
-		ipPolicy["allowed"] = lc.IpPolicy.Allowed
+	if lc.IpCheck != nil {
+		ipCheck := make(map[string]interface{})
+		ipCheck["allowed"] = lc.IpCheck.Allowed
 		var ips []interface{}
-		for _, ip := range lc.IpPolicy.Ips {
+		for _, ip := range lc.IpCheck.Ips {
 			ips = append(ips, map[string]interface{}{
 				"ip":          ip.Ip,
 				"description": ip.Description,
 			})
 		}
-		ipPolicy["ips"] = ips
-		d.Set("ip_policy", []interface{}{ipPolicy})
+		ipCheck["ips"] = ips
+		d.Set("ip_check", []interface{}{ipCheck})
 	}
 
-	if lc.CountryPolicy != nil {
-		countryPolicy := make(map[string]interface{})
-		countryPolicy["allowed"] = lc.CountryPolicy.Allowed
-		countryPolicy["countries"] = lc.CountryPolicy.Countries
-		d.Set("country_policy", []interface{}{countryPolicy})
+	if lc.CountryCheck != nil {
+		countryCheck := make(map[string]interface{})
+		countryCheck["allowed"] = lc.CountryCheck.Allowed
+		countryCheck["countries"] = lc.CountryCheck.Countries
+		d.Set("country_check", []interface{}{countryCheck})
 	}
 
-	defaultPolicy := make(map[string]interface{})
-	defaultPolicy["allowed"] = lc.DefaultPolicy.Allowed
-	d.Set("default_policy", []interface{}{defaultPolicy})
+	defaultCheck := make(map[string]interface{})
+	defaultCheck["allowed"] = lc.DefaultCheck.Allowed
+	d.Set("default_check", []interface{}{defaultCheck})
 }
 
 func resourceDataToLocationContext(data *schema.ResourceData) *cloudconnexa.LocationContext {
-	defaultPolicyData := data.Get("default_policy").([]interface{})[0].(map[string]interface{})
-	defaultPolicy := &cloudconnexa.DefaultPolicy{
-		Allowed: defaultPolicyData["allowed"].(bool),
+	defaultCheckData := data.Get("default_check").([]interface{})[0].(map[string]interface{})
+	defaultCheck := &cloudconnexa.DefaultCheck{
+		Allowed: defaultCheckData["allowed"].(bool),
 	}
 
 	response := &cloudconnexa.LocationContext{
-		Id:            data.Id(),
-		Name:          data.Get("name").(string),
-		Description:   data.Get("description").(string),
-		DefaultPolicy: defaultPolicy,
+		Id:           data.Id(),
+		Name:         data.Get("name").(string),
+		Description:  data.Get("description").(string),
+		DefaultCheck: defaultCheck,
 	}
 
 	for _, id := range data.Get("user_groups_ids").([]interface{}) {
 		response.UserGroupsIds = append(response.UserGroupsIds, id.(string))
 	}
 
-	ipPolicyList := data.Get("ip_policy").([]interface{})
-	if len(ipPolicyList) > 0 {
-		ipPolicy := &cloudconnexa.IpPolicy{}
-		ipPolicyData := ipPolicyList[0].(map[string]interface{})
-		ipPolicy.Allowed = ipPolicyData["allowed"].(bool)
-		for _, ip := range ipPolicyData["ips"].([]interface{}) {
-			ipPolicy.Ips = append(ipPolicy.Ips, cloudconnexa.Ip{
+	ipCheckList := data.Get("ip_check").([]interface{})
+	if len(ipCheckList) > 0 {
+		ipCheck := &cloudconnexa.IpCheck{}
+		ipCheckData := ipCheckList[0].(map[string]interface{})
+		ipCheck.Allowed = ipCheckData["allowed"].(bool)
+		for _, ip := range ipCheckData["ips"].([]interface{}) {
+			ipCheck.Ips = append(ipCheck.Ips, cloudconnexa.Ip{
 				Ip:          ip.(map[string]interface{})["ip"].(string),
 				Description: ip.(map[string]interface{})["description"].(string),
 			})
 		}
-		response.IpPolicy = ipPolicy
+		response.IpCheck = ipCheck
 	}
 
-	countryPolicyList := data.Get("country_policy").([]interface{})
-	if len(countryPolicyList) > 0 && countryPolicyList[0] != nil {
-		countryPolicyData := data.Get("country_policy").([]interface{})[0].(map[string]interface{})
-		countryPolicy := &cloudconnexa.CountryPolicy{
-			Allowed: countryPolicyData["allowed"].(bool),
+	countryCheckList := data.Get("country_check").([]interface{})
+	if len(countryCheckList) > 0 && countryCheckList[0] != nil {
+		countryCheckData := data.Get("country_check").([]interface{})[0].(map[string]interface{})
+		countryCheck := &cloudconnexa.CountryCheck{
+			Allowed: countryCheckData["allowed"].(bool),
 		}
-		for _, country := range countryPolicyData["countries"].([]interface{}) {
-			countryPolicy.Countries = append(countryPolicy.Countries, country.(string))
+		for _, country := range countryCheckData["countries"].([]interface{}) {
+			countryCheck.Countries = append(countryCheck.Countries, country.(string))
 		}
-		response.CountryPolicy = countryPolicy
+		response.CountryCheck = countryCheck
 	}
 
 	return response

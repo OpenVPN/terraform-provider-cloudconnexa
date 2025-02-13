@@ -57,7 +57,7 @@ func testAccCheckCloudConnexaConnectorDestroy(s *terraform.State) error {
 		}
 
 		connectorId := rs.Primary.ID
-		connector, err := client.Connectors.GetByID(connectorId)
+		connector, err := client.HostConnectors.GetByID(connectorId)
 
 		if err != nil {
 			return err
