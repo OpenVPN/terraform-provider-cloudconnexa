@@ -52,3 +52,11 @@ resource "cloudconnexa_user_group" "ug02" {
 ### Read-Only
 
 - `id` (String) The ID of the user group.
+
+## Import
+
+Import is supported using the following syntax:
+
+```shell
+terraform import cloudconnexa_user_group.example <id>
+```

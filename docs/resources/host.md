@@ -63,3 +63,11 @@ Read-Only:
 - `ip_v4_address` (String) The IPV4 address of the connector.
 - `ip_v6_address` (String) The IPV6 address of the connector.
 - `profile` (String)
+
+## Import
+
+Import is supported using the following syntax:
+
+```shell
+terraform import cloudconnexa_host.example <id>
+```

@@ -71,3 +71,11 @@ Optional:
 
 - `ipv4_address` (String) An IPv4 address of the device.
 - `ipv6_address` (String) An IPv6 address of the device.
+
+## Import
+
+Import is supported using the following syntax:
+
+```shell
+terraform import cloudconnexa_user.example <id>
+```

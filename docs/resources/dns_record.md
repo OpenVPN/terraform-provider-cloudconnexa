@@ -36,3 +36,11 @@ resource "cloudconnexa_dns_record" "this" {
 ### Read-Only
 
 - `id` (String) The ID of this resource.
+
+## Import
+
+Import is supported using the following syntax:
+
+```shell
+terraform import cloudconnexa_dns_record.example <id>
+```

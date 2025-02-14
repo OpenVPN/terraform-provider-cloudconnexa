@@ -125,3 +125,11 @@ Optional:
 
 - `from_port` (Number)
 - `to_port` (Number)
+
+## Import
+
+Import is supported using the following syntax:
+
+```shell
+terraform import cloudconnexa_host_application.example <id>
+```

@@ -61,3 +61,11 @@ resource "cloudconnexa_network_connector" "this" {
 - `ip_v6_address` (String) The IPV6 address of the connector.
 - `profile` (String) OpenVPN profile of the connector.
 - `token` (String) Connector token.
+
+## Import
+
+Import is supported using the following syntax:
+
+```shell
+terraform import cloudconnexa_network_connector.example <id>
+```

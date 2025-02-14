@@ -128,3 +128,11 @@ Optional:
 
 - `children` (Set of String) ID of child entities assigned to access group source.
 - `parent` (String) ID of the entity assigned to access group source.
+
+## Import
+
+Import is supported using the following syntax:
+
+```shell
+terraform import cloudconnexa_access_group.example <id>
+```

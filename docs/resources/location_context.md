@@ -100,3 +100,11 @@ Required:
 Optional:
 
 - `description` (String)
+
+## Import
+
+Import is supported using the following syntax:
+
+```shell
+terraform import cloudconnexa_location_context.example <id>
+```
