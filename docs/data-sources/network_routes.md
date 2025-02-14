@@ -17,11 +17,10 @@ Use an `cloudconnexa_network_routes` data source to read all the routes associat
 
 ### Required
 
-- `network_item_id` (String) The id of the CloudConnexa network of the routes to be discovered.
+- `id` (String) The id of the CloudConnexa network of the routes to be discovered.
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
 - `routes` (List of Object) The list of routes. (see [below for nested schema](#nestedatt--routes))
 
 <a id="nestedatt--routes"></a>
@@ -29,7 +28,7 @@ Use an `cloudconnexa_network_routes` data source to read all the routes associat
 
 Read-Only:
 
-- `type` (String) The type of route. Valid values are `IP_V4`, `IP_V6`, and `DOMAIN`.
-- `value` (String) The value of the route, either an IPV4 address, an IPV6 address, or a DNS hostname.
-
-
+- `description` (String)
+- `id` (String)
+- `subnet` (String)
+- `type` (String)
