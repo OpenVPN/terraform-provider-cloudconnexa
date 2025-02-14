@@ -13,7 +13,7 @@ Use `cloudconnexa_access_group` to create an Access group.
 ## Example Usage
 
 ```terraform
-# Easy example To allow all resources in source and destination
+# Easy example to allow all resources in source and destination
 resource "cloudconnexa_access_group" "full_mesh" {
   name        = "Access Group name"
   description = "Add your description here"
