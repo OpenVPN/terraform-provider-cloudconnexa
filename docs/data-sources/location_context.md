@@ -17,16 +17,16 @@ description: |-
 
 ### Read-Only
 
-- `country_policy` (List of Object) (see [below for nested schema](#nestedatt--country_policy))
-- `default_policy` (List of Object) (see [below for nested schema](#nestedatt--default_policy))
+- `country_check` (List of Object) (see [below for nested schema](#nestedatt--country_check))
+- `default_check` (List of Object) (see [below for nested schema](#nestedatt--default_check))
 - `description` (String)
 - `id` (String) The ID of this resource.
-- `ip_policy` (List of Object) (see [below for nested schema](#nestedatt--ip_policy))
+- `ip_check` (List of Object) (see [below for nested schema](#nestedatt--ip_check))
 - `name` (String)
 - `user_groups_ids` (List of String)
 
-<a id="nestedatt--country_policy"></a>
-### Nested Schema for `country_policy`
+<a id="nestedatt--country_check"></a>
+### Nested Schema for `country_check`
 
 Read-Only:
 
@@ -34,24 +34,24 @@ Read-Only:
 - `countries` (List of String)
 
 
-<a id="nestedatt--default_policy"></a>
-### Nested Schema for `default_policy`
+<a id="nestedatt--default_check"></a>
+### Nested Schema for `default_check`
 
 Read-Only:
 
 - `allowed` (Boolean)
 
 
-<a id="nestedatt--ip_policy"></a>
-### Nested Schema for `ip_policy`
+<a id="nestedatt--ip_check"></a>
+### Nested Schema for `ip_check`
 
 Read-Only:
 
 - `allowed` (Boolean)
-- `ips` (List of Object) (see [below for nested schema](#nestedobjatt--ip_policy--ips))
+- `ips` (List of Object) (see [below for nested schema](#nestedobjatt--ip_check--ips))
 
-<a id="nestedobjatt--ip_policy--ips"></a>
-### Nested Schema for `ip_policy.ips`
+<a id="nestedobjatt--ip_check--ips"></a>
+### Nested Schema for `ip_check.ips`
 
 Read-Only:
 

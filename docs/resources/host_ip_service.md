@@ -19,7 +19,6 @@ description: |-
 
 - `host_id` (String)
 - `name` (String)
-- `type` (String)
 
 ### Optional
 
