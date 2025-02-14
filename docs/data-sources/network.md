@@ -17,15 +17,15 @@ Use a `cloudconnexa_network` data source to read an CloudConnexa network.
 
 ### Required
 
-- `name` (String) The network name.
+- `id` (String) The network ID.
 
 ### Read-Only
 
 - `connectors` (List of Object) The list of connectors associated with this network. (see [below for nested schema](#nestedatt--connectors))
+- `description` (String) The description of the network.
 - `egress` (Boolean) Boolean to indicate whether this network provides an egress or not.
-- `id` (String) The ID of this resource.
 - `internet_access` (String) The type of internet access provided. Valid values are `SPLIT_TUNNEL_ON`, `SPLIT_TUNNEL_OFF`, or `RESTRICTED_INTERNET`. Defaults to `SPLIT_TUNNEL_ON`.
-- `network_id` (String) The network ID.
+- `name` (String) The network name.
 - `routes` (List of Object) The routes associated with this network. (see [below for nested schema](#nestedatt--routes))
 - `system_subnets` (List of String) The IPV4 and IPV6 subnets automatically assigned to this network.
 
@@ -34,13 +34,13 @@ Use a `cloudconnexa_network` data source to read an CloudConnexa network.
 
 Read-Only:
 
-- `id` (String) The connector id.
-- `ip_v4_address` (String) The IPV4 address of the connector.
-- `ip_v6_address` (String) The IPV6 address of the connector.
-- `name` (String) The connector name.
-- `network_item_id` (String) The id of the network with which the connector is associated.
-- `network_item_type` (String) The network object type of the connector. This typically will be set to `NETWORK`.
-- `vpn_region_id` (String) The id of the region where the connector is deployed.
+- `description` (String)
+- `id` (String)
+- `ip_v4_address` (String)
+- `ip_v6_address` (String)
+- `name` (String)
+- `network_id` (String)
+- `vpn_region_id` (String)
 
 
 <a id="nestedatt--routes"></a>
@@ -48,8 +48,7 @@ Read-Only:
 
 Read-Only:
 
-- `id` (String) The route id.
-- `subnet` (String) The value of the route, either an IPV4 address, an IPV6 address, or a DNS hostname.
-- `type` (String) The type of route. Valid values are `IP_V4`, `IP_V6`, and `DOMAIN`.
-
-
+- `description` (String)
+- `id` (String)
+- `subnet` (String)
+- `type` (String)

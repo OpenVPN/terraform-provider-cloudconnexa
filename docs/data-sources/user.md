@@ -17,30 +17,28 @@ Use a `cloudconnexa_user` data source to read a specific CloudConnexa user.
 
 ### Required
 
-- `role` (String) The type of user role. Valid values are `ADMIN`, `MEMBER`, or `OWNER`.
 - `username` (String) The username of the user.
 
 ### Read-Only
 
 - `auth_type` (String) The authentication type of the user.
+- `connection_status` (String) The user's connection status.
 - `devices` (List of Object) The list of user devices. (see [below for nested schema](#nestedatt--devices))
 - `email` (String) The email address of the user.
 - `first_name` (String) The user's first name.
 - `group_id` (String) The user's group id.
 - `id` (String) The ID of this resource.
 - `last_name` (String) The user's last name.
+- `role` (String) The type of user role. Valid values are `ADMIN`, `MEMBER`, or `OWNER`.
 - `status` (String) The user's status.
-- `user_id` (String) The ID of this resource.
 
 <a id="nestedatt--devices"></a>
 ### Nested Schema for `devices`
 
 Read-Only:
 
-- `description` (String) The device's description.
-- `id` (String) The device's id.
-- `ip_v4_address` (String) The device's IPV4 address.
-- `ip_v6_address` (String) The device's IPV6 address.
-- `name` (String) The device's name.
-
-
+- `description` (String)
+- `id` (String)
+- `ip_v4_address` (String)
+- `ip_v6_address` (String)
+- `name` (String)

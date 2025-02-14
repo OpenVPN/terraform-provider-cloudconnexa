@@ -17,13 +17,15 @@ Use an `cloudconnexa_host` data source to read an existing CloudConnexa connecto
 
 ### Required
 
-- `name` (String) The name of the host.
+- `id` (String) The host ID.
 
 ### Read-Only
 
 - `connectors` (List of Object) The list of connectors to be associated with this host. (see [below for nested schema](#nestedatt--connectors))
-- `id` (String) The ID of this resource.
+- `description` (String) The description of the host.
+- `domain` (String) The host domain.
 - `internet_access` (String) The type of internet access provided.
+- `name` (String) The name of the host.
 - `system_subnets` (List of String) The IPV4 and IPV6 subnets automatically assigned to this host.
 
 <a id="nestedatt--connectors"></a>
@@ -31,12 +33,10 @@ Use an `cloudconnexa_host` data source to read an existing CloudConnexa connecto
 
 Read-Only:
 
-- `id` (String) The connector id.
-- `ip_v4_address` (String) The IPV4 address of the connector.
-- `ip_v6_address` (String) The IPV6 address of the connector.
-- `name` (String) The connector name.
-- `network_item_id` (String) The id of the host with which the connector is associated.
-- `network_item_type` (String) The network object type of the connector. This typically will be set to `HOST`.
-- `vpn_region_id` (String) The id of the region where the connector is deployed.
-
-
+- `description` (String)
+- `host_id` (String)
+- `id` (String)
+- `ip_v4_address` (String)
+- `ip_v6_address` (String)
+- `name` (String)
+- `vpn_region_id` (String)
