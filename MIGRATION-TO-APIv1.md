@@ -579,8 +579,9 @@ Plan: 0 to add, 1 to change, 0 to destroy.
 
 Just run "terraform apply" and re-run "terraform plan", it should return "No changes. Your infrastructure matches the configuration."
 
-Importing "route" will require to use "Swagger". Go to https://[replace_with_your_cloud_id].openvpn.com/api and click "Swagger" button,
-click "Authorize" and provide API credentials. After that on Swagger page find "Network" section and under it find "GET /api/v1/networks/{id} Get existing network", click "Try it out" and paste ID of the Network (can be found in CloudConnexa Admin Portal) and click "Execute".
+Importing "route" will require to use "Swagger". Go to https://[replace_with_your_cloud_id].openvpn.com/api and click "Swagger" button, click "Authorize" and provide API credentials.
+
+After that on Swagger page find "Network" section and under it find "GET /api/v1/networks/{id} Get existing network", click "Try it out" and paste ID of the Network (can be found in CloudConnexa Admin Portal) and click "Execute".
 
 It wil give you information about your Network, there you will find block similar to (take a look at "id" field, it will be needed later):
 
@@ -619,7 +620,7 @@ resource "cloudconnexa_route" "this" {
   subnet          = "192.168.144.0/24"
 }
 ```
-Now we can import remaining resource (use value of "id" field from got via Swagger):
+Now we can import remaining resource (use value of "id" field from Swagger):
 
 ```shell
 terraform import cloudconnexa_route.this <id>
