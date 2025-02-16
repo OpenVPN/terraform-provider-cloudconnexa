@@ -2,7 +2,7 @@ module github.com/OpenVPN/terraform-provider-cloudconnexa
 
 go 1.23
 
-toolchain go1.24.0
+toolchain go1.23.0
 
 require (
 	github.com/gruntwork-io/terratest v0.48.2
