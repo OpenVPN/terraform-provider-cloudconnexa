@@ -118,7 +118,7 @@ func resourceDataToUserGroup(data *schema.ResourceData) *cloudconnexa.UserGroup 
 		ConnectAuth:        connectAuth,
 		MaxDevice:          maxDevice,
 		SystemSubnets:      systemSubnets,
-		VpnRegionIds:       vpnRegionIds,
+		VpnRegionIDs:       vpnRegionIds,
 		InternetAccess:     internetAccess,
 		AllRegionsIncluded: allRegionsIncluded,
 	}
@@ -133,7 +133,7 @@ func updateUserGroupData(data *schema.ResourceData, userGroup *cloudconnexa.User
 	_ = data.Set("system_subnets", userGroup.SystemSubnets)
 	_ = data.Set("internet_access", userGroup.InternetAccess)
 	if !userGroup.AllRegionsIncluded {
-		_ = data.Set("vpn_region_ids", userGroup.VpnRegionIds)
+		_ = data.Set("vpn_region_ids", userGroup.VpnRegionIDs)
 	}
 	_ = data.Set("all_regions_included", userGroup.AllRegionsIncluded)
 }

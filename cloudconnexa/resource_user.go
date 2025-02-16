@@ -123,7 +123,7 @@ func resourceUserCreate(ctx context.Context, d *schema.ResourceData, m interface
 		Email:     email,
 		FirstName: firstName,
 		LastName:  lastName,
-		GroupId:   groupId,
+		GroupID:   groupId,
 		Devices:   devices,
 		Role:      role,
 	}
@@ -131,7 +131,7 @@ func resourceUserCreate(ctx context.Context, d *schema.ResourceData, m interface
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	d.SetId(user.Id)
+	d.SetId(user.ID)
 	return diags
 }
 
@@ -151,7 +151,7 @@ func resourceUserRead(ctx context.Context, d *schema.ResourceData, m interface{}
 		d.Set("email", u.Email)
 		d.Set("first_name", u.FirstName)
 		d.Set("last_name", u.LastName)
-		d.Set("group_id", u.GroupId)
+		d.Set("group_id", u.GroupID)
 		d.Set("devices", u.Devices)
 		d.Set("role", u.Role)
 	}
@@ -178,11 +178,11 @@ func resourceUserUpdate(ctx context.Context, d *schema.ResourceData, m interface
 	status := u.Status
 
 	err = c.Users.Update(cloudconnexa.User{
-		Id:        d.Id(),
+		ID:        d.Id(),
 		Email:     email.(string),
 		FirstName: firstName.(string),
 		LastName:  lastName.(string),
-		GroupId:   groupId.(string),
+		GroupID:   groupId.(string),
 		Role:      role.(string),
 		Status:    status,
 	})

@@ -2,8 +2,9 @@ package cloudconnexa
 
 import (
 	"fmt"
-	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 	"testing"
+
+	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -41,7 +42,7 @@ func testAccCheckCloudConnexaDnsRecordDestroy(s *terraform.State) error {
 		}
 
 		recordId := rs.Primary.ID
-		r, err := client.DnsRecords.GetDnsRecord(recordId)
+		r, err := client.DNSRecords.GetDNSRecord(recordId)
 
 		if err != nil {
 			return err

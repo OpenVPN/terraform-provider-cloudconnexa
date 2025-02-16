@@ -137,7 +137,7 @@ func dataSourceNetworkRead(ctx context.Context, d *schema.ResourceData, m interf
 	if network == nil {
 		return append(diags, diag.Errorf("Network with id %s was not found", id)...)
 	}
-	d.SetId(network.Id)
+	d.SetId(network.ID)
 	d.Set("name", network.Name)
 	d.Set("description", network.Description)
 	d.Set("egress", network.Egress)
@@ -152,7 +152,7 @@ func getRoutesSlice(networkRoutes *[]cloudconnexa.Route) []interface{} {
 	routes := make([]interface{}, len(*networkRoutes))
 	for i, r := range *networkRoutes {
 		route := make(map[string]interface{})
-		route["id"] = r.Id
+		route["id"] = r.ID
 		route["subnet"] = r.Subnet
 		route["type"] = r.Type
 		route["description"] = r.Description
@@ -165,10 +165,10 @@ func getConnectorsSliceByNetworkConnectors(connectors *[]cloudconnexa.NetworkCon
 	conns := make([]interface{}, len(*connectors))
 	for i, c := range *connectors {
 		connector := make(map[string]interface{})
-		connector["id"] = c.Id
+		connector["id"] = c.ID
 		connector["name"] = c.Name
-		connector["network_id"] = c.NetworkItemId
-		connector["vpn_region_id"] = c.VpnRegionId
+		connector["network_id"] = c.NetworkItemID
+		connector["vpn_region_id"] = c.VpnRegionID
 		connector["ip_v4_address"] = c.IPv4Address
 		connector["ip_v6_address"] = c.IPv6Address
 		connector["description"] = c.Description

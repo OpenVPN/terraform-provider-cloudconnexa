@@ -2,6 +2,7 @@ package cloudconnexa
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -136,7 +137,7 @@ func resourceAccessGroupCreate(ctx context.Context, d *schema.ResourceData, m in
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	d.SetId(accessGroup.Id)
+	d.SetId(accessGroup.ID)
 	return diags
 }
 
@@ -180,7 +181,7 @@ func resourceAccessGroupDelete(ctx context.Context, d *schema.ResourceData, m in
 }
 
 func setAccessGroupData(d *schema.ResourceData, ag *cloudconnexa.AccessGroup) {
-	d.SetId(ag.Id)
+	d.SetId(ag.ID)
 	d.Set("name", ag.Name)
 	d.Set("description", ag.Description)
 

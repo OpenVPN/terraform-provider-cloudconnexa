@@ -72,10 +72,10 @@ func resourceHostConnectorUpdate(ctx context.Context, d *schema.ResourceData, m 
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
 	connector := cloudconnexa.HostConnector{
-		Id:          d.Id(),
+		ID:          d.Id(),
 		Name:        d.Get("name").(string),
 		Description: d.Get("description").(string),
-		VpnRegionId: d.Get("vpn_region_id").(string),
+		VpnRegionID: d.Get("vpn_region_id").(string),
 	}
 	_, err := c.HostConnectors.Update(connector)
 	if err != nil {
@@ -93,22 +93,22 @@ func resourceHostConnectorCreate(ctx context.Context, d *schema.ResourceData, m 
 	vpnRegionId := d.Get("vpn_region_id").(string)
 	connector := cloudconnexa.HostConnector{
 		Name:            name,
-		NetworkItemId:   networkItemId,
+		NetworkItemID:   networkItemId,
 		NetworkItemType: "HOST",
-		VpnRegionId:     vpnRegionId,
+		VpnRegionID:     vpnRegionId,
 		Description:     description,
 	}
 	conn, err := c.HostConnectors.Create(connector, networkItemId)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	d.SetId(conn.Id)
-	profile, err := c.HostConnectors.GetProfile(conn.Id)
+	d.SetId(conn.ID)
+	profile, err := c.HostConnectors.GetProfile(conn.ID)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
 	d.Set("profile", profile)
-	token, err := c.HostConnectors.GetToken(conn.Id)
+	token, err := c.HostConnectors.GetToken(conn.ID)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -135,14 +135,14 @@ func resourceHostConnectorRead(ctx context.Context, d *schema.ResourceData, m in
 	if connector == nil {
 		d.SetId("")
 	} else {
-		d.SetId(connector.Id)
+		d.SetId(connector.ID)
 		d.Set("name", connector.Name)
-		d.Set("vpn_region_id", connector.VpnRegionId)
-		d.Set("host_id", connector.NetworkItemId)
+		d.Set("vpn_region_id", connector.VpnRegionID)
+		d.Set("host_id", connector.NetworkItemID)
 		d.Set("ip_v4_address", connector.IPv4Address)
 		d.Set("ip_v6_address", connector.IPv6Address)
 		d.Set("token", token)
-		profile, err := c.HostConnectors.GetProfile(connector.Id)
+		profile, err := c.HostConnectors.GetProfile(connector.ID)
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}

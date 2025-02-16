@@ -149,7 +149,7 @@ func resourceNetworkCreate(ctx context.Context, d *schema.ResourceData, m interf
 	connectors := []cloudconnexa.NetworkConnector{
 		{
 			Name:        configConnector["name"].(string),
-			VpnRegionId: configConnector["vpn_region_id"].(string),
+			VpnRegionID: configConnector["vpn_region_id"].(string),
 			Description: configConnector["description"].(string),
 		},
 	}
@@ -164,9 +164,9 @@ func resourceNetworkCreate(ctx context.Context, d *schema.ResourceData, m interf
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	d.SetId(network.Id)
+	d.SetId(network.ID)
 	configRoute := d.Get("default_route").([]interface{})[0].(map[string]interface{})
-	defaultRoute, err := c.Routes.Create(network.Id, cloudconnexa.Route{
+	defaultRoute, err := c.Routes.Create(network.ID, cloudconnexa.Route{
 		Type:        configRoute["type"].(string),
 		Description: configRoute["description"].(string),
 		Subnet:      configRoute["subnet"].(string),
@@ -176,7 +176,7 @@ func resourceNetworkCreate(ctx context.Context, d *schema.ResourceData, m interf
 	}
 	defaultRouteWithIdSlice := make([]map[string]interface{}, 1)
 	defaultRouteWithIdSlice[0] = map[string]interface{}{
-		"id":          defaultRoute.Id,
+		"id":          defaultRoute.ID,
 		"description": defaultRoute.Description,
 		"type":        defaultRoute.Type,
 		"subnet":      defaultRoute.Subnet,
@@ -184,14 +184,14 @@ func resourceNetworkCreate(ctx context.Context, d *schema.ResourceData, m interf
 	d.Set("default_route", defaultRouteWithIdSlice)
 	connectorsList := make([]interface{}, 1)
 	connector := make(map[string]interface{})
-	connector["id"] = network.Connectors[0].Id
+	connector["id"] = network.Connectors[0].ID
 	connector["name"] = network.Connectors[0].Name
-	connector["network_id"] = network.Connectors[0].NetworkItemId
-	connector["vpn_region_id"] = network.Connectors[0].VpnRegionId
+	connector["network_id"] = network.Connectors[0].NetworkItemID
+	connector["vpn_region_id"] = network.Connectors[0].VpnRegionID
 	connector["ip_v4_address"] = network.Connectors[0].IPv4Address
 	connector["ip_v6_address"] = network.Connectors[0].IPv6Address
 	client := m.(*cloudconnexa.Client)
-	profile, err := client.NetworkConnectors.GetProfile(network.Connectors[0].Id)
+	profile, err := client.NetworkConnectors.GetProfile(network.Connectors[0].ID)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -227,11 +227,11 @@ func resourceNetworkRead(ctx context.Context, d *schema.ResourceData, m interfac
 	if len(d.Get("default_connector").([]interface{})) > 0 {
 		configConnector := d.Get("default_connector").([]interface{})[0].(map[string]interface{})
 		connectorName := configConnector["name"].(string)
-		networkConnectors, err := c.NetworkConnectors.ListByNetworkId(network.Id)
+		networkConnectors, err := c.NetworkConnectors.ListByNetworkID(network.ID)
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
-		retrievedConnector, err := getConnectorSlice(networkConnectors, network.Id, connectorName, m)
+		retrievedConnector, err := getConnectorSlice(networkConnectors, network.ID, connectorName, m)
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
@@ -276,7 +276,7 @@ func resourceNetworkUpdate(ctx context.Context, d *schema.ResourceData, m interf
 			// This happens when importing the resource
 			newConnector := cloudconnexa.NetworkConnector{
 				Name:            newSlice[0].(map[string]interface{})["name"].(string),
-				VpnRegionId:     newSlice[0].(map[string]interface{})["vpn_region_id"].(string),
+				VpnRegionID:     newSlice[0].(map[string]interface{})["vpn_region_id"].(string),
 				Description:     newSlice[0].(map[string]interface{})["description"].(string),
 				NetworkItemType: "NETWORK",
 			}
@@ -292,9 +292,9 @@ func resourceNetworkUpdate(ctx context.Context, d *schema.ResourceData, m interf
 				oldMap["vpn_region_id"].(string) != newMap["vpn_region_id"].(string) {
 
 				newConnector := cloudconnexa.NetworkConnector{
-					Id:              oldMap["id"].(string),
+					ID:              oldMap["id"].(string),
 					Name:            newMap["name"].(string),
-					VpnRegionId:     newMap["vpn_region_id"].(string),
+					VpnRegionID:     newMap["vpn_region_id"].(string),
 					Description:     newMap["description"].(string),
 					NetworkItemType: "NETWORK",
 				}
@@ -326,7 +326,7 @@ func resourceNetworkUpdate(ctx context.Context, d *schema.ResourceData, m interf
 			}
 			defaultRouteWithIdSlice := make([]map[string]interface{}, 1)
 			defaultRouteWithIdSlice[0] = map[string]interface{}{
-				"id":          defaultRoute.Id,
+				"id":          defaultRoute.ID,
 				"description": defaultRoute.Description,
 			}
 			err = d.Set("default_route", defaultRouteWithIdSlice)
@@ -340,7 +340,7 @@ func resourceNetworkUpdate(ctx context.Context, d *schema.ResourceData, m interf
 			routeDesc := newMap["description"]
 			routeSubnet := newMap["subnet"]
 			route := cloudconnexa.Route{
-				Id:          routeId.(string),
+				ID:          routeId.(string),
 				Type:        routeType.(string),
 				Description: routeDesc.(string),
 				Subnet:      routeSubnet.(string),
@@ -357,7 +357,7 @@ func resourceNetworkUpdate(ctx context.Context, d *schema.ResourceData, m interf
 		_, newEgress := d.GetChange("egress")
 		_, newAccess := d.GetChange("internet_access")
 		err := c.Networks.Update(cloudconnexa.Network{
-			Id:             d.Id(),
+			ID:             d.Id(),
 			Name:           newName.(string),
 			Description:    newDescription.(string),
 			Egress:         newEgress.(bool),

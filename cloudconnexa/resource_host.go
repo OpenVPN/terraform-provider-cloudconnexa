@@ -123,7 +123,7 @@ func resourceHostCreate(ctx context.Context, d *schema.ResourceData, m interface
 		connectors = append(connectors, cloudconnexa.HostConnector{
 			Name:        c.(map[string]interface{})["name"].(string),
 			Description: c.(map[string]interface{})["description"].(string),
-			VpnRegionId: c.(map[string]interface{})["vpn_region_id"].(string),
+			VpnRegionID: c.(map[string]interface{})["vpn_region_id"].(string),
 		})
 	}
 	h := cloudconnexa.Host{
@@ -137,7 +137,7 @@ func resourceHostCreate(ctx context.Context, d *schema.ResourceData, m interface
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	d.SetId(host.Id)
+	d.SetId(host.ID)
 	diagnostics := setConnectorsList(d, c, host.Connectors)
 	if diagnostics != nil {
 		return diagnostics
@@ -186,7 +186,7 @@ func resourceHostUpdate(ctx context.Context, d *schema.ResourceData, m interface
 			newConnector := cloudconnexa.HostConnector{
 				Name:            newSet.List()[0].(map[string]interface{})["name"].(string),
 				Description:     newSet.List()[0].(map[string]interface{})["description"].(string),
-				VpnRegionId:     newSet.List()[0].(map[string]interface{})["vpn_region_id"].(string),
+				VpnRegionID:     newSet.List()[0].(map[string]interface{})["vpn_region_id"].(string),
 				NetworkItemType: "HOST",
 			}
 			_, err := c.HostConnectors.Create(newConnector, d.Id())
@@ -207,7 +207,7 @@ func resourceHostUpdate(ctx context.Context, d *schema.ResourceData, m interface
 					newConnector := cloudconnexa.HostConnector{
 						Name:            n.(map[string]interface{})["name"].(string),
 						Description:     n.(map[string]interface{})["description"].(string),
-						VpnRegionId:     n.(map[string]interface{})["vpn_region_id"].(string),
+						VpnRegionID:     n.(map[string]interface{})["vpn_region_id"].(string),
 						NetworkItemType: "HOST",
 					}
 					_, err := c.HostConnectors.Create(newConnector, d.Id())
@@ -224,7 +224,7 @@ func resourceHostUpdate(ctx context.Context, d *schema.ResourceData, m interface
 		_, newDomain := d.GetChange("domain")
 		_, newAccess := d.GetChange("internet_access")
 		err := c.Hosts.Update(cloudconnexa.Host{
-			Id:             d.Id(),
+			ID:             d.Id(),
 			Name:           newName.(string),
 			Description:    newDescription.(string),
 			Domain:         newDomain.(string),
@@ -266,16 +266,16 @@ func setConnectorsList(data *schema.ResourceData, c *cloudconnexa.Client, connec
 
 func getConnectorsListItem(c *cloudconnexa.Client, connector cloudconnexa.HostConnector) (map[string]interface{}, error) {
 	connectorsData := map[string]interface{}{
-		"id":            connector.Id,
+		"id":            connector.ID,
 		"name":          connector.Name,
 		"description":   connector.Description,
-		"vpn_region_id": connector.VpnRegionId,
+		"vpn_region_id": connector.VpnRegionID,
 		"ip_v4_address": connector.IPv4Address,
 		"ip_v6_address": connector.IPv6Address,
-		"host_id":       connector.NetworkItemId,
+		"host_id":       connector.NetworkItemID,
 	}
 
-	connectorProfile, err := c.HostConnectors.GetProfile(connector.Id)
+	connectorProfile, err := c.HostConnectors.GetProfile(connector.ID)
 	if err != nil {
 		return nil, err
 	}

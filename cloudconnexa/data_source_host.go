@@ -2,6 +2,7 @@ package cloudconnexa
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
@@ -105,7 +106,7 @@ func dataSourceHostRead(ctx context.Context, d *schema.ResourceData, m interface
 		return append(diags, diag.Errorf("Host with id %s was not found", id)...)
 	}
 
-	d.SetId(host.Id)
+	d.SetId(host.ID)
 	d.Set("name", host.Name)
 	d.Set("description", host.Description)
 	d.Set("domain", host.Domain)
@@ -119,10 +120,10 @@ func getConnectorsSliceByConnectors(connectors *[]cloudconnexa.HostConnector) []
 	conns := make([]interface{}, len(*connectors))
 	for i, c := range *connectors {
 		connector := make(map[string]interface{})
-		connector["id"] = c.Id
+		connector["id"] = c.ID
 		connector["name"] = c.Name
-		connector["host_id"] = c.NetworkItemId
-		connector["vpn_region_id"] = c.VpnRegionId
+		connector["host_id"] = c.NetworkItemID
+		connector["vpn_region_id"] = c.VpnRegionID
 		connector["ip_v4_address"] = c.IPv4Address
 		connector["ip_v6_address"] = c.IPv6Address
 		connector["description"] = c.Description
