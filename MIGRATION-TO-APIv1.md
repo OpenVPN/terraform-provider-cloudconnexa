@@ -5,6 +5,7 @@ Important: this migration guide is created to outline migration from older versi
 In v1.0.0 we intruduced BREAKING CHANGES, which we will cover in this migration guide.
 
 ## 1/ Data sources will use only "id" field
+
 Prior to v0.5.0 data sources used "name" field as only supported option.
 In v0.5.0 we added ability to use either "name" or "id" fields.
 In v1.0.0 we removed ability to use "name" fields.
@@ -12,47 +13,49 @@ In v1.0.0 we removed ability to use "name" fields.
 Example:
 
 before:
-```
+
+```terraform
 data "cloudconnexa_network" {
   name = "my_network"
 }
 ```
 
 after:
-```
+
+```terraform
 data "cloudconnexa_network" {
   id = "5cbe8e9c-c2c5-4a15-9bcf-491cce213adf"
 }
 ```
 
 ## 2/ Changes in argument's values for certain resources
+
 This was done to better reflect the name of the options in the UI with name of the values in API and Terraform.
 Table below contains references on what changed, and new value:
 
-| Resource | Argument | Beta endpoint (old value) | v1 endpoint (new value) |
-| :--------: | :-------: | :-------: | :-------: |
-| cloudconnexa_user_group | connect_auth | AUTH | ON_PRIOR_AUTH |
-| cloudconnexa_user_group | connect_auth | AUTO | NO_AUTH |
-| cloudconnexa_user_group | connect_auth | STRICT_AUTH | EVERY_TIME |
-| cloudconnexa_user_group | internet_access | BLOCKED | RESTRICTED_INTERNET |
-| cloudconnexa_user_group | internet_access | GLOBAL_INTERNET | SPLIT_TUNNEL_OFF |
-| cloudconnexa_user_group | internet_access | LOCAL | SPLIT_TUNNEL_ON |
-| cloudconnexa_network | internet_access | BLOCKED | RESTRICTED_INTERNET |
-| cloudconnexa_network | internet_access | GLOBAL_INTERNET | SPLIT_TUNNEL_OFF |
-| cloudconnexa_network | internet_access | LOCAL | SPLIT_TUNNEL_ON |
-| cloudconnexa_host | internet_access | BLOCKED | RESTRICTED_INTERNET |
-| cloudconnexa_host | internet_access | GLOBAL_INTERNET | SPLIT_TUNNEL_OFF |
-| cloudconnexa_host | internet_access | LOCAL | SPLIT_TUNNEL_ON |
-| cloudconnexa_location_context | n/a | default_policy | default_check |
-| cloudconnexa_location_context | n/a | country_policy | country_check |
-| cloudconnexa_location_context | n/a | ip_policy | ip_check |
-
+|           Resource            |    Argument     | Beta endpoint (old value) | v1 endpoint (new value) |
+| :---------------------------: | :-------------: | :-----------------------: | :---------------------: |
+|    cloudconnexa_user_group    |  connect_auth   |           AUTH            |      ON_PRIOR_AUTH      |
+|    cloudconnexa_user_group    |  connect_auth   |           AUTO            |         NO_AUTH         |
+|    cloudconnexa_user_group    |  connect_auth   |        STRICT_AUTH        |       EVERY_TIME        |
+|    cloudconnexa_user_group    | internet_access |          BLOCKED          |   RESTRICTED_INTERNET   |
+|    cloudconnexa_user_group    | internet_access |      GLOBAL_INTERNET      |    SPLIT_TUNNEL_OFF     |
+|    cloudconnexa_user_group    | internet_access |           LOCAL           |     SPLIT_TUNNEL_ON     |
+|     cloudconnexa_network      | internet_access |          BLOCKED          |   RESTRICTED_INTERNET   |
+|     cloudconnexa_network      | internet_access |      GLOBAL_INTERNET      |    SPLIT_TUNNEL_OFF     |
+|     cloudconnexa_network      | internet_access |           LOCAL           |     SPLIT_TUNNEL_ON     |
+|       cloudconnexa_host       | internet_access |          BLOCKED          |   RESTRICTED_INTERNET   |
+|       cloudconnexa_host       | internet_access |      GLOBAL_INTERNET      |    SPLIT_TUNNEL_OFF     |
+|       cloudconnexa_host       | internet_access |           LOCAL           |     SPLIT_TUNNEL_ON     |
+| cloudconnexa_location_context |       n/a       |      default_policy       |      default_check      |
+| cloudconnexa_location_context |       n/a       |      country_policy       |      country_check      |
+| cloudconnexa_location_context |       n/a       |         ip_policy         |        ip_check         |
 
 Code example for "cloudconnexa_user_group":
 
 before:
 
-```
+```terraform
 resource "cloudconnexa_user_group" "ug01" {
   name                 = "ug01"
   all_regions_included = true
@@ -63,7 +66,8 @@ resource "cloudconnexa_user_group" "ug01" {
 ```
 
 after:
-```
+
+```terraform
 resource "cloudconnexa_user_group" "ug01" {
   name                 = "ug01"
   all_regions_included = true
@@ -77,7 +81,7 @@ Code example for "cloudconnexa_location_context":
 
 before:
 
-```
+```terraform
 resource "cloudconnexa_location_context" "this" {
   name            = "Location Context Policy"
   description     = "Description for Location Context Policy"
@@ -105,7 +109,7 @@ resource "cloudconnexa_location_context" "this" {
 
 after:
 
-```
+```terraform
 resource "cloudconnexa_location_context" "this" {
   name            = "Location Context Policy"
   description     = "Description for Location Context Policy"
@@ -135,7 +139,7 @@ Code example for "cloudconnexa_network":
 
 before:
 
-```
+```terraform
 resource "cloudconnexa_network" "this" {
   description     = "This is test network"
   name            = "my_network"
@@ -152,7 +156,7 @@ resource "cloudconnexa_network" "this" {
 
 after:
 
-```
+```terraform
 resource "cloudconnexa_network" "this" {
   description     = "This is test network"
   name            = "my_network"
@@ -171,7 +175,7 @@ Code example for "cloudconnexa_host":
 
 before:
 
-```
+```terraform
 resource "cloudconnexa_host" "this" {
   name        = "my_host"
   description = "This is test host"
@@ -185,7 +189,7 @@ resource "cloudconnexa_host" "this" {
 
 after:
 
-```
+```terraform
 resource "cloudconnexa_host" "this" {
   name        = "my_host"
   description = "This is test host"
@@ -200,11 +204,13 @@ resource "cloudconnexa_host" "this" {
 ## 3/ Some resources were splitted into separate ones
 
 Before:
+
 - cloudconnexa_application
 - cloudconnexa_connector
 - cloudconnexa_ip_service
 
 After:
+
 - cloudconnexa_host_application
 - cloudconnexa_host_connector
 - cloudconnexa_host_ip_service
@@ -213,28 +219,32 @@ After:
 - cloudconnexa_network_ip_service
 
 If you used previously "cloudconnexa_application", "cloudconnexa_connector" or "cloudconnexa_ip_service" you will have one option:
+
 - Remove from state, rename resource and re-import them into Terraform.
 
 We tried to use "terraform state mv" command as well as "moved" block - but Terraform didn't liked this:
 
 output when running "terraform state mv":
-```
+
+```bash
 │ Error: Invalid state move request
-│ 
+│
 │ Cannot move cloudconnexa_application.test1 to cloudconnexa_network_application.test1: resource types don't match.
 ```
 
 output when using "moved" block:
-```
+
+```terraform
  Error: Resource type mismatch
-│ 
+│
 │ This statement declares a move from cloudconnexa_application.test1 to cloudconnexa_network_application.test1, which is a resource of a different type.
 ```
 
 ### Remove from state and then import
+
 Let's imagine you have two resources and you use Terraform provider v0.5.1:
 
-```
+```terraform
 data "cloudconnexa_network" "test-net" {
   id = "e0a62eed-d034-4cec-8f59-062d96b9f2ab"
 }
@@ -267,28 +277,30 @@ resource "cloudconnexa_application" "test2" {
   }
 }
 ```
+
 To perform migration follow next procedure:
 
-* run "terraform plan" to get IDs of resources:
+- run "terraform plan" to get IDs of resources:
 
-```
+```bash
 data.cloudconnexa_network.test-net: Reading...
 data.cloudconnexa_network.test-net: Read complete after 0s [id=e0a62eed-d034-4cec-8f59-062d96b9f2ab]
 cloudconnexa_network_application.test2: Refreshing state... [id=48be819c-f5f7-4c67-9720-30fd908cbda4]
 cloudconnexa_network_application.test1: Refreshing state... [id=b1ed3722-0da2-49d5-88f4-515b4ce52690]
 ```
 
-* Remove from state
+- Remove from state
 
-```
+```bash
 terraform state rm cloudconnexa_application.test1
 terraform state rm cloudconnexa_application.test2
 ```
 
-* Update reference to new provider version
+- Update reference to new provider version
 
 Specify new version of the provider:
-```
+
+```terraform
 terraform {
   required_providers {
     cloudconnexa = {
@@ -298,15 +310,18 @@ terraform {
   }
 }
 ```
- and initialize it:
-```
+
+and initialize it:
+
+```bash
 terraform init -upgrade
 ```
 
-* Edit the resource names and code
+- Edit the resource names and code
 
 Updated code (note that we removed "network_item_type" and renamed "network_item_id"):
-```
+
+```terraform
 resource "cloudconnexa_network_application" "test1" {
   name = "example-application-1"
   network_id = data.cloudconnexa_network.test-net.id
@@ -334,16 +349,16 @@ resource "cloudconnexa_network_application" "test2" {
 }
 ```
 
-* Import resources back into Terraform
+- Import resources back into Terraform
 
-```
+```bash
 terraform import cloudconnexa_network_application.test1 b1ed3722-0da2-49d5-88f4-515b4ce52690
 terraform import cloudconnexa_network_application.test2 48be819c-f5f7-4c67-9720-30fd908cbda4
 ```
 
 After import Terraform will want to make minor (expected) change, apply it:
 
-```
+```bash
 $ terraform apply
 .......................
 (skipped not essential output)
@@ -381,10 +396,10 @@ Do you want to perform these actions?
 
 After you applied it, now when you run "terraform plan" - it should return that all is ok:
 
-```
+```bash
 No changes. Your infrastructure matches the configuration.
 
 Terraform has compared your real infrastructure against your configuration and found no differences, so no changes are needed.
 ```
 
-PS. This is simple example, for use cases when you have multiple resources and you create them via for_each you may follow this approach https://developer.hashicorp.com/terraform/language/import#import-multiple-instances-with-for_each
+PS. This is simple example, for use cases when you have multiple resources and you create them via for_each you may follow this approach [https://developer.hashicorp.com/terraform/language/import#import-multiple-instances-with-for_each]
