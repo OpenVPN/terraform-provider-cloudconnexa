@@ -36,8 +36,6 @@ resource "cloudconnexa_network" "this" {
 
 ### Required
 
-- `default_connector` (Block List, Min: 1, Max: 1) The default connector of this network. (see [below for nested schema](#nestedblock--default_connector))
-- `default_route` (Block List, Min: 1, Max: 1) The default route of this network. (see [below for nested schema](#nestedblock--default_route))
 - `name` (String) The display name of the network.
 
 ### Optional
@@ -50,43 +48,6 @@ resource "cloudconnexa_network" "this" {
 
 - `id` (String) The ID of this resource.
 - `system_subnets` (Set of String) The IPV4 and IPV6 subnets automatically assigned to this network.
-
-<a id="nestedblock--default_connector"></a>
-### Nested Schema for `default_connector`
-
-Required:
-
-- `name` (String) Name of the connector automatically created and attached to this network.
-- `vpn_region_id` (String) The id of the region where the default connector will be deployed.
-
-Optional:
-
-- `description` (String) The default connection description.
-
-Read-Only:
-
-- `id` (String) The ID of this resource.
-- `ip_v4_address` (String) The IPV4 address of the default connector.
-- `ip_v6_address` (String) The IPV6 address of the default connector.
-- `network_id` (String) The parent network id.
-- `profile` (String) OpenVPN profile of the connector.
-
-
-<a id="nestedblock--default_route"></a>
-### Nested Schema for `default_route`
-
-Required:
-
-- `subnet` (String) The target value of the default route.
-
-Optional:
-
-- `description` (String) The default route description.
-- `type` (String) The type of route. Valid values are `IP_V4`, `IP_V6`, and `DOMAIN`.
-
-Read-Only:
-
-- `id` (String) The ID of this resource.
 
 ## Import
 

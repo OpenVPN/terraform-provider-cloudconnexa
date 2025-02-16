@@ -160,31 +160,3 @@ func resourceNetworkConnectorDelete(ctx context.Context, d *schema.ResourceData,
 	}
 	return diags
 }
-
-func getConnectorSlice(connectors []cloudconnexa.NetworkConnector, networkItemId string, connectorName string, m interface{}) ([]interface{}, error) {
-	if len(connectors) == 0 {
-		return nil, nil
-	}
-	connectorsList := make([]interface{}, 1)
-	for _, c := range connectors {
-		if c.NetworkItemId == networkItemId && c.Name == connectorName {
-			connector := make(map[string]interface{})
-			connector["id"] = c.Id
-			connector["name"] = c.Name
-			connector["network_id"] = c.NetworkItemId
-			connector["description"] = c.Description
-			connector["vpn_region_id"] = c.VpnRegionId
-			connector["ip_v4_address"] = c.IPv4Address
-			connector["ip_v6_address"] = c.IPv6Address
-			client := m.(*cloudconnexa.Client)
-			profile, err := client.NetworkConnectors.GetProfile(c.Id)
-			if err != nil {
-				return nil, err
-			}
-			connector["profile"] = profile
-			connectorsList[0] = connector
-			break
-		}
-	}
-	return connectorsList, nil
-}
