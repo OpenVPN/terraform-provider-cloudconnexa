@@ -500,6 +500,7 @@ After you try to run "terraform plan" you will get next output:
 │ Blocks of type "default_connector" are not expected here.
 ╵
 ```
+
 Now if you were to remove/comment those blocks ("default_route" and "default_connector") and try again, you will see next output:
 
 ```shell
