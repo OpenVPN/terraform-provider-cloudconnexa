@@ -18,16 +18,6 @@ resource "cloudconnexa_network" "this" {
   egress          = true
   name            = "my_test_network"
   internet_access = "SPLIT_TUNNEL_ON"
-  default_route {
-    description = "Managed by Terraform"
-    subnet      = "192.168.144.0/24"
-    type        = "IP_V4"
-  }
-  default_connector {
-    description   = "Managed by Terraform"
-    name          = "test-connector"
-    vpn_region_id = "eu-central-1"
-  }
 }
 ```
 
@@ -54,7 +44,5 @@ resource "cloudconnexa_network" "this" {
 Import is supported using the following syntax:
 
 ```shell
-# Importing resource "cloudconnexa_network" currently is not supported properly (!!).
-# You may use as workaround data source "cloudconnexa_network" to reference it in code.
 terraform import cloudconnexa_network.example <id>
 ```
