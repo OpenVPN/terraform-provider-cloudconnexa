@@ -5,6 +5,7 @@ Important: this migration guide is created to outline migration from older versi
 In v1.0.0 we intruduced BREAKING CHANGES, which we will cover in this migration guide.
 
 ## 1/ Data sources will use only "id" field
+
 Prior to v0.5.0 data sources used "name" field as only supported option.
 In v0.5.0 we added ability to use either "name" or "id" fields.
 In v1.0.0 we removed ability to use "name" fields.
@@ -28,6 +29,7 @@ data "cloudconnexa_network" {
 ```
 
 ## 2/ Changes in argument's values for certain resources
+
 This was done to better reflect the name of the options in the UI with name of the values in API and Terraform.
 Table below contains references on what changed, and new value:
 
@@ -203,11 +205,13 @@ resource "cloudconnexa_host" "this" {
 ## 3/ Some resources were splitted into separate ones
 
 Before:
+
 - cloudconnexa_application
 - cloudconnexa_connector
 - cloudconnexa_ip_service
 
 After:
+
 - cloudconnexa_host_application
 - cloudconnexa_host_connector
 - cloudconnexa_host_ip_service
@@ -216,20 +220,22 @@ After:
 - cloudconnexa_network_ip_service
 
 If you used previously "cloudconnexa_application", "cloudconnexa_connector" or "cloudconnexa_ip_service" you will have one option:
+
 - Remove from state, rename resource and re-import them into Terraform.
 
 We tried to use "terraform state mv" command as well as "moved" block - but Terraform didn't liked this:
 
 output when running "terraform state mv":
 
-```
+```shell
 │ Error: Invalid state move request
 │ 
 │ Cannot move cloudconnexa_application.test1 to cloudconnexa_network_application.test1: resource types don't match.
 ```
 
 output when using "moved" block:
-```
+
+```shell
  Error: Resource type mismatch
 │ 
 │ This statement declares a move from cloudconnexa_application.test1 to cloudconnexa_network_application.test1, which is a resource of a different type.
@@ -273,23 +279,23 @@ resource "cloudconnexa_application" "test2" {
 ```
 To perform migration follow next procedure:
 
-* run "terraform plan" to get IDs of resources:
+- run "terraform plan" to get IDs of resources:
 
-```
+```shell
 data.cloudconnexa_network.test-net: Reading...
 data.cloudconnexa_network.test-net: Read complete after 0s [id=e0a62eed-d034-4cec-8f59-062d96b9f2ab]
 cloudconnexa_network_application.test2: Refreshing state... [id=48be819c-f5f7-4c67-9720-30fd908cbda4]
 cloudconnexa_network_application.test1: Refreshing state... [id=b1ed3722-0da2-49d5-88f4-515b4ce52690]
 ```
 
-* Remove from state
+- Remove from state
 
 ```shell
 terraform state rm cloudconnexa_application.test1
 terraform state rm cloudconnexa_application.test2
 ```
 
-* Update reference to new provider version
+- Update reference to new provider version
 
 Specify new version of the provider:
 
@@ -309,7 +315,7 @@ terraform {
 terraform init -upgrade
 ```
 
-* Edit the resource names and code
+- Edit the resource names and code
 
 Updated code (note that we removed "network_item_type" and renamed "network_item_id"):
 
@@ -341,7 +347,7 @@ resource "cloudconnexa_network_application" "test2" {
 }
 ```
 
-* Import resources back into Terraform
+- Import resources back into Terraform
 
 ```shell
 terraform import cloudconnexa_network_application.test1 b1ed3722-0da2-49d5-88f4-515b4ce52690
@@ -350,7 +356,7 @@ terraform import cloudconnexa_network_application.test2 48be819c-f5f7-4c67-9720-
 
 After import Terraform will want to make minor (expected) change, apply it:
 
-```
+```shell
 $ terraform apply
 .......................
 (skipped not essential output)
@@ -388,15 +394,16 @@ Do you want to perform these actions?
 
 After you applied it, now when you run "terraform plan" - it should return that all is ok:
 
-```
+```shell
 No changes. Your infrastructure matches the configuration.
 
 Terraform has compared your real infrastructure against your configuration and found no differences, so no changes are needed.
 ```
 
-PS. This is simple example, for use cases when you have multiple resources and you create them via for_each you may follow this approach https://developer.hashicorp.com/terraform/language/import#import-multiple-instances-with-for_each
+PS. This is simple example, for use cases when you have multiple resources and you create them via for_each you may follow this approach [https://developer.hashicorp.com/terraform/language/import#import-multiple-instances-with-for_each]
 
 ## 4/ Starting with v1.0.0 when creating resource "cloudconnexa_network" route and connector are to be created separatelly
+
 Previously before Terraform provider v1.0.0 to create "cloudconnexa_network" code looked like this:
 
 ```hcl
@@ -444,6 +451,7 @@ resource "cloudconnexa_route" "this" {
   network_item_id = cloudconnexa_network.this.id
 }
 ```
+
 When migrating from older versions of provider to v1.0.0 you will have to remove old Network, Connector and Route from Terraform state.
 
 If you have Terraform provider for example v0.5.1 with next code:
@@ -563,7 +571,7 @@ terraform import cloudconnexa_network_connector.this <id>
 
 after import will finish most likelly you will see similar output from "terraform plan"
 
-```
+```shell
 Terraform will perform the following actions:
 
   # cloudconnexa_network_connector.this will be updated in-place
@@ -585,7 +593,7 @@ After that on Swagger page find "Network" section and under it find "GET /api/v1
 
 It wil give you information about your Network, there you will find block similar to (take a look at "id" field, it will be needed later):
 
-```
+```shell
   "routes": [
     {
       "id": "0dccf62f-7083-43a7-a8a3-38406a21b842",
