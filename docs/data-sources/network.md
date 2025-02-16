@@ -21,34 +21,8 @@ Use a `cloudconnexa_network` data source to read an CloudConnexa network.
 
 ### Read-Only
 
-- `connectors` (List of Object) The list of connectors associated with this network. (see [below for nested schema](#nestedatt--connectors))
 - `description` (String) The description of the network.
 - `egress` (Boolean) Boolean to indicate whether this network provides an egress or not.
 - `internet_access` (String) The type of internet access provided. Valid values are `SPLIT_TUNNEL_ON`, `SPLIT_TUNNEL_OFF`, or `RESTRICTED_INTERNET`. Defaults to `SPLIT_TUNNEL_ON`.
 - `name` (String) The network name.
-- `routes` (List of Object) The routes associated with this network. (see [below for nested schema](#nestedatt--routes))
 - `system_subnets` (List of String) The IPV4 and IPV6 subnets automatically assigned to this network.
-
-<a id="nestedatt--connectors"></a>
-### Nested Schema for `connectors`
-
-Read-Only:
-
-- `description` (String)
-- `id` (String)
-- `ip_v4_address` (String)
-- `ip_v6_address` (String)
-- `name` (String)
-- `network_id` (String)
-- `vpn_region_id` (String)
-
-
-<a id="nestedatt--routes"></a>
-### Nested Schema for `routes`
-
-Read-Only:
-
-- `description` (String)
-- `id` (String)
-- `subnet` (String)
-- `type` (String)

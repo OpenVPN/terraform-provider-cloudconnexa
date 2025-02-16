@@ -21,22 +21,8 @@ Use an `cloudconnexa_host` data source to read an existing CloudConnexa connecto
 
 ### Read-Only
 
-- `connectors` (List of Object) The list of connectors to be associated with this host. (see [below for nested schema](#nestedatt--connectors))
 - `description` (String) The description of the host.
 - `domain` (String) The host domain.
 - `internet_access` (String) The type of internet access provided.
 - `name` (String) The name of the host.
 - `system_subnets` (List of String) The IPV4 and IPV6 subnets automatically assigned to this host.
-
-<a id="nestedatt--connectors"></a>
-### Nested Schema for `connectors`
-
-Read-Only:
-
-- `description` (String)
-- `host_id` (String)
-- `id` (String)
-- `ip_v4_address` (String)
-- `ip_v6_address` (String)
-- `name` (String)
-- `vpn_region_id` (String)
