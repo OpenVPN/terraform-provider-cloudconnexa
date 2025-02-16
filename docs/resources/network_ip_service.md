@@ -18,16 +18,13 @@ resource "cloudconnexa_network" "this" {
   egress          = true
   name            = "my_test_network"
   internet_access = "SPLIT_TUNNEL_ON"
-  default_route {
-    description = "Managed by Terraform"
-    subnet      = "192.168.144.0/24"
-    type        = "IP_V4"
-  }
-  default_connector {
-    description   = "Managed by Terraform"
-    name          = "test-connector"
-    vpn_region_id = "eu-central-1"
-  }
+}
+
+resource "cloudconnexa_route" "this" {
+  description     = "Managed by Terraform"
+  type            = "IP_V4"
+  network_item_id = cloudconnexa_network.this.id
+  subnet          = "192.168.144.0/24"
 }
 
 resource "cloudconnexa_network_ip_service" "example1" {
@@ -39,6 +36,8 @@ resource "cloudconnexa_network_ip_service" "example1" {
   config {
     service_types = ["ANY"]
   }
+
+  depends_on = [cloudconnexa_route.this]
 }
 
 resource "cloudconnexa_network_ip_service" "example2" {
@@ -73,6 +72,8 @@ resource "cloudconnexa_network_ip_service" "example2" {
       to_port   = 22
     }
   }
+
+  depends_on = [cloudconnexa_route.this]
 }
 ```
 

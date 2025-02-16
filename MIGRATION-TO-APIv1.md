@@ -388,3 +388,51 @@ Terraform has compared your real infrastructure against your configuration and f
 ```
 
 PS. This is simple example, for use cases when you have multiple resources and you create them via for_each you may follow this approach https://developer.hashicorp.com/terraform/language/import#import-multiple-instances-with-for_each
+
+## 4/ Starting with v1.0.0 when creating resource "cloudconnexa_network" route and connector are to be created separatelly
+Previously before Terraform provider v1.0.0 to create "cloudconnexa_network" code looked like this:
+
+```hcl
+resource "cloudconnexa_network" "this" {
+  name            = "my_test_network"
+  description     = "Test network"
+  egress          = true
+  internet_access = "SPLIT_TUNNEL_ON"
+  default_route {
+    description = "Managed by Terraform"
+    subnet      = "192.168.144.0/24"
+    type        = "IP_V4"
+  }
+  default_connector {
+    description   = "Managed by Terraform"
+    name          = "test-connector"
+    vpn_region_id = "eu-central-1"
+  }
+}
+```
+Due to the way how API and Terraform provider did things it lead to issue when it was not possible to import already existing networks into Terraform.
+
+Now starting with v1.0.0 code will be like this:
+
+```hcl
+resource "cloudconnexa_network" "this" {
+  name            = "my_test_network"
+  description     = "Test network"
+  egress          = true
+  internet_access = "SPLIT_TUNNEL_ON"
+}
+
+resource "cloudconnexa_network_connector" "this" {
+  name          = "test-connector"
+  description   = "coco1111c"
+  vpn_region_id = "eu-central-1"
+  network_id    = cloudconnexa_network.this.id
+}
+
+resource "cloudconnexa_route" "this" {
+  description     = "Managed by Terraform"
+  type            = "IP_V4"
+  network_item_id = cloudconnexa_network.this.id
+  subnet          = "192.168.144.0/24"
+}
+```
