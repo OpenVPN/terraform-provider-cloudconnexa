@@ -14,7 +14,7 @@ Example:
 
 before:
 
-```terraform
+```hcl
 data "cloudconnexa_network" {
   name = "my_network"
 }
@@ -22,7 +22,7 @@ data "cloudconnexa_network" {
 
 after:
 
-```terraform
+```hcl
 data "cloudconnexa_network" {
   id = "5cbe8e9c-c2c5-4a15-9bcf-491cce213adf"
 }
@@ -55,7 +55,7 @@ Code example for "cloudconnexa_user_group":
 
 before:
 
-```terraform
+```hcl
 resource "cloudconnexa_user_group" "ug01" {
   name                 = "ug01"
   all_regions_included = true
@@ -67,7 +67,7 @@ resource "cloudconnexa_user_group" "ug01" {
 
 after:
 
-```terraform
+```hcl
 resource "cloudconnexa_user_group" "ug01" {
   name                 = "ug01"
   all_regions_included = true
@@ -81,7 +81,7 @@ Code example for "cloudconnexa_location_context":
 
 before:
 
-```terraform
+```hcl
 resource "cloudconnexa_location_context" "this" {
   name            = "Location Context Policy"
   description     = "Description for Location Context Policy"
@@ -109,7 +109,7 @@ resource "cloudconnexa_location_context" "this" {
 
 after:
 
-```terraform
+```hcl
 resource "cloudconnexa_location_context" "this" {
   name            = "Location Context Policy"
   description     = "Description for Location Context Policy"
@@ -139,7 +139,7 @@ Code example for "cloudconnexa_network":
 
 before:
 
-```terraform
+```hcl
 resource "cloudconnexa_network" "this" {
   description     = "This is test network"
   name            = "my_network"
@@ -156,7 +156,7 @@ resource "cloudconnexa_network" "this" {
 
 after:
 
-```terraform
+```hcl
 resource "cloudconnexa_network" "this" {
   description     = "This is test network"
   name            = "my_network"
@@ -175,7 +175,7 @@ Code example for "cloudconnexa_host":
 
 before:
 
-```terraform
+```hcl
 resource "cloudconnexa_host" "this" {
   name        = "my_host"
   description = "This is test host"
@@ -189,7 +189,7 @@ resource "cloudconnexa_host" "this" {
 
 after:
 
-```terraform
+```hcl
 resource "cloudconnexa_host" "this" {
   name        = "my_host"
   description = "This is test host"
@@ -226,7 +226,7 @@ We tried to use "terraform state mv" command as well as "moved" block - but Terr
 
 output when running "terraform state mv":
 
-```bash
+```shell
 │ Error: Invalid state move request
 │
 │ Cannot move cloudconnexa_application.test1 to cloudconnexa_network_application.test1: resource types don't match.
@@ -234,7 +234,7 @@ output when running "terraform state mv":
 
 output when using "moved" block:
 
-```terraform
+```shell
  Error: Resource type mismatch
 │
 │ This statement declares a move from cloudconnexa_application.test1 to cloudconnexa_network_application.test1, which is a resource of a different type.
@@ -244,7 +244,7 @@ output when using "moved" block:
 
 Let's imagine you have two resources and you use Terraform provider v0.5.1:
 
-```terraform
+```hcl
 data "cloudconnexa_network" "test-net" {
   id = "e0a62eed-d034-4cec-8f59-062d96b9f2ab"
 }
@@ -282,7 +282,7 @@ To perform migration follow next procedure:
 
 - run "terraform plan" to get IDs of resources:
 
-```bash
+```shell
 data.cloudconnexa_network.test-net: Reading...
 data.cloudconnexa_network.test-net: Read complete after 0s [id=e0a62eed-d034-4cec-8f59-062d96b9f2ab]
 cloudconnexa_network_application.test2: Refreshing state... [id=48be819c-f5f7-4c67-9720-30fd908cbda4]
@@ -291,7 +291,7 @@ cloudconnexa_network_application.test1: Refreshing state... [id=b1ed3722-0da2-49
 
 - Remove from state
 
-```bash
+```shell
 terraform state rm cloudconnexa_application.test1
 terraform state rm cloudconnexa_application.test2
 ```
@@ -300,7 +300,7 @@ terraform state rm cloudconnexa_application.test2
 
 Specify new version of the provider:
 
-```terraform
+```hcl
 terraform {
   required_providers {
     cloudconnexa = {
@@ -313,7 +313,7 @@ terraform {
 
 and initialize it:
 
-```bash
+```shell
 terraform init -upgrade
 ```
 
@@ -321,7 +321,7 @@ terraform init -upgrade
 
 Updated code (note that we removed "network_item_type" and renamed "network_item_id"):
 
-```terraform
+```hcl
 resource "cloudconnexa_network_application" "test1" {
   name = "example-application-1"
   network_id = data.cloudconnexa_network.test-net.id
@@ -351,14 +351,14 @@ resource "cloudconnexa_network_application" "test2" {
 
 - Import resources back into Terraform
 
-```bash
+```shell
 terraform import cloudconnexa_network_application.test1 b1ed3722-0da2-49d5-88f4-515b4ce52690
 terraform import cloudconnexa_network_application.test2 48be819c-f5f7-4c67-9720-30fd908cbda4
 ```
 
 After import Terraform will want to make minor (expected) change, apply it:
 
-```bash
+```shell
 $ terraform apply
 .......................
 (skipped not essential output)
@@ -396,7 +396,7 @@ Do you want to perform these actions?
 
 After you applied it, now when you run "terraform plan" - it should return that all is ok:
 
-```bash
+```shell
 No changes. Your infrastructure matches the configuration.
 
 Terraform has compared your real infrastructure against your configuration and found no differences, so no changes are needed.
