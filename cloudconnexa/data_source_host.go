@@ -46,50 +46,6 @@ func dataSourceHost() *schema.Resource {
 				},
 				Description: "The IPV4 and IPV6 subnets automatically assigned to this host.",
 			},
-			"connectors": {
-				Type:        schema.TypeList,
-				Computed:    true,
-				Description: "The list of connectors to be associated with this host.",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "The connector id.",
-						},
-						"name": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "The connector name.",
-						},
-						"description": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "The connector description.",
-						},
-						"host_id": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "The id of the host with which the connector is associated.",
-						},
-						"vpn_region_id": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "The id of the region where the connector is deployed.",
-						},
-						"ip_v4_address": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "The IPV4 address of the connector.",
-						},
-						"ip_v6_address": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "The IPV6 address of the connector.",
-						},
-					},
-				},
-			},
 		},
 	}
 }
@@ -112,7 +68,6 @@ func dataSourceHostRead(ctx context.Context, d *schema.ResourceData, m interface
 	d.Set("domain", host.Domain)
 	d.Set("internet_access", host.InternetAccess)
 	d.Set("system_subnets", host.SystemSubnets)
-	d.Set("connectors", getConnectorsSliceByConnectors(&host.Connectors))
 	return diags
 }
 

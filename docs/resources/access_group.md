@@ -57,16 +57,24 @@ resource "cloudconnexa_network" "this" {
   egress          = true
   name            = "my_test_network"
   internet_access = "SPLIT_TUNNEL_ON"
-  default_route {
-    description = "Managed by Terraform"
-    subnet      = "192.168.144.0/24"
-    type        = "IP_V4"
+}
+
+# "cloudconnexa_network_application" added here to create at least 1 entity which will be "child" to resource "cloudconnexa_network"
+# otherwise creation of resource "cloudconnexa_access_group" "limited_example1" will fail.
+resource "cloudconnexa_network_application" "example1" {
+  name        = "example-application-1"
+  description = "Managed by Terraform"
+  network_id  = cloudconnexa_network.this.id
+  routes {
+    domain            = "example-application-1.com"
+    allow_embedded_ip = false
   }
-  default_connector {
-    description   = "Managed by Terraform"
-    name          = "test-connector"
-    vpn_region_id = "eu-central-1"
+
+  config {
+    service_types = ["ANY"]
   }
+
+  depends_on = [cloudconnexa_network.this]
 }
 
 resource "cloudconnexa_access_group" "limited_example1" {

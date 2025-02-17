@@ -33,23 +33,24 @@ data "cloudconnexa_network" {
 This was done to better reflect the name of the options in the UI with name of the values in API and Terraform.
 Table below contains references on what changed, and new value:
 
-|           Resource            |    Argument     | Beta endpoint (old value) | v1 endpoint (new value) |
-| :---------------------------: | :-------------: | :-----------------------: | :---------------------: |
-|    cloudconnexa_user_group    |  connect_auth   |           AUTH            |      ON_PRIOR_AUTH      |
-|    cloudconnexa_user_group    |  connect_auth   |           AUTO            |         NO_AUTH         |
-|    cloudconnexa_user_group    |  connect_auth   |        STRICT_AUTH        |       EVERY_TIME        |
-|    cloudconnexa_user_group    | internet_access |          BLOCKED          |   RESTRICTED_INTERNET   |
-|    cloudconnexa_user_group    | internet_access |      GLOBAL_INTERNET      |    SPLIT_TUNNEL_OFF     |
-|    cloudconnexa_user_group    | internet_access |           LOCAL           |     SPLIT_TUNNEL_ON     |
-|     cloudconnexa_network      | internet_access |          BLOCKED          |   RESTRICTED_INTERNET   |
-|     cloudconnexa_network      | internet_access |      GLOBAL_INTERNET      |    SPLIT_TUNNEL_OFF     |
-|     cloudconnexa_network      | internet_access |           LOCAL           |     SPLIT_TUNNEL_ON     |
-|       cloudconnexa_host       | internet_access |          BLOCKED          |   RESTRICTED_INTERNET   |
-|       cloudconnexa_host       | internet_access |      GLOBAL_INTERNET      |    SPLIT_TUNNEL_OFF     |
-|       cloudconnexa_host       | internet_access |           LOCAL           |     SPLIT_TUNNEL_ON     |
-| cloudconnexa_location_context |       n/a       |      default_policy       |      default_check      |
-| cloudconnexa_location_context |       n/a       |      country_policy       |      country_check      |
-| cloudconnexa_location_context |       n/a       |         ip_policy         |        ip_check         |
+| Resource | Argument | Beta endpoint (old value) | v1 endpoint (new value) |
+| :--------: | :-------: | :-------: | :-------: |
+| cloudconnexa_user_group | connect_auth | AUTH | ON_PRIOR_AUTH |
+| cloudconnexa_user_group | connect_auth | AUTO | NO_AUTH |
+| cloudconnexa_user_group | connect_auth | STRICT_AUTH | EVERY_TIME |
+| cloudconnexa_user_group | internet_access | BLOCKED | RESTRICTED_INTERNET |
+| cloudconnexa_user_group | internet_access | GLOBAL_INTERNET | SPLIT_TUNNEL_OFF |
+| cloudconnexa_user_group | internet_access | LOCAL | SPLIT_TUNNEL_ON |
+| cloudconnexa_network | internet_access | BLOCKED | RESTRICTED_INTERNET |
+| cloudconnexa_network | internet_access | GLOBAL_INTERNET | SPLIT_TUNNEL_OFF |
+| cloudconnexa_network | internet_access | LOCAL | SPLIT_TUNNEL_ON |
+| cloudconnexa_host | internet_access | BLOCKED | RESTRICTED_INTERNET |
+| cloudconnexa_host | internet_access | GLOBAL_INTERNET | SPLIT_TUNNEL_OFF |
+| cloudconnexa_host | internet_access | LOCAL | SPLIT_TUNNEL_ON |
+| cloudconnexa_location_context | n/a | default_policy | default_check |
+| cloudconnexa_location_context | n/a | country_policy | country_check |
+| cloudconnexa_location_context | n/a | ip_policy | ip_check |
+
 
 Code example for "cloudconnexa_user_group":
 
@@ -228,7 +229,7 @@ output when running "terraform state mv":
 
 ```shell
 │ Error: Invalid state move request
-│
+│ 
 │ Cannot move cloudconnexa_application.test1 to cloudconnexa_network_application.test1: resource types don't match.
 ```
 
@@ -236,12 +237,11 @@ output when using "moved" block:
 
 ```shell
  Error: Resource type mismatch
-│
+│ 
 │ This statement declares a move from cloudconnexa_application.test1 to cloudconnexa_network_application.test1, which is a resource of a different type.
 ```
 
 ### Remove from state and then import
-
 Let's imagine you have two resources and you use Terraform provider v0.5.1:
 
 ```hcl
@@ -277,7 +277,6 @@ resource "cloudconnexa_application" "test2" {
   }
 }
 ```
-
 To perform migration follow next procedure:
 
 - run "terraform plan" to get IDs of resources:
@@ -310,8 +309,7 @@ terraform {
   }
 }
 ```
-
-and initialize it:
+ and initialize it:
 
 ```shell
 terraform init -upgrade
@@ -403,3 +401,239 @@ Terraform has compared your real infrastructure against your configuration and f
 ```
 
 PS. This is simple example, for use cases when you have multiple resources and you create them via for_each you may follow this approach [https://developer.hashicorp.com/terraform/language/import#import-multiple-instances-with-for_each]
+
+## 4/ Starting with v1.0.0 when creating resource "cloudconnexa_network" route and connector are to be created separatelly
+
+Previously before Terraform provider v1.0.0 to create "cloudconnexa_network" code looked like this:
+
+```hcl
+resource "cloudconnexa_network" "this" {
+  name            = "my_test_network"
+  description     = "Test network"
+  egress          = true
+  internet_access = "LOCAL"
+  default_route {
+    description = "Managed by Terraform"
+    subnet      = "192.168.144.0/24"
+    type        = "IP_V4"
+  }
+  default_connector {
+    description   = "Managed by Terraform"
+    name          = "test-connector"
+    vpn_region_id = "eu-central-1"
+  }
+}
+```
+
+Due to the way how API and Terraform provider did things it lead to issue when it was not possible to import already existing networks into Terraform.
+
+Now starting with v1.0.0 code will be like this:
+
+```hcl
+resource "cloudconnexa_network" "this" {
+  name            = "my_test_network"
+  description     = "Test network"
+  egress          = true
+  internet_access = "SPLIT_TUNNEL_ON"
+}
+
+resource "cloudconnexa_network_connector" "this" {
+  name          = "test-connector"
+  description   = "Managed by Terraform"
+  vpn_region_id = "eu-central-1"
+  network_id    = cloudconnexa_network.this.id
+}
+
+resource "cloudconnexa_route" "this" {
+  description     = "Managed by Terraform"
+  type            = "IP_V4"
+  subnet          = "192.168.144.0/24"
+  network_item_id = cloudconnexa_network.this.id
+}
+```
+
+When migrating from older versions of provider to v1.0.0 you will have to remove old Network, Connector and Route from Terraform state.
+
+If you have Terraform provider for example v0.5.1 with next code:
+
+```hcl
+resource "cloudconnexa_network" "this" {
+  name            = "my_test_network"
+  description     = "Test network"
+  egress          = true
+  internet_access = "LOCAL"
+  default_route {
+    description = "Managed by Terraform"
+    subnet      = "192.168.144.0/24"
+    type        = "IP_V4"
+  }
+  default_connector {
+    description   = "Managed by Terraform"
+    name          = "test-connector"
+    vpn_region_id = "eu-central-1"
+  }
+}
+```
+
+and then switch to v1.0.0 version of the provider
+
+```hcl
+terraform {
+  required_providers {
+    cloudconnexa = {
+      source = "OpenVPN/cloudconnexa"
+      version = "1.0.0"
+    }
+  }
+}
+```
+
+you will need to update value of field "internet_access" from "LOCAL" to "SPLIT_TUNNEL_ON".
+After you try to run "terraform plan" you will get next output:
+
+```shell
+│ Error: Unsupported block type
+│ 
+│   on main.tf line 6, in resource "cloudconnexa_network" "this":
+│    6:   default_route {
+│ 
+│ Blocks of type "default_route" are not expected here.
+╵
+╷
+│ Error: Unsupported block type
+│ 
+│   on main.tf line 11, in resource "cloudconnexa_network" "this":
+│   11:   default_connector {
+│ 
+│ Blocks of type "default_connector" are not expected here.
+╵
+```
+
+Now if you were to remove/comment those blocks ("default_route" and "default_connector") and try again, you will see next output:
+
+```shell
+$ terraform plan 
+cloudconnexa_network.this: Refreshing state... [id=4099c335-94b0-44c0-83a6-73c4d1417c1c]
+╷
+│ Error: Failed to load plugin schemas
+│ 
+│ Error while loading schemas for plugin components: Failed to obtain provider schema: Could not load the schema for provider registry.terraform.io/openvpn/cloudconnexa: failed to instantiate
+│ provider "registry.terraform.io/openvpn/cloudconnexa" to obtain schema: unavailable provider "registry.terraform.io/openvpn/cloudconnexa"..
+╵
+```
+
+Now you need to remove from state:
+
+```shell
+terraform state rm cloudconnexa_network.this
+```
+after that make sure that code was updated:
+
+```hcl
+resource "cloudconnexa_network" "this" {
+  name            = "my_test_network"
+  description     = "Test network"
+  egress          = true
+  internet_access = "SPLIT_TUNNEL_ON"
+}
+```
+
+Now import it (ID can be found in CloudConnexa Admin Portal):
+
+```shell
+terraform import cloudconnexa_network.this <id>
+```
+
+after import will finish try run "terraform plan", it should return "No changes. Your infrastructure matches the configuration."
+
+Next step is to import Network Connector. At this point your code will look sililar to this
+
+```hcl
+resource "cloudconnexa_network" "this" {
+  name            = "my_test_network"
+  description     = "Test network"
+  egress          = true
+  internet_access = "SPLIT_TUNNEL_ON"
+}
+
+resource "cloudconnexa_network_connector" "this" {
+  name          = "test-connector"
+  description   = "Managed by Terraform"
+  vpn_region_id = "eu-central-1"
+  network_id    = cloudconnexa_network.this.id
+}
+```
+Now import it (ID can be found in CloudConnexa Admin Portal):
+
+```shell
+terraform import cloudconnexa_network_connector.this <id>
+```
+
+after import will finish most likelly you will see similar output from "terraform plan"
+
+```shell
+Terraform will perform the following actions:
+
+  # cloudconnexa_network_connector.this will be updated in-place
+  ~ resource "cloudconnexa_network_connector" "this" {
+      + description   = "Managed by Terraform"
+        id            = "d5c750a6-cd4e-4b6e-84d7-97a0c298484e"
+        name          = "test-connector"
+        # (6 unchanged attributes hidden)
+    }
+
+Plan: 0 to add, 1 to change, 0 to destroy.
+```
+
+Just run "terraform apply" and re-run "terraform plan", it should return "No changes. Your infrastructure matches the configuration."
+
+Importing "route" will require to use "Swagger". Go to https://[replace_with_your_cloud_id].openvpn.com/api and click "Swagger" button, click "Authorize" and provide API credentials.
+
+After that on Swagger page find "Network" section and under it find "GET /api/v1/networks/{id} Get existing network", click "Try it out" and paste ID of the Network (can be found in CloudConnexa Admin Portal) and click "Execute".
+
+It wil give you information about your Network, there you will find block similar to (take a look at "id" field, it will be needed later):
+
+```shell
+  "routes": [
+    {
+      "id": "0dccf62f-7083-43a7-a8a3-38406a21b842",
+      "type": "IP_V4",
+      "subnet": "192.168.144.0/24",
+      "description": "Managed by Terraform"
+    }
+  ],
+```
+
+Now we need to add configuration for Terraform, your final Terraform code would look similar to this:
+
+```hcl
+resource "cloudconnexa_network" "this" {
+  name            = "my_test_network"
+  description     = "Test network"
+  egress          = true
+  internet_access = "SPLIT_TUNNEL_ON"
+}
+
+resource "cloudconnexa_network_connector" "this" {
+  name          = "test-connector"
+  description   = "Managed by Terraform"
+  vpn_region_id = "eu-central-1"
+  network_id    = cloudconnexa_network.this.id
+}
+
+resource "cloudconnexa_route" "this" {
+  description     = "Managed by Terraform"
+  type            = "IP_V4"
+  network_item_id = cloudconnexa_network.this.id
+  subnet          = "192.168.144.0/24"
+}
+```
+Now we can import remaining resource (use value of "id" field from Swagger):
+
+```shell
+terraform import cloudconnexa_route.this <id>
+```
+
+After import will be done run "terraform plan", it should retun "No changes. Your infrastructure matches the configuration".
+
+Migration complete.

@@ -2,7 +2,7 @@ package cloudconnexa
 
 import (
 	"context"
-
+	"fmt"
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -20,6 +20,7 @@ func resourceDnsRecord() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
+		CustomizeDiff: validateAtLeastOneNonEmptyList,
 		Schema: map[string]*schema.Schema{
 			"domain": {
 				Type:        schema.TypeString,
@@ -41,7 +42,8 @@ func resourceDnsRecord() *schema.Resource {
 					Type:         schema.TypeString,
 					ValidateFunc: validation.IsIPv4Address,
 				},
-				Description: "The list of IPV4 addresses to which this record will resolve.",
+				Description:  "The list of IPV4 addresses to which this record will resolve.",
+				AtLeastOneOf: []string{"ip_v4_addresses", "ip_v6_addresses"},
 			},
 			"ip_v6_addresses": {
 				Type:     schema.TypeList,
@@ -144,4 +146,13 @@ func getAddressesSlice(addresses []interface{}) []string {
 		addressesSlice = append(addressesSlice, a.(string))
 	}
 	return addressesSlice
+}
+
+func validateAtLeastOneNonEmptyList(c context.Context, diff *schema.ResourceDiff, i interface{}) error {
+	listA := diff.Get("ip_v4_addresses").([]interface{})
+	listB := diff.Get("ip_v6_addresses").([]interface{})
+	if len(listA) == 0 && len(listB) == 0 {
+		return fmt.Errorf("either 'ip_v4_addresses' or 'ip_v6_addresses' must contain at least one item")
+	}
+	return nil
 }

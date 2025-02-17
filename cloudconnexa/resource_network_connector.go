@@ -72,10 +72,10 @@ func resourceNetworkConnectorUpdate(ctx context.Context, d *schema.ResourceData,
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
 	connector := cloudconnexa.NetworkConnector{
-		ID:          d.Id(),
+		Id:          d.Id(),
 		Name:        d.Get("name").(string),
 		Description: d.Get("description").(string),
-		VpnRegionID: d.Get("vpn_region_id").(string),
+		VpnRegionId: d.Get("vpn_region_id").(string),
 	}
 	_, err := c.NetworkConnectors.Update(connector)
 	if err != nil {
@@ -93,22 +93,22 @@ func resourceNetworkConnectorCreate(ctx context.Context, d *schema.ResourceData,
 	vpnRegionId := d.Get("vpn_region_id").(string)
 	connector := cloudconnexa.NetworkConnector{
 		Name:            name,
-		NetworkItemID:   networkItemId,
+		NetworkItemId:   networkItemId,
 		NetworkItemType: "NETWORK",
-		VpnRegionID:     vpnRegionId,
+		VpnRegionId:     vpnRegionId,
 		Description:     description,
 	}
 	conn, err := c.NetworkConnectors.Create(connector, networkItemId)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	d.SetId(conn.ID)
-	profile, err := c.NetworkConnectors.GetProfile(conn.ID)
+	d.SetId(conn.Id)
+	profile, err := c.NetworkConnectors.GetProfile(conn.Id)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
 	d.Set("profile", profile)
-	token, err := c.NetworkConnectors.GetToken(conn.ID)
+	token, err := c.NetworkConnectors.GetToken(conn.Id)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -127,7 +127,7 @@ func resourceNetworkConnectorRead(ctx context.Context, d *schema.ResourceData, m
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	token, err := c.NetworkConnectors.GetToken(connector.ID)
+	token, err := c.NetworkConnectors.GetToken(connector.Id)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -135,14 +135,14 @@ func resourceNetworkConnectorRead(ctx context.Context, d *schema.ResourceData, m
 	if connector == nil {
 		d.SetId("")
 	} else {
-		d.SetId(connector.ID)
+		d.SetId(connector.Id)
 		d.Set("name", connector.Name)
-		d.Set("vpn_region_id", connector.VpnRegionID)
-		d.Set("network_id", connector.NetworkItemID)
+		d.Set("vpn_region_id", connector.VpnRegionId)
+		d.Set("network_id", connector.NetworkItemId)
 		d.Set("ip_v4_address", connector.IPv4Address)
 		d.Set("ip_v6_address", connector.IPv6Address)
 		d.Set("token", token)
-		profile, err := c.NetworkConnectors.GetProfile(connector.ID)
+		profile, err := c.NetworkConnectors.GetProfile(connector.Id)
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
@@ -159,32 +159,4 @@ func resourceNetworkConnectorDelete(ctx context.Context, d *schema.ResourceData,
 		return append(diags, diag.FromErr(err)...)
 	}
 	return diags
-}
-
-func getConnectorSlice(connectors []cloudconnexa.NetworkConnector, networkItemId string, connectorName string, m interface{}) ([]interface{}, error) {
-	if len(connectors) == 0 {
-		return nil, nil
-	}
-	connectorsList := make([]interface{}, 1)
-	for _, c := range connectors {
-		if c.NetworkItemID == networkItemId && c.Name == connectorName {
-			connector := make(map[string]interface{})
-			connector["id"] = c.ID
-			connector["name"] = c.Name
-			connector["network_id"] = c.NetworkItemID
-			connector["description"] = c.Description
-			connector["vpn_region_id"] = c.VpnRegionID
-			connector["ip_v4_address"] = c.IPv4Address
-			connector["ip_v6_address"] = c.IPv6Address
-			client := m.(*cloudconnexa.Client)
-			profile, err := client.NetworkConnectors.GetProfile(c.ID)
-			if err != nil {
-				return nil, err
-			}
-			connector["profile"] = profile
-			connectorsList[0] = connector
-			break
-		}
-	}
-	return connectorsList, nil
 }
