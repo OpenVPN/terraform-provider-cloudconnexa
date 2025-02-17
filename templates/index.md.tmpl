@@ -21,6 +21,10 @@ Additionally, you'll find Swagger documentation for the API in the same location
 More documentation on the CloudConnexa API credentials can be found here:
 [Creating API credentials](https://openvpn.net/cloud-docs/developer/creating-api-credentials.html)
 
+!> **Warning:** Hard-coded credentials are not recommended in any Terraform
+configuration and risks secret leakage should this file ever be committed to a
+public version control system.
+
 ## Example Usage
 
 {{ tffile "examples/provider/provider.tf" }}
