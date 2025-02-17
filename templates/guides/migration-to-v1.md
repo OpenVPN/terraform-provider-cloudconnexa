@@ -1,8 +1,13 @@
-# Migration to CloudConnexa Provider v1.0.0
+---
+page_title: "Upgrading to version 1 (from 0.x)"
+description: Terraform CloudConnexa Provider Version 1 Upgrade Guide
+---
 
-Important: this migration guide is created to outline migration from older versions of Terraform provider (which where using "/beta" endpoint) to Terraform provider v1.0.0 (which is using "/v1" endpoint).
+# Terraform CloudConnexa Provider Version 1 Upgrade Guide
 
-In v1.0.0 we intruduced BREAKING CHANGES, which we will cover in this migration guide.
+This migration guide is created to outline migration from older versions of Terraform provider (which where using "/beta" endpoint) to Terraform provider v1.0.0 (which is using "/v1" endpoint).
+
+Version 1 of the CloudConnexa Terraform Provider is introducing several BREAKING CHANGES, which we will cover in this migration guide.
 
 ## 1/ Data sources will use only "id" field
 
