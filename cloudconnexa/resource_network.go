@@ -71,7 +71,7 @@ func resourceNetworkCreate(ctx context.Context, d *schema.ResourceData, m interf
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	d.SetId(network.Id)
+	d.SetId(network.ID)
 	return diags
 }
 
@@ -103,7 +103,7 @@ func resourceNetworkUpdate(ctx context.Context, d *schema.ResourceData, m interf
 	_, newEgress := d.GetChange("egress")
 	_, newAccess := d.GetChange("internet_access")
 	err := c.Networks.Update(cloudconnexa.Network{
-		Id:             d.Id(),
+		ID:             d.Id(),
 		Name:           newName.(string),
 		Description:    newDescription.(string),
 		Egress:         newEgress.(bool),
