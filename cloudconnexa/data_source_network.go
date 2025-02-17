@@ -72,32 +72,3 @@ func dataSourceNetworkRead(ctx context.Context, d *schema.ResourceData, m interf
 	d.Set("system_subnets", network.SystemSubnets)
 	return diags
 }
-
-func getRoutesSlice(networkRoutes *[]cloudconnexa.Route) []interface{} {
-	routes := make([]interface{}, len(*networkRoutes))
-	for i, r := range *networkRoutes {
-		route := make(map[string]interface{})
-		route["id"] = r.ID
-		route["subnet"] = r.Subnet
-		route["type"] = r.Type
-		route["description"] = r.Description
-		routes[i] = route
-	}
-	return routes
-}
-
-func getConnectorsSliceByNetworkConnectors(connectors *[]cloudconnexa.NetworkConnector) []interface{} {
-	conns := make([]interface{}, len(*connectors))
-	for i, c := range *connectors {
-		connector := make(map[string]interface{})
-		connector["id"] = c.ID
-		connector["name"] = c.Name
-		connector["network_id"] = c.NetworkItemID
-		connector["vpn_region_id"] = c.VpnRegionID
-		connector["ip_v4_address"] = c.IPv4Address
-		connector["ip_v6_address"] = c.IPv6Address
-		connector["description"] = c.Description
-		conns[i] = connector
-	}
-	return conns
-}
