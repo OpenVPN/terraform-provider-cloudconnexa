@@ -14,6 +14,7 @@ The provider needs to be configured with the proper credentials before it can be
 
 To authenticate with the CloudConnexa API, you'll need the client_id and client_secret.
 These credentials can be found in the CloudConnexa Portal.
+
 Go to the Settings page and click on the API tab.
 From there, you can enable the API and generate new authentication credentials.
 Additionally, you'll find Swagger documentation for the API in the same location.
