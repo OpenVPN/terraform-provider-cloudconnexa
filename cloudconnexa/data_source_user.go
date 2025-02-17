@@ -2,6 +2,7 @@ package cloudconnexa
 
 import (
 	"context"
+
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -113,14 +114,14 @@ func dataSourceUserRead(ctx context.Context, d *schema.ResourceData, m interface
 		return append(diags, diag.Errorf("User with name %s was not found", userName)...)
 	}
 
-	d.SetId(user.Id)
+	d.SetId(user.ID)
 	d.Set("username", user.Username)
 	d.Set("role", user.Role)
 	d.Set("email", user.Email)
 	d.Set("auth_type", user.AuthType)
 	d.Set("first_name", user.FirstName)
 	d.Set("last_name", user.LastName)
-	d.Set("group_id", user.GroupId)
+	d.Set("group_id", user.GroupID)
 	d.Set("status", user.Status)
 	d.Set("devices", getUserDevicesSlice(&user.Devices))
 	d.Set("connection_status", user.ConnectionStatus)
@@ -131,7 +132,7 @@ func getUserDevicesSlice(userDevices *[]cloudconnexa.Device) []interface{} {
 	devices := make([]interface{}, len(*userDevices))
 	for i, d := range *userDevices {
 		device := make(map[string]interface{})
-		device["id"] = d.Id
+		device["id"] = d.ID
 		device["name"] = d.Name
 		device["description"] = d.Description
 		device["ip_v4_address"] = d.IPv4Address

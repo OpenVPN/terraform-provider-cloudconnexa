@@ -2,6 +2,7 @@ package cloudconnexa
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
@@ -61,7 +62,7 @@ func dataSourceHostRead(ctx context.Context, d *schema.ResourceData, m interface
 		return append(diags, diag.Errorf("Host with id %s was not found", id)...)
 	}
 
-	d.SetId(host.Id)
+	d.SetId(host.ID)
 	d.Set("name", host.Name)
 	d.Set("description", host.Description)
 	d.Set("domain", host.Domain)

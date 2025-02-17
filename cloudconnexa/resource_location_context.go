@@ -2,6 +2,7 @@ package cloudconnexa
 
 import (
 	"context"
+
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -131,7 +132,7 @@ func resourceLocationContextCreate(ctx context.Context, d *schema.ResourceData, 
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	d.SetId(response.Id)
+	d.SetId(response.ID)
 	return diags
 }
 
@@ -174,18 +175,18 @@ func resourceLocationContextDelete(ctx context.Context, d *schema.ResourceData, 
 }
 
 func setLocationContextData(d *schema.ResourceData, lc *cloudconnexa.LocationContext) {
-	d.SetId(lc.Id)
+	d.SetId(lc.ID)
 	d.Set("name", lc.Name)
 	d.Set("description", lc.Description)
-	d.Set("user_groups_ids", lc.UserGroupsIds)
+	d.Set("user_groups_ids", lc.UserGroupsIDs)
 
-	if lc.IpCheck != nil {
+	if lc.IPCheck != nil {
 		ipCheck := make(map[string]interface{})
-		ipCheck["allowed"] = lc.IpCheck.Allowed
+		ipCheck["allowed"] = lc.IPCheck.Allowed
 		var ips []interface{}
-		for _, ip := range lc.IpCheck.Ips {
+		for _, ip := range lc.IPCheck.Ips {
 			ips = append(ips, map[string]interface{}{
-				"ip":          ip.Ip,
+				"ip":          ip.IP,
 				"description": ip.Description,
 			})
 		}
@@ -212,28 +213,28 @@ func resourceDataToLocationContext(data *schema.ResourceData) *cloudconnexa.Loca
 	}
 
 	response := &cloudconnexa.LocationContext{
-		Id:           data.Id(),
+		ID:           data.Id(),
 		Name:         data.Get("name").(string),
 		Description:  data.Get("description").(string),
 		DefaultCheck: defaultCheck,
 	}
 
 	for _, id := range data.Get("user_groups_ids").([]interface{}) {
-		response.UserGroupsIds = append(response.UserGroupsIds, id.(string))
+		response.UserGroupsIDs = append(response.UserGroupsIDs, id.(string))
 	}
 
 	ipCheckList := data.Get("ip_check").([]interface{})
 	if len(ipCheckList) > 0 {
-		ipCheck := &cloudconnexa.IpCheck{}
+		ipCheck := &cloudconnexa.IPCheck{}
 		ipCheckData := ipCheckList[0].(map[string]interface{})
 		ipCheck.Allowed = ipCheckData["allowed"].(bool)
 		for _, ip := range ipCheckData["ips"].([]interface{}) {
-			ipCheck.Ips = append(ipCheck.Ips, cloudconnexa.Ip{
-				Ip:          ip.(map[string]interface{})["ip"].(string),
+			ipCheck.Ips = append(ipCheck.Ips, cloudconnexa.IP{
+				IP:          ip.(map[string]interface{})["ip"].(string),
 				Description: ip.(map[string]interface{})["description"].(string),
 			})
 		}
-		response.IpCheck = ipCheck
+		response.IPCheck = ipCheck
 	}
 
 	countryCheckList := data.Get("country_check").([]interface{})

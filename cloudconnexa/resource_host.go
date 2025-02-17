@@ -2,6 +2,7 @@ package cloudconnexa
 
 import (
 	"context"
+
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -70,7 +71,7 @@ func resourceHostCreate(ctx context.Context, d *schema.ResourceData, m interface
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	d.SetId(host.Id)
+	d.SetId(host.ID)
 
 	return diags
 }
@@ -103,7 +104,7 @@ func resourceHostUpdate(ctx context.Context, d *schema.ResourceData, m interface
 	_, newDomain := d.GetChange("domain")
 	_, newAccess := d.GetChange("internet_access")
 	err := c.Hosts.Update(cloudconnexa.Host{
-		Id:             d.Id(),
+		ID:             d.Id(),
 		Name:           newName.(string),
 		Description:    newDescription.(string),
 		Domain:         newDomain.(string),

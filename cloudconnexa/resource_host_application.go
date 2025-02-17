@@ -2,12 +2,13 @@ package cloudconnexa
 
 import (
 	"context"
+	"slices"
+
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
-	"slices"
 )
 
 func resourceHostApplication() *schema.Resource {
@@ -146,12 +147,12 @@ func resourceHostApplicationRead(ctx context.Context, data *schema.ResourceData,
 }
 
 func setApplicationData(data *schema.ResourceData, application *cloudconnexa.ApplicationResponse) {
-	data.SetId(application.Id)
+	data.SetId(application.ID)
 	_ = data.Set("name", application.Name)
 	_ = data.Set("description", application.Description)
 	_ = data.Set("routes", flattenApplicationRoutes(application.Routes))
 	_ = data.Set("config", flattenApplicationConfig(application.Config))
-	_ = data.Set("host_id", application.NetworkItemId)
+	_ = data.Set("host_id", application.NetworkItemID)
 }
 
 func resourceHostApplicationDelete(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
@@ -198,7 +199,7 @@ func flattenApplicationRoutes(routes []*cloudconnexa.Route) []map[string]interfa
 	for _, route := range routes {
 		data = append(data, map[string]interface{}{
 			"domain":            route.Domain,
-			"allow_embedded_ip": route.AllowEmbeddedIp,
+			"allow_embedded_ip": route.AllowEmbeddedIP,
 		})
 	}
 	return data
@@ -225,7 +226,7 @@ func resourceDataToHostApplication(data *schema.ResourceData) *cloudconnexa.Appl
 			configRoutes,
 			&cloudconnexa.ApplicationRoute{
 				Value:           route["domain"].(string),
-				AllowEmbeddedIp: route["allow_embedded_ip"].(bool),
+				AllowEmbeddedIP: route["allow_embedded_ip"].(bool),
 			},
 		)
 	}
@@ -288,7 +289,7 @@ func resourceDataToHostApplication(data *schema.ResourceData) *cloudconnexa.Appl
 	s := &cloudconnexa.Application{
 		Name:            data.Get("name").(string),
 		Description:     data.Get("description").(string),
-		NetworkItemId:   data.Get("host_id").(string),
+		NetworkItemID:   data.Get("host_id").(string),
 		NetworkItemType: "HOST",
 		Routes:          configRoutes,
 		Config:          &config,

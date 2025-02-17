@@ -2,6 +2,7 @@ package cloudconnexa
 
 import (
 	"context"
+
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -64,7 +65,7 @@ func dataSourceNetworkRoutesRead(ctx context.Context, d *schema.ResourceData, m 
 	configRoutes := make([]map[string]interface{}, len(routes))
 	for i, r := range routes {
 		route := make(map[string]interface{})
-		route["id"] = r.Id
+		route["id"] = r.ID
 		route["type"] = r.Type
 		route["subnet"] = r.Subnet
 		route["description"] = r.Description

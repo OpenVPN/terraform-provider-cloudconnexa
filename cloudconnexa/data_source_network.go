@@ -64,7 +64,7 @@ func dataSourceNetworkRead(ctx context.Context, d *schema.ResourceData, m interf
 	if network == nil {
 		return append(diags, diag.Errorf("Network with id %s was not found", id)...)
 	}
-	d.SetId(network.Id)
+	d.SetId(network.ID)
 	d.Set("name", network.Name)
 	d.Set("description", network.Description)
 	d.Set("egress", network.Egress)

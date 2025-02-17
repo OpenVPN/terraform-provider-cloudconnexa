@@ -73,17 +73,17 @@ func resourceDnsRecordCreate(ctx context.Context, d *schema.ResourceData, m inte
 	for _, a := range ipV6Addresses {
 		ipV6AddressesSlice = append(ipV6AddressesSlice, a.(string))
 	}
-	dr := cloudconnexa.DnsRecord{
+	dr := cloudconnexa.DNSRecord{
 		Domain:        domain,
 		Description:   description,
 		IPV4Addresses: ipV4AddressesSlice,
 		IPV6Addresses: ipV6AddressesSlice,
 	}
-	dnsRecord, err := c.DnsRecords.Create(dr)
+	dnsRecord, err := c.DNSRecords.Create(dr)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	d.SetId(dnsRecord.Id)
+	d.SetId(dnsRecord.ID)
 	return diags
 }
 
@@ -91,7 +91,7 @@ func resourceDnsRecordRead(ctx context.Context, d *schema.ResourceData, m interf
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
 	recordId := d.Id()
-	r, err := c.DnsRecords.GetDnsRecord(recordId)
+	r, err := c.DNSRecords.GetDNSRecord(recordId)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -115,14 +115,14 @@ func resourceDnsRecordUpdate(ctx context.Context, d *schema.ResourceData, m inte
 	ipV4AddressesSlice := getAddressesSlice(ipV4Addresses.([]interface{}))
 	_, ipV6Addresses := d.GetChange("ip_v6_addresses")
 	ipV6AddressesSlice := getAddressesSlice(ipV6Addresses.([]interface{}))
-	dr := cloudconnexa.DnsRecord{
-		Id:            d.Id(),
+	dr := cloudconnexa.DNSRecord{
+		ID:            d.Id(),
 		Domain:        domain.(string),
 		Description:   description.(string),
 		IPV4Addresses: ipV4AddressesSlice,
 		IPV6Addresses: ipV6AddressesSlice,
 	}
-	err := c.DnsRecords.Update(dr)
+	err := c.DNSRecords.Update(dr)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -133,7 +133,7 @@ func resourceDnsRecordDelete(ctx context.Context, d *schema.ResourceData, m inte
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
 	routeId := d.Id()
-	err := c.DnsRecords.Delete(routeId)
+	err := c.DNSRecords.Delete(routeId)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}

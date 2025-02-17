@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 	"testing"
+
+	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -16,7 +17,7 @@ func TestAccCloudConnexaUserGroup_basic(t *testing.T) {
 	rn := "cloudconnexa_user_group.test"
 	userGroup := cloudconnexa.UserGroup{
 		Name: acctest.RandStringFromCharSet(10, alphabet),
-		VpnRegionIds: []string{
+		VpnRegionIDs: []string{
 			"us-east-1",
 		},
 	}
@@ -27,7 +28,7 @@ func TestAccCloudConnexaUserGroup_basic(t *testing.T) {
 		return resource.ComposeTestCheckFunc(
 			testAccCheckCloudConnexaUserGroupExists(rn),
 			resource.TestCheckResourceAttr(rn, "name", userGroup.Name),
-			resource.TestCheckResourceAttr(rn, "vpn_region_ids.0", userGroup.VpnRegionIds[0]),
+			resource.TestCheckResourceAttr(rn, "vpn_region_ids.0", userGroup.VpnRegionIDs[0]),
 		)
 	}
 
@@ -92,7 +93,7 @@ func testAccCheckCloudConnexaUserGroupExists(rn string) resource.TestCheckFunc {
 }
 
 func testAccCloudConnexaUserGroupConfig(userGroup cloudconnexa.UserGroup) string {
-	idsStr, _ := json.Marshal(userGroup.VpnRegionIds)
+	idsStr, _ := json.Marshal(userGroup.VpnRegionIDs)
 
 	return fmt.Sprintf(`
 provider "cloudconnexa" {

@@ -132,12 +132,12 @@ func resourceHostIpServiceRead(ctx context.Context, data *schema.ResourceData, i
 }
 
 func setHostIpServiceResourceData(data *schema.ResourceData, service *cloudconnexa.IPServiceResponse) {
-	data.SetId(service.Id)
+	data.SetId(service.ID)
 	_ = data.Set("name", service.Name)
 	_ = data.Set("description", service.Description)
 	_ = data.Set("routes", flattenHostIpServiceRoutes(service.Routes))
 	_ = data.Set("config", flattenHostServiceConfig(service.Config))
-	_ = data.Set("host_id", service.NetworkItemId)
+	_ = data.Set("host_id", service.NetworkItemID)
 }
 
 func resourceHostIpServiceDelete(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
@@ -273,7 +273,7 @@ func resourceDataToHostIpService(data *schema.ResourceData) *cloudconnexa.IPServ
 	s := &cloudconnexa.IPService{
 		Name:            data.Get("name").(string),
 		Description:     data.Get("description").(string),
-		NetworkItemId:   data.Get("host_id").(string),
+		NetworkItemID:   data.Get("host_id").(string),
 		NetworkItemType: "HOST",
 		Type:            "SERVICE_DESTINATION",
 		Routes:          configRoutes,

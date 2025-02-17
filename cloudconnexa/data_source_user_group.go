@@ -84,7 +84,7 @@ func dataSourceUserGroupRead(ctx context.Context, d *schema.ResourceData, m inte
 	}
 	d.SetId(userGroup.ID)
 	d.Set("name", userGroup.Name)
-	d.Set("vpn_region_ids", userGroup.VpnRegionIds)
+	d.Set("vpn_region_ids", userGroup.VpnRegionIDs)
 	d.Set("all_regions_included", userGroup.AllRegionsIncluded)
 	d.Set("internet_access", userGroup.InternetAccess)
 	d.Set("max_device", userGroup.MaxDevice)

@@ -65,7 +65,7 @@ func resourceRouteCreate(ctx context.Context, d *schema.ResourceData, m interfac
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	d.SetId(route.Id)
+	d.SetId(route.ID)
 	if routeType == "IP_V4" || routeType == "IP_V6" {
 		d.Set("subnet", route.Subnet)
 	}
@@ -88,7 +88,7 @@ func resourceRouteRead(ctx context.Context, d *schema.ResourceData, m interface{
 			d.Set("subnet", r.Subnet)
 		}
 		d.Set("description", r.Description)
-		d.Set("network_item_id", r.NetworkItemId)
+		d.Set("network_item_id", r.NetworkItemID)
 	}
 	return diags
 }
@@ -103,7 +103,7 @@ func resourceRouteUpdate(ctx context.Context, d *schema.ResourceData, m interfac
 	_, description := d.GetChange("description")
 	_, subnet := d.GetChange("subnet")
 	r := cloudconnexa.Route{
-		Id:          d.Id(),
+		ID:          d.Id(),
 		Description: description.(string),
 		Subnet:      subnet.(string),
 	}

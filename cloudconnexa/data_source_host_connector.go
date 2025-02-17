@@ -76,21 +76,21 @@ func dataSourceHostConnectorRead(ctx context.Context, d *schema.ResourceData, m 
 	if connector == nil {
 		return append(diags, diag.Errorf("Connector with id %s was not found", id)...)
 	}
-	token, err = c.HostConnectors.GetToken(connector.Id)
+	token, err = c.HostConnectors.GetToken(connector.ID)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
 
-	d.SetId(connector.Id)
+	d.SetId(connector.ID)
 	d.Set("name", connector.Name)
 	d.Set("description", connector.Description)
-	d.Set("host_id", connector.NetworkItemId)
-	d.Set("vpn_region_id", connector.VpnRegionId)
+	d.Set("host_id", connector.NetworkItemID)
+	d.Set("vpn_region_id", connector.VpnRegionID)
 	d.Set("ip_v4_address", connector.IPv4Address)
 	d.Set("ip_v6_address", connector.IPv6Address)
 	d.Set("token", token)
 
-	profile, err := c.HostConnectors.GetProfile(connector.Id)
+	profile, err := c.HostConnectors.GetProfile(connector.ID)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}

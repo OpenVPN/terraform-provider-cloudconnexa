@@ -2,16 +2,16 @@
 name: golangci-lint
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  lint:
+  golangci:
     name: lint
     runs-on: ubuntu-latest
     steps:
@@ -20,9 +20,10 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: "go.mod"
-          cache: true
+          cache: false
 
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6.4.0
+        uses: golangci/golangci-lint-action@v6
         with:
-          version: v1.55.2
+          version: v1.60
+          args: --timeout=5m

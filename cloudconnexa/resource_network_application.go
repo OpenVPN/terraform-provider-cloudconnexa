@@ -2,12 +2,13 @@ package cloudconnexa
 
 import (
 	"context"
+	"slices"
+
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
-	"slices"
 )
 
 func resourceNetworkApplication() *schema.Resource {
@@ -158,7 +159,7 @@ func resourceDataToNetworkApplication(data *schema.ResourceData) *cloudconnexa.A
 			configRoutes,
 			&cloudconnexa.ApplicationRoute{
 				Value:           route["domain"].(string),
-				AllowEmbeddedIp: route["allow_embedded_ip"].(bool),
+				AllowEmbeddedIP: route["allow_embedded_ip"].(bool),
 			},
 		)
 	}
@@ -221,7 +222,7 @@ func resourceDataToNetworkApplication(data *schema.ResourceData) *cloudconnexa.A
 	s := &cloudconnexa.Application{
 		Name:            data.Get("name").(string),
 		Description:     data.Get("description").(string),
-		NetworkItemId:   data.Get("network_id").(string),
+		NetworkItemID:   data.Get("network_id").(string),
 		NetworkItemType: "NETWORK",
 		Routes:          configRoutes,
 		Config:          &config,
