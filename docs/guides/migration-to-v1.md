@@ -1,4 +1,4 @@
-# Terraform v1.0.0 migration guide
+# Migration to CloudConnexa Provider v1.0.0
 
 Important: this migration guide is created to outline migration from older versions of Terraform provider (which where using "/beta" endpoint) to Terraform provider v1.0.0 (which is using "/v1" endpoint).
 

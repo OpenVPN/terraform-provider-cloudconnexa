@@ -19,6 +19,10 @@
 
 The Terraform provider for [CloudConnexa](https://openvpn.net/cloud-vpn/?utm_source=terraform&utm_medium=docs) allows teams to configure and update CloudConnexa project parameters via their command line.
 
+## Guides
+
+- [Migration from v0.X.X to v1.0.0](https://registry.terraform.io/providers/OpenVPN/cloudconnexa/latest/docs/guides/migration-to-v1)
+
 ## Maintainers
 
 This provider plugin is maintained by:
