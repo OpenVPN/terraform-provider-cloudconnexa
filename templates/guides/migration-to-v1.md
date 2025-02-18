@@ -167,15 +167,10 @@ resource "cloudconnexa_network" "this" {
   description     = "This is test network"
   name            = "my_network"
   internet_access = "SPLIT_TUNNEL_ON"
-  default_route {
-    subnet = "192.168.144.0/24"
-  }
-  default_connector {
-    name          = "test-connector"
-    vpn_region_id = "eu-central-1"
-  }
 }
 ```
+
+Blocks "default_connector" and "default_route" were deprecated. Connector and Route now should be created as separate resources. More information below.
 
 Code example for "cloudconnexa_host":
 
@@ -197,15 +192,13 @@ after:
 
 ```hcl
 resource "cloudconnexa_host" "this" {
-  name        = "my_host"
-  description = "This is test host"
-  connector {
-    name          = "test"
-    vpn_region_id = "eu-central-2"
-  }
+  name            = "my_host"
+  description     = "This is test host"
   internet_access = "SPLIT_TUNNEL_ON"
 }
 ```
+
+Block "connector" was deprecated. Connector now should be created as separate resource. More information below.
 
 ## 3/ Some resources were splitted into separate ones
 
@@ -314,7 +307,8 @@ terraform {
   }
 }
 ```
- and initialize it:
+
+and initialize it:
 
 ```shell
 terraform init -upgrade
@@ -494,6 +488,7 @@ terraform {
 ```
 
 you will need to update value of field "internet_access" from "LOCAL" to "SPLIT_TUNNEL_ON".
+
 After you try to run "terraform plan" you will get next output:
 
 ```shell
@@ -514,25 +509,7 @@ After you try to run "terraform plan" you will get next output:
 ╵
 ```
 
-Now if you were to remove/comment those blocks ("default_route" and "default_connector") and try again, you will see next output:
-
-```shell
-$ terraform plan 
-cloudconnexa_network.this: Refreshing state... [id=4099c335-94b0-44c0-83a6-73c4d1417c1c]
-╷
-│ Error: Failed to load plugin schemas
-│ 
-│ Error while loading schemas for plugin components: Failed to obtain provider schema: Could not load the schema for provider registry.terraform.io/openvpn/cloudconnexa: failed to instantiate
-│ provider "registry.terraform.io/openvpn/cloudconnexa" to obtain schema: unavailable provider "registry.terraform.io/openvpn/cloudconnexa"..
-╵
-```
-
-Now you need to remove from state:
-
-```shell
-terraform state rm cloudconnexa_network.this
-```
-after that make sure that code was updated:
+Now if you were to remove/comment those blocks ("default_route" and "default_connector") code should look similar to:
 
 ```hcl
 resource "cloudconnexa_network" "this" {
@@ -543,15 +520,20 @@ resource "cloudconnexa_network" "this" {
 }
 ```
 
-Now import it (ID can be found in CloudConnexa Admin Portal):
+and try running "terraform plan" again, you will see similar output:
 
 ```shell
-terraform import cloudconnexa_network.this <id>
+$ terraform plan 
+cloudconnexa_network.this: Refreshing state... [id=819c992a-f03e-42aa-a0b2-3230cb3a4540]
+
+No changes. Your infrastructure matches the configuration.
+
+Terraform has compared your real infrastructure against your configuration and found no differences, so no changes are needed.
 ```
 
-after import will finish try run "terraform plan", it should return "No changes. Your infrastructure matches the configuration."
+It means that resource "cloudconnexa_network" is good. Now we need to import "cloudconnexa_network_connector" and "cloudconnexa_route" resources.
 
-Next step is to import Network Connector. At this point your code will look sililar to this
+Let's import Network Connector. At this point your code will look sililar to this
 
 ```hcl
 resource "cloudconnexa_network" "this" {
@@ -633,12 +615,147 @@ resource "cloudconnexa_route" "this" {
   subnet          = "192.168.144.0/24"
 }
 ```
-Now we can import remaining resource (use value of "id" field from Swagger):
+
+Now we can import resource "cloudconnexa_route" (use value of "id" field from Swagger):
 
 ```shell
 terraform import cloudconnexa_route.this <id>
 ```
 
 After import will be done run "terraform plan", it should retun "No changes. Your infrastructure matches the configuration".
+
+Migration complete.
+
+## 5/ Starting with v1.0.0 when creating resource "cloudconnexa_host" connector should be created separatelly
+
+Previously before Terraform provider v1.0.0 to create "cloudconnexa_host" code looked like this:
+
+```hcl
+resource "cloudconnexa_host" "this" {
+  name            = "test_host"
+  description     = "Managed by Terraform"
+  internet_access = "LOCAL"
+  domain          = "test.example.local"
+
+  connector {
+    name          = "test-connector"
+    vpn_region_id = "eu-central-1"
+  }
+}
+```
+
+If you just speficy Version 1 of provider:
+
+```hcl
+terraform {
+  required_providers {
+    cloudconnexa = {
+      source = "OpenVPN/cloudconnexa"
+      version = "1.0.0"
+    }
+  }
+}
+```
+
+then initialize it:
+
+```shell
+terraform init -upgrade
+```
+
+after you run "terraform plan" you will see similar output:
+
+```shell
+│ Error: Unsupported block type
+│ 
+│   on main.tf line 76, in resource "cloudconnexa_host" "this":
+│   76:   connector {
+│ 
+│ Blocks of type "connector" are not expected here.
+```
+
+Ok, let's remove this block:
+
+```hcl
+resource "cloudconnexa_host" "this" {
+  name            = "test_host"
+  description     = "Managed by Terraform"
+  internet_access = "SPLIT_TUNNEL_ON"
+  domain          = "test.example.local"
+}
+```
+
+Note that value of "internet_access" changed, but this was already covered above in this migration guide.
+
+If you run "terraform plan" you will see similar output:
+
+```shell
+$ terraform plan 
+cloudconnexa_host.this: Refreshing state... [id=e3ba5adf-cc91-44f1-9397-e3335ab23880]
+
+No changes. Your infrastructure matches the configuration.
+
+Terraform has compared your real infrastructure against your configuration and found no differences, so no changes are needed.
+```
+
+It means that resource "cloudconnexa_host" is good, but now we need to import "cloudconnexa_connector" resource.
+
+Full code:
+
+```hcl
+resource "cloudconnexa_host" "this" {
+  name            = "test_host"
+  description     = "Managed by Terraform"
+  internet_access = "SPLIT_TUNNEL_ON"
+  domain          = "test.example.local"
+}
+
+resource "cloudconnexa_host_connector" "this" {
+  name          = "test-connector"
+  description   = "Managed by Terraform"
+  host_id       = cloudconnexa_host.this.id
+  vpn_region_id = "eu-central-1"
+}
+```
+
+Run "terraform plan" and you will see similar output:
+
+```shell
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # cloudconnexa_host_connector.this will be created
+  + resource "cloudconnexa_host_connector" "this" {
+   # removed content to keep it clear
+    }
+
+Plan: 1 to add, 0 to change, 0 to destroy.
+```
+
+Now import resource "cloudconnexa_host_connector" (ID can be found in CloudConnexa Admin Portal):
+
+```shell
+terraform import cloudconnexa_host_connector.this <id>
+```
+
+After import will finish try run "terraform plan", most likely it will show minor drift:
+
+```shell
+Terraform will perform the following actions:
+
+  # cloudconnexa_host_connector.this will be updated in-place
+  ~ resource "cloudconnexa_host_connector" "this" {
+      + description   = "Managed by Terraform"
+        id            = "1dc8d0d3-4fd6-4113-9b79-de92fb281dee"
+        name          = "test-connector"
+        # (6 unchanged attributes hidden)
+    }
+
+Plan: 0 to add, 1 to change, 0 to destroy.
+```
+
+Run "terraform apply" and then "terraform plan" - now it should return "No changes. Your infrastructure matches the configuration."
 
 Migration complete.
