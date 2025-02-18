@@ -488,6 +488,7 @@ terraform {
 ```
 
 you will need to update value of field "internet_access" from "LOCAL" to "SPLIT_TUNNEL_ON".
+
 After you try to run "terraform plan" you will get next output:
 
 ```shell
@@ -508,25 +509,7 @@ After you try to run "terraform plan" you will get next output:
 ╵
 ```
 
-Now if you were to remove/comment those blocks ("default_route" and "default_connector") and try again, you will see next output:
-
-```shell
-$ terraform plan 
-cloudconnexa_network.this: Refreshing state... [id=4099c335-94b0-44c0-83a6-73c4d1417c1c]
-╷
-│ Error: Failed to load plugin schemas
-│ 
-│ Error while loading schemas for plugin components: Failed to obtain provider schema: Could not load the schema for provider registry.terraform.io/openvpn/cloudconnexa: failed to instantiate
-│ provider "registry.terraform.io/openvpn/cloudconnexa" to obtain schema: unavailable provider "registry.terraform.io/openvpn/cloudconnexa"..
-╵
-```
-
-Now you need to remove from state:
-
-```shell
-terraform state rm cloudconnexa_network.this
-```
-after that make sure that code was updated:
+Now if you were to remove/comment those blocks ("default_route" and "default_connector") code should look similar to:
 
 ```hcl
 resource "cloudconnexa_network" "this" {
@@ -537,15 +520,20 @@ resource "cloudconnexa_network" "this" {
 }
 ```
 
-Now import it (ID can be found in CloudConnexa Admin Portal):
+and try running "terraform plan" again, you will see similar output:
 
 ```shell
-terraform import cloudconnexa_network.this <id>
+$ terraform plan 
+cloudconnexa_network.this: Refreshing state... [id=819c992a-f03e-42aa-a0b2-3230cb3a4540]
+
+No changes. Your infrastructure matches the configuration.
+
+Terraform has compared your real infrastructure against your configuration and found no differences, so no changes are needed.
 ```
 
-after import will finish try run "terraform plan", it should return "No changes. Your infrastructure matches the configuration."
+It means that resource "cloudconnexa_network" is good. Now we need to import "cloudconnexa_network_connector" and "cloudconnexa_route" resources.
 
-Next step is to import Network Connector. At this point your code will look sililar to this
+Let's import Network Connector. At this point your code will look sililar to this
 
 ```hcl
 resource "cloudconnexa_network" "this" {
@@ -627,7 +615,8 @@ resource "cloudconnexa_route" "this" {
   subnet          = "192.168.144.0/24"
 }
 ```
-Now we can import remaining resource (use value of "id" field from Swagger):
+
+Now we can import resource "cloudconnexa_route" (use value of "id" field from Swagger):
 
 ```shell
 terraform import cloudconnexa_route.this <id>
