@@ -57,12 +57,12 @@ func dataSourceNetworkRoutesRead(ctx context.Context, d *schema.ResourceData, m 
 	var diags diag.Diagnostics
 
 	networkId := d.Get("id").(string)
+	if networkId == "" {
+		return append(diags, diag.Errorf("ID cannot be empty")...)
+	}
 	network, err := c.Networks.Get(networkId)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
-	}
-	if network == nil {
-		return append(diags, diag.Errorf("Network with id %s was not found", networkId)...)
 	}
 
 	configRoutes := make([]map[string]interface{}, len(network.Routes))
