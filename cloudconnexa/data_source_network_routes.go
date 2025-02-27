@@ -33,7 +33,7 @@ func dataSourceNetworkRoutes() *schema.Resource {
 						"type": {
 							Type:        schema.TypeString,
 							Computed:    true,
-							Description: "The type of route. Valid values are `IP_V4`, `IP_V6`, and others.",
+							Description: "The type of route. Valid values are `IP_V4`, `IP_V6`.",
 						},
 						"subnet": {
 							Type:        schema.TypeString,
@@ -56,14 +56,17 @@ func dataSourceNetworkRoutesRead(ctx context.Context, d *schema.ResourceData, m 
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
 
-	networkId := d.Get("network_item_id").(string)
-	routes, err := c.Routes.List(networkId)
+	networkId := d.Get("id").(string)
+	if networkId == "" {
+		return append(diags, diag.Errorf("ID cannot be empty")...)
+	}
+	network, err := c.Networks.Get(networkId)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
 
-	configRoutes := make([]map[string]interface{}, len(routes))
-	for i, r := range routes {
+	configRoutes := make([]map[string]interface{}, len(network.Routes))
+	for i, r := range network.Routes {
 		route := make(map[string]interface{})
 		route["id"] = r.ID
 		route["type"] = r.Type

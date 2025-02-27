@@ -16,7 +16,7 @@ const (
 )
 
 var (
-	version = "v1.0.1"
+	version = "v1.0.2"
 )
 
 type Token struct {
