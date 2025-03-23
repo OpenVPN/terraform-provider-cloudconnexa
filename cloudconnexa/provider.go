@@ -16,7 +16,7 @@ const (
 )
 
 var (
-	version = "v1.0.2"
+	version = "v1.1.0"
 )
 
 type Token struct {
@@ -63,6 +63,7 @@ func Provider() *schema.Provider {
 			"cloudconnexa_network_application": resourceNetworkApplication(),
 			"cloudconnexa_location_context":    resourceLocationContext(),
 			"cloudconnexa_access_group":        resourceAccessGroup(),
+			"cloudconnexa_settings":            resourceSettings(),
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
