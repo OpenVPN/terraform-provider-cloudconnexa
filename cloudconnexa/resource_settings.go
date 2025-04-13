@@ -18,11 +18,13 @@ func resourceSettings() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"allow_trusted_devices": {
 				Type:     schema.TypeBool,
-				Required: true,
+				Optional: true,
+				Default:  false,
 			},
 			"two_factor_auth": {
 				Type:     schema.TypeBool,
-				Required: true,
+				Optional: true,
+				Default:  false,
 			},
 			"dns_servers": {
 				Type:     schema.TypeList,
@@ -36,7 +38,8 @@ func resourceSettings() *schema.Resource {
 			},
 			"dns_proxy_enabled": {
 				Type:     schema.TypeBool,
-				Required: true,
+				Optional: true,
+				Default:  true,
 			},
 			"dns_zones": {
 				Type:     schema.TypeList,
@@ -45,12 +48,14 @@ func resourceSettings() *schema.Resource {
 			},
 			"connect_auth": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
+				Default:      "ON_PRIOR_AUTH",
 				ValidateFunc: validation.StringInSlice([]string{"NO_AUTH", "ON_PRIOR_AUTH", "EVERY_TIME"}, false),
 			},
 			"device_allowance_per_user": {
 				Type:     schema.TypeInt,
-				Required: true,
+				Optional: true,
+				Default:  3,
 			},
 			"device_allowance_force_update": {
 				Type:     schema.TypeBool,
@@ -58,17 +63,20 @@ func resourceSettings() *schema.Resource {
 			},
 			"device_enforcement": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
+				Default:      "OFF",
 				ValidateFunc: validation.StringInSlice([]string{"OFF", "LEARN_AND_ENFORCE", "ENFORCE"}, false),
 			},
 			"profile_distribution": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
+				Default:      "AUTOMATIC",
 				ValidateFunc: validation.StringInSlice([]string{"AUTOMATIC", "MANUAL"}, false),
 			},
 			"connection_timeout": {
 				Type:     schema.TypeInt,
-				Required: true,
+				Optional: true,
+				Default:  24,
 			},
 			"client_options": {
 				Type:     schema.TypeList,
@@ -89,7 +97,8 @@ func resourceSettings() *schema.Resource {
 			},
 			"snat": {
 				Type:     schema.TypeBool,
-				Required: true,
+				Optional: true,
+				Default:  false,
 			},
 			"subnet": {
 				Type:     schema.TypeList,
@@ -99,7 +108,8 @@ func resourceSettings() *schema.Resource {
 			},
 			"topology": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
+				Default:      "FULL_MESH",
 				ValidateFunc: validation.StringInSlice([]string{"FULL_MESH", "CUSTOM"}, false),
 			},
 		},
@@ -192,31 +202,31 @@ func resourceSettingsUpdate(ctx context.Context, d *schema.ResourceData, m inter
 		}
 	}
 	if d.HasChange("dns_servers") {
-		value := &cloudconnexa.DnsServers{}
+		value := &cloudconnexa.DNSServers{}
 		servers := d.Get("dns_servers").([]interface{})
 		if len(servers) > 0 && servers[0] != nil {
-			value.PrimaryIpV4 = servers[0].(map[string]interface{})["primary_ip_v4"].(string)
-			value.SecondaryIpV4 = servers[0].(map[string]interface{})["secondary_ip_v4"].(string)
+			value.PrimaryIPV4 = servers[0].(map[string]interface{})["primary_ip_v4"].(string)
+			value.SecondaryIPV4 = servers[0].(map[string]interface{})["secondary_ip_v4"].(string)
 		}
-		_, err := c.Settings.SetDnsServers(value)
+		_, err := c.Settings.SetDNSServers(value)
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
 	}
 	if d.HasChange("default_dns_suffix") {
-		_, err := c.Settings.SetDefaultDnsSuffix(d.Get("default_dns_suffix").(string))
+		_, err := c.Settings.SetDefaultDNSSuffix(d.Get("default_dns_suffix").(string))
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
 	}
 	if d.HasChange("dns_proxy_enabled") {
-		_, err := c.Settings.SetDnsProxyAuthEnabled(d.Get("dns_proxy_enabled").(bool))
+		_, err := c.Settings.SetDNSProxyEnabled(d.Get("dns_proxy_enabled").(bool))
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
 	}
 	if d.HasChange("dns_zones") {
-		value := []cloudconnexa.DnsZone{}
+		value := []cloudconnexa.DNSZone{}
 		zones := d.Get("dns_zones").([]interface{})
 		for _, zone := range zones {
 			var addresses []string
@@ -224,13 +234,13 @@ func resourceSettingsUpdate(ctx context.Context, d *schema.ResourceData, m inter
 				addresses = append(addresses, addr.(string))
 			}
 
-			value = append(value, cloudconnexa.DnsZone{
+			value = append(value, cloudconnexa.DNSZone{
 				zone.(map[string]interface{})["name"].(string),
 				addresses,
 			})
 		}
 
-		_, err := c.Settings.SetDnsZones(value)
+		_, err := c.Settings.SetDNSZones(value)
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
@@ -296,8 +306,8 @@ func resourceSettingsUpdate(ctx context.Context, d *schema.ResourceData, m inter
 		value := cloudconnexa.DomainRoutingSubnet{}
 		subnet := d.Get("domain_routing_subnet").([]interface{})
 		if len(subnet) > 0 && subnet[0] != nil {
-			value.IpV4Address = subnet[0].(map[string]interface{})["ip_v4_address"].(string)
-			value.IpV6Address = subnet[0].(map[string]interface{})["ip_v6_address"].(string)
+			value.IPV4Address = subnet[0].(map[string]interface{})["ip_v4_address"].(string)
+			value.IPV6Address = subnet[0].(map[string]interface{})["ip_v6_address"].(string)
 		}
 		_, err := c.Settings.SetDomainRoutingSubnet(value)
 		if err != nil {
@@ -317,10 +327,10 @@ func resourceSettingsUpdate(ctx context.Context, d *schema.ResourceData, m inter
 		subnet := d.Get("subnet").([]interface{})
 		if len(subnet) > 0 && subnet[0] != nil {
 			for _, addr := range subnet[0].(map[string]interface{})["ip_v4_address"].([]interface{}) {
-				value.IpV4Address = append(value.IpV4Address, addr.(string))
+				value.IPV4Address = append(value.IPV4Address, addr.(string))
 			}
 			for _, addr := range subnet[0].(map[string]interface{})["ip_v6_address"].([]interface{}) {
-				value.IpV6Address = append(value.IpV6Address, addr.(string))
+				value.IPV6Address = append(value.IPV6Address, addr.(string))
 			}
 		}
 		_, err := c.Settings.SetSubnet(value)
@@ -350,30 +360,30 @@ func resourceSettingsRead(ctx context.Context, d *schema.ResourceData, m interfa
 	}
 	d.Set("allow_trusted_devices", allowTrustedDevices)
 
-	dnsServers, err := c.Settings.GetDnsServers()
+	dnsServers, err := c.Settings.GetDNSServers()
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	if dnsServers != nil && (dnsServers.PrimaryIpV4 != "" || dnsServers.SecondaryIpV4 != "") {
+	if dnsServers != nil && (dnsServers.PrimaryIPV4 != "" || dnsServers.SecondaryIPV4 != "") {
 		value := make(map[string]interface{})
-		value["primary_ip_v4"] = dnsServers.PrimaryIpV4
-		value["secondary_ip_v4"] = dnsServers.SecondaryIpV4
+		value["primary_ip_v4"] = dnsServers.PrimaryIPV4
+		value["secondary_ip_v4"] = dnsServers.SecondaryIPV4
 		d.Set("dns_servers", []interface{}{value})
 	}
 
-	defaultDnsSuffix, err := c.Settings.GetDefaultDnsSuffix()
+	defaultDNSSuffix, err := c.Settings.GetDefaultDNSSuffix()
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	d.Set("default_dns_suffix", defaultDnsSuffix)
+	d.Set("default_dns_suffix", defaultDNSSuffix)
 
-	dnsProxyEnabled, err := c.Settings.GetDnsProxyEnabled()
+	dnsProxyEnabled, err := c.Settings.GetDNSProxyEnabled()
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
 	d.Set("dns_proxy_enabled", dnsProxyEnabled)
 
-	dnsZones, err := c.Settings.GetDnsZones()
+	dnsZones, err := c.Settings.GetDNSZones()
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -438,10 +448,10 @@ func resourceSettingsRead(ctx context.Context, d *schema.ResourceData, m interfa
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	if domainRoutingSubnet.IpV4Address != "" || domainRoutingSubnet.IpV6Address != "" {
+	if domainRoutingSubnet.IPV4Address != "" || domainRoutingSubnet.IPV6Address != "" {
 		value := make(map[string]interface{})
-		value["ip_v4_address"] = domainRoutingSubnet.IpV4Address
-		value["ip_v6_address"] = domainRoutingSubnet.IpV6Address
+		value["ip_v4_address"] = domainRoutingSubnet.IPV4Address
+		value["ip_v6_address"] = domainRoutingSubnet.IPV6Address
 		d.Set("domain_routing_subnet", []interface{}{value})
 	}
 
@@ -456,8 +466,8 @@ func resourceSettingsRead(ctx context.Context, d *schema.ResourceData, m interfa
 		return append(diags, diag.FromErr(err)...)
 	}
 	subnetValue := make(map[string]interface{})
-	subnetValue["ip_v4_address"] = subnet.IpV4Address
-	subnetValue["ip_v6_address"] = subnet.IpV6Address
+	subnetValue["ip_v4_address"] = subnet.IPV4Address
+	subnetValue["ip_v6_address"] = subnet.IPV6Address
 	d.Set("subnet", subnetValue)
 
 	topology, err := c.Settings.GetTopology()

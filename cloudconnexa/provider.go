@@ -81,6 +81,7 @@ func Provider() *schema.Provider {
 			"cloudconnexa_network_application": dataSourceNetworkApplication(),
 			"cloudconnexa_location_context":    dataSourceLocationContext(),
 			"cloudconnexa_access_group":        dataSourceAccessGroup(),
+			"cloudconnexa_settings":            dataSourceSettings(),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}
