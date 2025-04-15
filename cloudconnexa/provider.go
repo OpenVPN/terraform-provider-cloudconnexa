@@ -45,7 +45,7 @@ func Provider() *schema.Provider {
 				Description:  "The target CloudConnexa Base API URL in the format `https://[companyName].api.openvpn.com`",
 				Type:         schema.TypeString,
 				Optional:     true,
-				AtLeastOneOf: []string{"base_url", "cloud_id"},
+				ExactlyOneOf: []string{"base_url", "cloud_id"},
 			},
 			"cloud_id": {
 				Description: "Cloud ID",
