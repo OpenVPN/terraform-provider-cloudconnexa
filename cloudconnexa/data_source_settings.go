@@ -4,6 +4,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+// dataSourceSettings returns a Terraform data source schema for CloudConnexa settings.
+// It defines the schema for retrieving various configuration settings including DNS,
+// authentication, device management, and network topology settings.
+//
+// Returns:
+//   - *schema.Resource: A configured Terraform data source for CloudConnexa settings
 func dataSourceSettings() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: resourceSettingsRead,

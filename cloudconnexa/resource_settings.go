@@ -2,12 +2,14 @@ package cloudconnexa
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 )
 
+// resourceSettings returns a Terraform resource for managing CloudConnexa settings
 func resourceSettings() *schema.Resource {
 	return &schema.Resource{
 		Description:   "Use `cloudconnexa_settings` to define settings",
@@ -111,6 +113,7 @@ func resourceSettings() *schema.Resource {
 	}
 }
 
+// dnsServersSchema returns a Terraform schema for DNS server configuration
 func dnsServersSchema() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
@@ -126,6 +129,7 @@ func dnsServersSchema() *schema.Resource {
 	}
 }
 
+// dnsZoneSchema returns a Terraform schema for DNS zone configuration
 func dnsZoneSchema() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
@@ -144,6 +148,7 @@ func dnsZoneSchema() *schema.Resource {
 	}
 }
 
+// domainRoutingSubnet returns a Terraform schema for domain routing subnet configuration
 func domainRoutingSubnet() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
@@ -159,6 +164,7 @@ func domainRoutingSubnet() *schema.Resource {
 	}
 }
 
+// subnetSchema returns a Terraform schema for subnet configuration
 func subnetSchema() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
@@ -180,6 +186,7 @@ func subnetSchema() *schema.Resource {
 	}
 }
 
+// resourceSettingsUpdate handles the creation and update of CloudConnexa settings
 func resourceSettingsUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -230,8 +237,8 @@ func resourceSettingsUpdate(ctx context.Context, d *schema.ResourceData, m inter
 			}
 
 			value = append(value, cloudconnexa.DNSZone{
-				zone.(map[string]interface{})["name"].(string),
-				addresses,
+				Name:      zone.(map[string]interface{})["name"].(string),
+				Addresses: addresses,
 			})
 		}
 
@@ -345,6 +352,8 @@ func resourceSettingsUpdate(ctx context.Context, d *schema.ResourceData, m inter
 	return diags
 }
 
+// resourceSettingsRead reads the settings resource from the CloudConnexa API
+// and updates the Terraform state with the current values.
 func resourceSettingsRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -443,6 +452,7 @@ func resourceSettingsRead(ctx context.Context, d *schema.ResourceData, m interfa
 		d.Set("connection_timeout", connectionTimeout)
 	}
 
+	// Get and set client options if they exist
 	if len(d.Get("client_options").([]interface{})) > 0 {
 		clientOptions, err := c.Settings.GetClientOptions()
 		if err != nil {
@@ -451,6 +461,7 @@ func resourceSettingsRead(ctx context.Context, d *schema.ResourceData, m interfa
 		d.Set("client_options", clientOptions)
 	}
 
+	// Get and set default region if specified
 	if d.Get("default_region") != "" {
 		defaultRegion, err := c.Settings.GetDefaultRegion()
 		if err != nil {
@@ -459,6 +470,7 @@ func resourceSettingsRead(ctx context.Context, d *schema.ResourceData, m interfa
 		d.Set("default_region", defaultRegion)
 	}
 
+	// Get and set domain routing subnet if specified
 	if len(d.Get("domain_routing_subnet").([]interface{})) > 0 {
 		domainRoutingSubnet, err := c.Settings.GetDomainRoutingSubnet()
 		if err != nil {
@@ -472,12 +484,14 @@ func resourceSettingsRead(ctx context.Context, d *schema.ResourceData, m interfa
 		}
 	}
 
+	// Get and set SNAT enabled status
 	snat, err := c.Settings.GetSnatEnabled()
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
 	d.Set("snat", snat)
 
+	// Get and set subnet configuration if specified
 	if len(d.Get("subnet").([]interface{})) > 0 {
 		subnet, err := c.Settings.GetSubnet()
 		if err != nil {
@@ -489,6 +503,7 @@ func resourceSettingsRead(ctx context.Context, d *schema.ResourceData, m interfa
 		d.Set("subnet", subnetValue)
 	}
 
+	// Get and set topology if specified
 	if d.Get("topology") != "" {
 		topology, err := c.Settings.GetTopology()
 		if err != nil {
@@ -501,6 +516,16 @@ func resourceSettingsRead(ctx context.Context, d *schema.ResourceData, m interfa
 	return diags
 }
 
+// resourceSettingsDelete handles the deletion of CloudConnexa settings.
+// Since settings are managed as a single resource, deletion is a no-op operation.
+//
+// Parameters:
+//   - ctx: The context for the operation
+//   - d: The Terraform resource data
+//   - m: The provider meta interface
+//
+// Returns:
+//   - diag.Diagnostics: Empty diagnostics since deletion is a no-op
 func resourceSettingsDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	return diags
