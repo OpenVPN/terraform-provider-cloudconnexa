@@ -20,6 +20,12 @@ install: build
 lint:
 	golangci-lint run ./... --disable errcheck
 
+docs:
+	go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs generate
+
+docs-check:
+	go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs validate
+
 test:
 	go test -i $(TEST) || exit 1
 	echo $(TEST) | xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=4

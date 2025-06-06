@@ -16,7 +16,7 @@ const ClientIDEnvVar = "CLOUDCONNEXA_CLIENT_ID"
 const ClientSecretEnvVar = "CLOUDCONNEXA_CLIENT_SECRET"
 
 // version represents the current version of the Terraform provider
-var version = "v1.0.2"
+var version = "v1.1.0"
 
 // Token represents the authentication token structure returned by the CloudConnexa API
 type Token struct {
@@ -74,6 +74,7 @@ func Provider() *schema.Provider {
 			"cloudconnexa_network_application": resourceNetworkApplication(),
 			"cloudconnexa_location_context":    resourceLocationContext(),
 			"cloudconnexa_access_group":        resourceAccessGroup(),
+			"cloudconnexa_settings":            resourceSettings(),
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
@@ -91,6 +92,7 @@ func Provider() *schema.Provider {
 			"cloudconnexa_network_application": dataSourceNetworkApplication(),
 			"cloudconnexa_location_context":    dataSourceLocationContext(),
 			"cloudconnexa_access_group":        dataSourceAccessGroup(),
+			"cloudconnexa_settings":            dataSourceSettings(),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}
