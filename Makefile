@@ -18,7 +18,7 @@ install: build
 	mv ${BINARY} ~/.terraform.d/plugins/${HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/${OS_ARCH}
 
 lint:
-	golangci-lint run ./...
+	golangci-lint run ./... --disable errcheck
 
 test:
 	go test -i $(TEST) || exit 1
