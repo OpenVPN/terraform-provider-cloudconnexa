@@ -13,11 +13,248 @@ Use `cloudconnexa_host` to create an CloudConnexa host.
 ## Example Usage
 
 ```terraform
-resource "cloudconnexa_host" "this" {
-  name            = "test_host"
-  description     = "Managed by Terraform"
+# Basic host for development
+resource "cloudconnexa_host" "dev_server" {
+  name            = "development-server"
+  description     = "Development server for internal testing"
   internet_access = "SPLIT_TUNNEL_ON"
-  domain          = "test.example.local"
+  domain          = "dev.internal.example.com"
+}
+
+# Production database host with restricted access
+resource "cloudconnexa_host" "database_server" {
+  name            = "production-database"
+  description     = "Production PostgreSQL database server"
+  internet_access = "RESTRICTED_INTERNET"
+  domain          = "db.production.example.com"
+}
+
+# Web server host with full internet access
+resource "cloudconnexa_host" "web_server" {
+  name            = "web-server"
+  description     = "Production web server"
+  internet_access = "SPLIT_TUNNEL_OFF"
+  domain          = "web.production.example.com"
+}
+
+# Monitoring host
+resource "cloudconnexa_host" "monitoring_server" {
+  name            = "monitoring-server"
+  description     = "Prometheus and Grafana monitoring stack"
+  internet_access = "SPLIT_TUNNEL_ON"
+  domain          = "monitoring.internal.example.com"
+}
+
+# Staging environment host
+resource "cloudconnexa_host" "staging_server" {
+  name            = "staging-server"
+  description     = "Staging environment for testing deployments"
+  internet_access = "SPLIT_TUNNEL_ON"
+  domain          = "staging.example.com"
+}
+
+# Jump/Bastion host for secure access
+resource "cloudconnexa_host" "bastion_host" {
+  name            = "bastion-host"
+  description     = "Secure jump host for production access"
+  internet_access = "RESTRICTED_INTERNET"
+  domain          = "bastion.secure.example.com"
+}
+
+# Host with connector for on-premises integration
+resource "cloudconnexa_host" "onprem_host" {
+  name            = "onprem-integration"
+  description     = "On-premises integration host"
+  internet_access = "SPLIT_TUNNEL_ON"
+  domain          = "onprem.internal.example.com"
+}
+
+resource "cloudconnexa_host_connector" "onprem_connector" {
+  name        = "onprem-connector"
+  description = "Connector for on-premises infrastructure"
+  host_id     = cloudconnexa_host.onprem_host.id
+
+  vpn_region_id = "us-east-1"
+}
+
+# Host applications for specific services
+resource "cloudconnexa_host_application" "database_app" {
+  name        = "database-access"
+  description = "PostgreSQL database access"
+  host_id     = cloudconnexa_host.database_server.id
+
+  routes {
+    domain            = "db.production.example.com"
+    allow_embedded_ip = false
+  }
+
+  config {
+    service_types = ["CUSTOM"]
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 5432
+      to_port   = 5432
+    }
+  }
+}
+
+resource "cloudconnexa_host_application" "web_app" {
+  name        = "web-application"
+  description = "Web server HTTP/HTTPS access"
+  host_id     = cloudconnexa_host.web_server.id
+
+  routes {
+    domain            = "web.production.example.com"
+    allow_embedded_ip = false
+  }
+
+  config {
+    service_types = ["HTTP", "HTTPS"]
+  }
+}
+
+resource "cloudconnexa_host_application" "monitoring_app" {
+  name        = "monitoring-dashboard"
+  description = "Monitoring dashboard access"
+  host_id     = cloudconnexa_host.monitoring_server.id
+
+  routes {
+    domain            = "monitoring.internal.example.com"
+    allow_embedded_ip = false
+  }
+
+  config {
+    service_types = ["HTTPS", "CUSTOM"]
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 9090
+      to_port   = 9090
+    }
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 3000
+      to_port   = 3000
+    }
+  }
+}
+
+resource "cloudconnexa_host_application" "ssh_access" {
+  name        = "ssh-management"
+  description = "SSH access for server management"
+  host_id     = cloudconnexa_host.bastion_host.id
+
+  routes {
+    domain            = "bastion.secure.example.com"
+    allow_embedded_ip = true
+  }
+
+  config {
+    service_types = ["SSH"]
+  }
+}
+
+# Host IP services for network-level access
+resource "cloudconnexa_host_ip_service" "database_ip_service" {
+  name        = "database-ip-service"
+  description = "Database IP-level access"
+  host_id     = cloudconnexa_host.database_server.id
+
+  config {
+    service_types = ["CUSTOM"]
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 5432
+      to_port   = 5432
+    }
+  }
+}
+
+resource "cloudconnexa_host_ip_service" "monitoring_ip_service" {
+  name        = "monitoring-ip-service"
+  description = "Monitoring services IP-level access"
+  host_id     = cloudconnexa_host.monitoring_server.id
+
+  config {
+    service_types = ["CUSTOM"]
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 9090
+      to_port   = 9100
+    }
+  }
+}
+
+# Multiple hosts using for_each pattern
+variable "application_hosts" {
+  description = "Map of application hosts to create"
+  type = map(object({
+    description     = string
+    internet_access = string
+    domain          = string
+  }))
+  default = {
+    "api-server" = {
+      description     = "REST API server"
+      internet_access = "SPLIT_TUNNEL_ON"
+      domain          = "api.example.com"
+    }
+    "cache-server" = {
+      description     = "Redis cache server"
+      internet_access = "RESTRICTED_INTERNET"
+      domain          = "cache.internal.example.com"
+    }
+    "worker-server" = {
+      description     = "Background job processing server"
+      internet_access = "SPLIT_TUNNEL_ON"
+      domain          = "worker.internal.example.com"
+    }
+  }
+}
+
+resource "cloudconnexa_host" "application_hosts" {
+  for_each = var.application_hosts
+
+  name            = each.key
+  description     = each.value.description
+  internet_access = each.value.internet_access
+  domain          = each.value.domain
+}
+
+# Outputs
+output "host_ids" {
+  description = "IDs of created hosts"
+  value = {
+    dev_server        = cloudconnexa_host.dev_server.id
+    database_server   = cloudconnexa_host.database_server.id
+    web_server        = cloudconnexa_host.web_server.id
+    monitoring_server = cloudconnexa_host.monitoring_server.id
+    staging_server    = cloudconnexa_host.staging_server.id
+    bastion_host      = cloudconnexa_host.bastion_host.id
+    onprem_host       = cloudconnexa_host.onprem_host.id
+  }
+}
+
+output "application_host_ids" {
+  description = "IDs of application hosts created with for_each"
+  value       = { for k, v in cloudconnexa_host.application_hosts : k => v.id }
+}
+
+output "host_applications" {
+  description = "Host applications created"
+  value = {
+    database_app   = cloudconnexa_host_application.database_app.id
+    web_app        = cloudconnexa_host_application.web_app.id
+    monitoring_app = cloudconnexa_host_application.monitoring_app.id
+    ssh_access     = cloudconnexa_host_application.ssh_access.id
+  }
+}
+
+output "host_ip_services" {
+  description = "Host IP services created"
+  value = {
+    database_ip_service   = cloudconnexa_host_ip_service.database_ip_service.id
+    monitoring_ip_service = cloudconnexa_host_ip_service.monitoring_ip_service.id
+  }
 }
 ```
 
