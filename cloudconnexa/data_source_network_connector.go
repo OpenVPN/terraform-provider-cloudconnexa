@@ -53,11 +53,13 @@ func dataSourceNetworkConnector() *schema.Resource {
 			"profile": {
 				Type:        schema.TypeString,
 				Computed:    true,
+				Sensitive:   true,
 				Description: "OpenVPN profile",
 			},
 			"token": {
 				Type:        schema.TypeString,
 				Computed:    true,
+				Sensitive:   true,
 				Description: "Connector token",
 			},
 		},
