@@ -13,6 +13,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
+// TestAccCloudConnexaUserGroup_basic tests the basic functionality of creating and updating a user group resource.
+// It verifies that the user group is created with the correct name and VPN region IDs, and can be updated.
+//
+// Parameters:
+//   - t: The testing context
 func TestAccCloudConnexaUserGroup_basic(t *testing.T) {
 	rn := "cloudconnexa_user_group.test"
 	userGroup := cloudconnexa.UserGroup{
@@ -55,6 +60,14 @@ func TestAccCloudConnexaUserGroup_basic(t *testing.T) {
 	})
 }
 
+// testAccCheckCloudConnexaUserGroupDestroy verifies that the user group has been properly destroyed.
+// It checks that the user group no longer exists in the CloudConnexa API.
+//
+// Parameters:
+//   - s: The Terraform state containing information about the destroyed resources
+//
+// Returns:
+//   - error: An error if the user group still exists or if there was an error checking its existence
 func testAccCheckCloudConnexaUserGroupDestroy(s *terraform.State) error {
 	c := testAccProvider.Meta().(*cloudconnexa.Client)
 	for _, rs := range s.RootModule().Resources {
@@ -72,6 +85,14 @@ func testAccCheckCloudConnexaUserGroupDestroy(s *terraform.State) error {
 	return nil
 }
 
+// testAccCheckCloudConnexaUserGroupExists verifies that a user group exists in the CloudConnexa API.
+// It checks that the resource exists and has a valid ID.
+//
+// Parameters:
+//   - rn: The resource name to check
+//
+// Returns:
+//   - resource.TestCheckFunc: A function that performs the existence check
 func testAccCheckCloudConnexaUserGroupExists(rn string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[rn]
@@ -92,6 +113,14 @@ func testAccCheckCloudConnexaUserGroupExists(rn string) resource.TestCheckFunc {
 	}
 }
 
+// testAccCloudConnexaUserGroupConfig generates a Terraform configuration for a user group resource.
+// It creates a configuration string with the specified user group properties.
+//
+// Parameters:
+//   - userGroup: The user group configuration to use
+//
+// Returns:
+//   - string: A Terraform configuration string for the user group
 func testAccCloudConnexaUserGroupConfig(userGroup cloudconnexa.UserGroup) string {
 	idsStr, _ := json.Marshal(userGroup.VpnRegionIDs)
 

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
+// resourceNetworkConnector returns a Terraform resource schema for managing network connectors
 func resourceNetworkConnector() *schema.Resource {
 	return &schema.Resource{
 		Description:   "Use `cloudconnexa_connector` to create an CloudConnexa connector.\n\n~> NOTE: This only creates the CloudConnexa connector object. Additional manual steps are required to associate a host in your infrastructure with the connector. Go to https://openvpn.net/cloud-docs/connector/ for more information.",
@@ -68,6 +69,7 @@ func resourceNetworkConnector() *schema.Resource {
 	}
 }
 
+// resourceNetworkConnectorUpdate updates an existing network connector
 func resourceNetworkConnectorUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -84,6 +86,7 @@ func resourceNetworkConnectorUpdate(ctx context.Context, d *schema.ResourceData,
 	return diags
 }
 
+// resourceNetworkConnectorCreate creates a new network connector
 func resourceNetworkConnectorCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -120,6 +123,7 @@ func resourceNetworkConnectorCreate(ctx context.Context, d *schema.ResourceData,
 	})
 }
 
+// resourceNetworkConnectorRead reads the state of a network connector
 func resourceNetworkConnectorRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -151,6 +155,7 @@ func resourceNetworkConnectorRead(ctx context.Context, d *schema.ResourceData, m
 	return diags
 }
 
+// resourceNetworkConnectorDelete deletes a network connector
 func resourceNetworkConnectorDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics

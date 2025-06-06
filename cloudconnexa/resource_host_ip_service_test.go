@@ -11,6 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
+// TestAccCloudConnexaService_basic tests the basic creation and configuration of a CloudConnexa IP service.
+// It verifies that the service can be created and updated with different names.
+//
+// Parameters:
+//   - t: The testing context
 func TestAccCloudConnexaService_basic(t *testing.T) {
 	rn := "cloudconnexa_service.test"
 	networkName := acctest.RandStringFromCharSet(10, alphabet)
@@ -44,6 +49,14 @@ func TestAccCloudConnexaService_basic(t *testing.T) {
 	})
 }
 
+// testAccCheckCloudConnexaServiceExists verifies that a CloudConnexa IP service exists in the Terraform state.
+//
+// Parameters:
+//   - rn: The name of the resource to check
+//   - networkId: The ID of the network associated with the service
+//
+// Returns:
+//   - resource.TestCheckFunc: A function that performs the existence check
 func testAccCheckCloudConnexaServiceExists(rn, networkId string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[rn]
@@ -64,6 +77,14 @@ func testAccCheckCloudConnexaServiceExists(rn, networkId string) resource.TestCh
 	}
 }
 
+// testAccCheckCloudConnexaServiceDestroy verifies that a CloudConnexa IP service has been properly destroyed.
+// It checks that the service no longer exists in the CloudConnexa API.
+//
+// Parameters:
+//   - state: The Terraform state to check
+//
+// Returns:
+//   - error: An error if the service still exists or if there was an error checking its existence
 func testAccCheckCloudConnexaServiceDestroy(state *terraform.State) error {
 	c := testAccProvider.Meta().(*cloudconnexa.Client)
 	for _, rs := range state.RootModule().Resources {
@@ -78,6 +99,15 @@ func testAccCheckCloudConnexaServiceDestroy(state *terraform.State) error {
 	}
 	return nil
 }
+
+// testAccCloudConnexaServiceConfig generates a Terraform configuration for testing CloudConnexa IP services.
+//
+// Parameters:
+//   - service: The IP service configuration to use
+//   - networkName: The name of the network to associate with the service
+//
+// Returns:
+//   - string: The generated Terraform configuration
 func testAccCloudConnexaServiceConfig(service cloudconnexa.IPService, networkName string) string {
 	return fmt.Sprintf(`
 provider "cloudconnexa" {

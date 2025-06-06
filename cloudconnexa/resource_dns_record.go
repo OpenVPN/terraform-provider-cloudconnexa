@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
+// resourceDnsRecord returns a Terraform resource for managing DNS records in CloudConnexa.
+// It defines the schema and CRUD operations for DNS record management.
 func resourceDnsRecord() *schema.Resource {
 	return &schema.Resource{
 		Description:   "Use `cloudconnexa_dns_record` to create a DNS record on your VPN.",
@@ -58,6 +60,16 @@ func resourceDnsRecord() *schema.Resource {
 	}
 }
 
+// resourceDnsRecordCreate creates a new DNS record in CloudConnexa.
+// It converts the Terraform resource data into a DNS record and sends it to the API.
+//
+// Parameters:
+//   - ctx: The context for the operation
+//   - d: The Terraform resource data
+//   - m: The provider meta interface
+//
+// Returns:
+//   - diag.Diagnostics: Diagnostics containing any errors that occurred
 func resourceDnsRecordCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -87,6 +99,15 @@ func resourceDnsRecordCreate(ctx context.Context, d *schema.ResourceData, m inte
 	return diags
 }
 
+// resourceDnsRecordRead retrieves a DNS record from CloudConnexa and updates the Terraform state.
+//
+// Parameters:
+//   - ctx: The context for the operation
+//   - d: The Terraform resource data
+//   - m: The provider meta interface
+//
+// Returns:
+//   - diag.Diagnostics: Diagnostics containing any errors that occurred
 func resourceDnsRecordRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -106,6 +127,15 @@ func resourceDnsRecordRead(ctx context.Context, d *schema.ResourceData, m interf
 	return diags
 }
 
+// resourceDnsRecordUpdate updates an existing DNS record in CloudConnexa.
+//
+// Parameters:
+//   - ctx: The context for the operation
+//   - d: The Terraform resource data
+//   - m: The provider meta interface
+//
+// Returns:
+//   - diag.Diagnostics: Diagnostics containing any errors that occurred
 func resourceDnsRecordUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -129,6 +159,15 @@ func resourceDnsRecordUpdate(ctx context.Context, d *schema.ResourceData, m inte
 	return diags
 }
 
+// resourceDnsRecordDelete removes a DNS record from CloudConnexa.
+//
+// Parameters:
+//   - ctx: The context for the operation
+//   - d: The Terraform resource data
+//   - m: The provider meta interface
+//
+// Returns:
+//   - diag.Diagnostics: Diagnostics containing any errors that occurred
 func resourceDnsRecordDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -140,6 +179,13 @@ func resourceDnsRecordDelete(ctx context.Context, d *schema.ResourceData, m inte
 	return diags
 }
 
+// getAddressesSlice converts a slice of interface{} to a slice of strings.
+//
+// Parameters:
+//   - addresses: A slice of interface{} containing address strings
+//
+// Returns:
+//   - []string: A slice of string addresses
 func getAddressesSlice(addresses []interface{}) []string {
 	addressesSlice := make([]string, 0)
 	for _, a := range addresses {
@@ -148,6 +194,15 @@ func getAddressesSlice(addresses []interface{}) []string {
 	return addressesSlice
 }
 
+// validateAtLeastOneNonEmptyList ensures that at least one of the IP address lists is not empty.
+//
+// Parameters:
+//   - c: The context for the operation
+//   - diff: The Terraform resource diff
+//   - i: The provider meta interface
+//
+// Returns:
+//   - error: An error if both IP address lists are empty
 func validateAtLeastOneNonEmptyList(c context.Context, diff *schema.ResourceDiff, i interface{}) error {
 	listA := diff.Get("ip_v4_addresses").([]interface{})
 	listB := diff.Get("ip_v6_addresses").([]interface{})

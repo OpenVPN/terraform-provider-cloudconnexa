@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
+// resourceLocationContext returns a Terraform resource schema for managing CloudConnexa Location Contexts.
+// It defines the CRUD operations and schema for location-based access control.
 func resourceLocationContext() *schema.Resource {
 	return &schema.Resource{
 		Description:   "Use `cloudconnexa_location_context` to create a Location Context Check.",
@@ -64,6 +66,7 @@ func resourceLocationContext() *schema.Resource {
 	}
 }
 
+// ipCheckConfig returns the schema for IP-based access control configuration.
 func ipCheckConfig() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
@@ -80,6 +83,7 @@ func ipCheckConfig() *schema.Resource {
 	}
 }
 
+// ipConfig returns the schema for individual IP address configuration.
 func ipConfig() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
@@ -95,6 +99,7 @@ func ipConfig() *schema.Resource {
 	}
 }
 
+// countryCheckConfig returns the schema for country-based access control configuration.
 func countryCheckConfig() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
@@ -113,6 +118,7 @@ func countryCheckConfig() *schema.Resource {
 	}
 }
 
+// defaultCheckConfig returns the schema for default access control configuration.
 func defaultCheckConfig() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
@@ -124,6 +130,7 @@ func defaultCheckConfig() *schema.Resource {
 	}
 }
 
+// resourceLocationContextCreate creates a new Location Context in CloudConnexa.
 func resourceLocationContextCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -136,6 +143,7 @@ func resourceLocationContextCreate(ctx context.Context, d *schema.ResourceData, 
 	return diags
 }
 
+// resourceLocationContextRead retrieves a Location Context from CloudConnexa.
 func resourceLocationContextRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -152,6 +160,7 @@ func resourceLocationContextRead(ctx context.Context, d *schema.ResourceData, m 
 	return diags
 }
 
+// resourceLocationContextUpdate updates an existing Location Context in CloudConnexa.
 func resourceLocationContextUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -163,6 +172,7 @@ func resourceLocationContextUpdate(ctx context.Context, d *schema.ResourceData, 
 	return diags
 }
 
+// resourceLocationContextDelete removes a Location Context from CloudConnexa.
 func resourceLocationContextDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -174,6 +184,7 @@ func resourceLocationContextDelete(ctx context.Context, d *schema.ResourceData, 
 	return diags
 }
 
+// setLocationContextData maps the CloudConnexa Location Context data to Terraform resource data.
 func setLocationContextData(d *schema.ResourceData, lc *cloudconnexa.LocationContext) {
 	d.SetId(lc.ID)
 	d.Set("name", lc.Name)
@@ -206,12 +217,16 @@ func setLocationContextData(d *schema.ResourceData, lc *cloudconnexa.LocationCon
 	d.Set("default_check", []interface{}{defaultCheck})
 }
 
+// resourceDataToLocationContext converts Terraform resource data to a CloudConnexa Location Context configuration.
+// It maps the Terraform schema data to the corresponding CloudConnexa API structure.
 func resourceDataToLocationContext(data *schema.ResourceData) *cloudconnexa.LocationContext {
+	// Get default check configuration from Terraform data
 	defaultCheckData := data.Get("default_check").([]interface{})[0].(map[string]interface{})
 	defaultCheck := &cloudconnexa.DefaultCheck{
 		Allowed: defaultCheckData["allowed"].(bool),
 	}
 
+	// Initialize the Location Context with basic information
 	response := &cloudconnexa.LocationContext{
 		ID:           data.Id(),
 		Name:         data.Get("name").(string),
@@ -219,15 +234,18 @@ func resourceDataToLocationContext(data *schema.ResourceData) *cloudconnexa.Loca
 		DefaultCheck: defaultCheck,
 	}
 
+	// Add user group IDs to the response
 	for _, id := range data.Get("user_groups_ids").([]interface{}) {
 		response.UserGroupsIDs = append(response.UserGroupsIDs, id.(string))
 	}
 
+	// Process IP check configuration if present
 	ipCheckList := data.Get("ip_check").([]interface{})
 	if len(ipCheckList) > 0 {
 		ipCheck := &cloudconnexa.IPCheck{}
 		ipCheckData := ipCheckList[0].(map[string]interface{})
 		ipCheck.Allowed = ipCheckData["allowed"].(bool)
+		// Add IP addresses and their descriptions
 		for _, ip := range ipCheckData["ips"].([]interface{}) {
 			ipCheck.Ips = append(ipCheck.Ips, cloudconnexa.IP{
 				IP:          ip.(map[string]interface{})["ip"].(string),
@@ -237,12 +255,14 @@ func resourceDataToLocationContext(data *schema.ResourceData) *cloudconnexa.Loca
 		response.IPCheck = ipCheck
 	}
 
+	// Process country check configuration if present
 	countryCheckList := data.Get("country_check").([]interface{})
 	if len(countryCheckList) > 0 && countryCheckList[0] != nil {
 		countryCheckData := data.Get("country_check").([]interface{})[0].(map[string]interface{})
 		countryCheck := &cloudconnexa.CountryCheck{
 			Allowed: countryCheckData["allowed"].(bool),
 		}
+		// Add allowed countries
 		for _, country := range countryCheckData["countries"].([]interface{}) {
 			countryCheck.Countries = append(countryCheck.Countries, country.(string))
 		}

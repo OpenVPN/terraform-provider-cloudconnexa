@@ -10,6 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
+// TestAccCloudConnexaDnsRecord_basic tests the basic functionality of creating a DNS record resource.
+// It verifies that the DNS record is created with the correct domain name, description, and IP addresses.
+//
+// Parameters:
+//   - t: The testing context
 func TestAccCloudConnexaDnsRecord_basic(t *testing.T) {
 	resourceName := "cloudconnexa_dns_record.test"
 	domainName := "test.cloudconnexa.com"
@@ -33,6 +38,14 @@ func TestAccCloudConnexaDnsRecord_basic(t *testing.T) {
 	})
 }
 
+// testAccCheckCloudConnexaDnsRecordDestroy verifies that the DNS record has been properly destroyed.
+// It checks that the DNS record no longer exists in the CloudConnexa API.
+//
+// Parameters:
+//   - s: The Terraform state containing information about the destroyed resources
+//
+// Returns:
+//   - error: An error if the DNS record still exists or if there was an error checking its existence
 func testAccCheckCloudConnexaDnsRecordDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*cloudconnexa.Client)
 
@@ -56,6 +69,14 @@ func testAccCheckCloudConnexaDnsRecordDestroy(s *terraform.State) error {
 	return nil
 }
 
+// testAccCloudConnexaDnsRecordConfig generates the Terraform configuration for testing DNS record creation.
+// It creates a provider configuration and a DNS record resource with the specified domain name.
+//
+// Parameters:
+//   - domainName: The domain name to use for the DNS record
+//
+// Returns:
+//   - string: The Terraform configuration as a string
 func testAccCloudConnexaDnsRecordConfig(domainName string) string {
 	return fmt.Sprintf(`
 provider "cloudconnexa" {
