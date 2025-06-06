@@ -47,6 +47,8 @@ jobs:
           go build -v .
   # run acceptance tests in a matrix with Terraform core versions
   test:
+    permissions:
+      contents: read
     if: github.event.pull_request.head.repo.name == github.repository
     environment: TestingEnv
     name: Matrix Test
