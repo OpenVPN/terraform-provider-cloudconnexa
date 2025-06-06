@@ -243,6 +243,9 @@ func resourceIpsecNetworkCreate(ctx context.Context, d *schema.ResourceData, m i
 	}
 	d.Set("connector", connectorData)
 
+	// Set tunnel status after starting IPsec
+	d.Set("tunnel_status", "active")
+
 	return append(diags, diag.Diagnostic{
 		Severity: diag.Warning,
 		Summary:  "IPsec network created",
@@ -289,6 +292,11 @@ func resourceIpsecNetworkRead(ctx context.Context, d *schema.ResourceData, m int
 			},
 		}
 		d.Set("connector", connectorData)
+
+		// Set tunnel status - IPsec networks are always considered active since they auto-start IPsec
+		d.Set("tunnel_status", "active")
+	} else {
+		d.Set("tunnel_status", "inactive")
 	}
 
 	return diags
