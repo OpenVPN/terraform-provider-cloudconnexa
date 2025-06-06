@@ -22,7 +22,7 @@ Use an `cloudconnexa_user_group` data source to read an CloudConnexa user group.
 ### Read-Only
 
 - `all_regions_included` (Boolean) If true all regions will be available for this user group.
-- `connect_auth` (String) The type of connection authentication. Valid values are `NO_AUTH`, `ON_PRIOR_AUTH`, or `EVERY_TIME`.
+- `connect_auth` (String) The type of connection authentication. Valid values are `NO_AUTH`, `ON_PRIOR_AUTH`, `EVERY_TIME`, or `SAML`.
 - `internet_access` (String) The type of internet access provided. Valid values are `SPLIT_TUNNEL_ON`, `SPLIT_TUNNEL_OFF`, or `RESTRICTED_INTERNET`. Defaults to `SPLIT_TUNNEL_ON`.
 - `max_device` (Number) The maximum number of devices per user.
 - `name` (String) The user group name.

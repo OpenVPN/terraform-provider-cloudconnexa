@@ -67,6 +67,17 @@ func resourceNetworkConnector() *schema.Resource {
 				Sensitive:   true,
 				Description: "Connector token.",
 			},
+			"ipsec_enabled": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Enable IPsec tunnel for this connector.",
+			},
+			"ipsec_status": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Current IPsec tunnel status.",
+			},
 		},
 	}
 }
@@ -85,6 +96,30 @@ func resourceNetworkConnectorUpdate(ctx context.Context, d *schema.ResourceData,
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
+
+	// Handle IPsec configuration changes
+	if d.HasChange("ipsec_enabled") {
+		ipsecEnabled := d.Get("ipsec_enabled").(bool)
+		if ipsecEnabled {
+			_, err := c.NetworkConnectors.StartIPsec(d.Id())
+			if err != nil {
+				return append(diags, diag.FromErr(err)...)
+			}
+			// Set ipsec_enabled to true in state after successful start
+			d.Set("ipsec_enabled", true)
+		} else {
+			_, err := c.NetworkConnectors.StopIPsec(d.Id())
+			if err != nil {
+				return append(diags, diag.FromErr(err)...)
+			}
+			// Set ipsec_enabled to false in state after successful stop
+			d.Set("ipsec_enabled", false)
+		}
+
+		// Refresh state to update ipsec_status after starting/stopping IPsec
+		return resourceNetworkConnectorRead(ctx, d, m)
+	}
+
 	return diags
 }
 
@@ -118,6 +153,26 @@ func resourceNetworkConnectorCreate(ctx context.Context, d *schema.ResourceData,
 		return append(diags, diag.FromErr(err)...)
 	}
 	d.Set("token", token)
+
+	// Handle IPsec configuration if enabled
+	ipsecEnabled := d.Get("ipsec_enabled").(bool)
+	if ipsecEnabled {
+		_, err := c.NetworkConnectors.StartIPsec(conn.ID)
+		if err != nil {
+			return append(diags, diag.FromErr(err)...)
+		}
+
+		// Set ipsec_enabled to true in state after successful start
+		d.Set("ipsec_enabled", true)
+
+		// Refresh state to update ipsec_status after starting IPsec
+		readDiags := resourceNetworkConnectorRead(ctx, d, m)
+		diags = append(diags, readDiags...)
+	} else {
+		// Set ipsec_enabled to false in state when not enabled
+		d.Set("ipsec_enabled", false)
+	}
+
 	return append(diags, diag.Diagnostic{
 		Severity: diag.Warning,
 		Summary:  "Connector needs to be set up manually",
@@ -153,6 +208,16 @@ func resourceNetworkConnectorRead(ctx context.Context, d *schema.ResourceData, m
 			return append(diags, diag.FromErr(err)...)
 		}
 		d.Set("profile", profile)
+
+		// Update IPsec status based on current configuration
+		// Note: Since the API doesn't provide IPsec status directly in NetworkConnector,
+		// we set a descriptive status based on the ipsec_enabled configuration
+		ipsecEnabled := d.Get("ipsec_enabled").(bool)
+		if ipsecEnabled {
+			d.Set("ipsec_status", "enabled")
+		} else {
+			d.Set("ipsec_status", "disabled")
+		}
 	}
 	return diags
 }

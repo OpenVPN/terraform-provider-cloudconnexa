@@ -64,7 +64,7 @@ func dataSourceUserGroup() *schema.Resource {
 			"connect_auth": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The type of connection authentication. Valid values are `NO_AUTH`, `ON_PRIOR_AUTH`, or `EVERY_TIME`.",
+				Description: "The type of connection authentication. Valid values are `NO_AUTH`, `ON_PRIOR_AUTH`, `EVERY_TIME`, or `SAML`.",
 			},
 		},
 	}

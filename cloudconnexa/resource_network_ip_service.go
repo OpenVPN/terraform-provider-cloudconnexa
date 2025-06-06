@@ -151,7 +151,8 @@ func setNetworkIpServiceResourceData(data *schema.ResourceData, service *cloudco
 	_ = data.Set("name", service.Name)
 	_ = data.Set("description", service.Description)
 	_ = data.Set("type", service.Type)
-	_ = data.Set("routes", flattenNetworkIpServiceRoutes(service.Routes))
+	// Note: Routes field removed in API v1.1.0 - routes are now managed separately
+	_ = data.Set("routes", []string{})
 	_ = data.Set("config", flattenNetworkIpServiceConfig(service.Config))
 	_ = data.Set("network_id", service.NetworkItemID)
 }
@@ -196,18 +197,6 @@ func flattenNetworkIpServiceCustomServiceTypes(types []*cloudconnexa.CustomIPSer
 		}
 	}
 	return cst
-}
-
-// flattenNetworkIpServiceRoutes flattens network IP service routes for Terraform state
-func flattenNetworkIpServiceRoutes(routes []*cloudconnexa.Route) []string {
-	var data []string
-	for _, route := range routes {
-		data = append(
-			data,
-			route.Subnet,
-		)
-	}
-	return data
 }
 
 // resourceNetworkIpServiceCreate creates a new network IP service

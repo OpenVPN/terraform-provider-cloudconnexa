@@ -563,14 +563,16 @@ output "connector_summary" {
 ### Optional
 
 - `description` (String) The description for the UI. Defaults to `Managed by Terraform`.
+- `ipsec_enabled` (Boolean) Enable IPsec tunnel for this connector.
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
 - `ip_v4_address` (String) The IPV4 address of the connector.
 - `ip_v6_address` (String) The IPV6 address of the connector.
-- `profile` (String) OpenVPN profile of the connector.
-- `token` (String) Connector token.
+- `ipsec_status` (String) Current IPsec tunnel status.
+- `profile` (String, Sensitive) OpenVPN profile of the connector.
+- `token` (String, Sensitive) Connector token.
 
 ## Import
 
