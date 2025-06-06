@@ -2,11 +2,14 @@ package cloudconnexa
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 )
 
+// dataSourceLocationContext returns a Terraform data source resource for CloudConnexa location contexts.
+// This resource allows users to read existing location context configurations.
 func dataSourceLocationContext() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceLocationContextRead,
@@ -49,6 +52,17 @@ func dataSourceLocationContext() *schema.Resource {
 	}
 }
 
+// dataSourceLocationContextRead handles the read operation for the location context data source.
+// It retrieves the location context configuration from CloudConnexa using the provided ID
+// and updates the Terraform state with the retrieved data.
+//
+// Parameters:
+//   - ctx: The context for the operation
+//   - data: The Terraform resource data
+//   - i: The interface containing the CloudConnexa client
+//
+// Returns:
+//   - diag.Diagnostics: Diagnostics containing any errors that occurred during the operation
 func dataSourceLocationContextRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics

@@ -9,6 +9,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+// dataSourceUser returns a Terraform data source resource for CloudConnexa users.
+// This resource allows users to read information about a specific CloudConnexa user by their username.
+//
+// Returns:
+//   - *schema.Resource: A Terraform resource definition for user data source
 func dataSourceUser() *schema.Resource {
 	return &schema.Resource{
 		Description: "Use a `cloudconnexa_user` data source to read a specific CloudConnexa user.",
@@ -102,6 +107,17 @@ func dataSourceUser() *schema.Resource {
 	}
 }
 
+// dataSourceUserRead handles the read operation for the user data source.
+// It retrieves user information from CloudConnexa using the provided username
+// and updates the Terraform state with the retrieved data.
+//
+// Parameters:
+//   - ctx: The context for the operation
+//   - d: The Terraform resource data
+//   - m: The interface containing the CloudConnexa client
+//
+// Returns:
+//   - diag.Diagnostics: Diagnostics containing any errors that occurred during the operation
 func dataSourceUserRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -128,6 +144,14 @@ func dataSourceUserRead(ctx context.Context, d *schema.ResourceData, m interface
 	return diags
 }
 
+// getUserDevicesSlice converts a slice of CloudConnexa devices into a slice of interface{}
+// that can be used by Terraform. It maps each device's properties to a map structure.
+//
+// Parameters:
+//   - userDevices: A pointer to a slice of CloudConnexa devices
+//
+// Returns:
+//   - []interface{}: A slice of maps containing device information
 func getUserDevicesSlice(userDevices *[]cloudconnexa.Device) []interface{} {
 	devices := make([]interface{}, len(*userDevices))
 	for i, d := range *userDevices {

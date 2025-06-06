@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
+// resourceNetwork returns a Terraform resource schema for managing networks
 func resourceNetwork() *schema.Resource {
 	return &schema.Resource{
 		Description:   "Use `cloudconnexa_network` to create an CloudConnexa Network.",
@@ -58,6 +59,7 @@ func resourceNetwork() *schema.Resource {
 	}
 }
 
+// resourceNetworkCreate creates a new network
 func resourceNetworkCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -75,6 +77,7 @@ func resourceNetworkCreate(ctx context.Context, d *schema.ResourceData, m interf
 	return diags
 }
 
+// resourceNetworkRead reads the state of a network
 func resourceNetworkRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -94,6 +97,7 @@ func resourceNetworkRead(ctx context.Context, d *schema.ResourceData, m interfac
 	return diags
 }
 
+// resourceNetworkUpdate updates an existing network
 func resourceNetworkUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -115,6 +119,7 @@ func resourceNetworkUpdate(ctx context.Context, d *schema.ResourceData, m interf
 	return append(diags, resourceNetworkRead(ctx, d, m)...)
 }
 
+// resourceNetworkDelete deletes a network
 func resourceNetworkDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics

@@ -10,6 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
+// resourceRoute returns a Terraform resource for CloudConnexa routes.
+// This resource allows users to create, read, update, and delete routes on a CloudConnexa network.
+//
+// Returns:
+//   - *schema.Resource: A Terraform resource definition for routes
 func resourceRoute() *schema.Resource {
 	return &schema.Resource{
 		Description:   "Use `cloudconnexa_route` to create a route on an CloudConnexa network.",
@@ -49,6 +54,16 @@ func resourceRoute() *schema.Resource {
 	}
 }
 
+// resourceRouteCreate handles the creation of a new CloudConnexa route.
+// It creates a route with the specified type, subnet, and description on the given network.
+//
+// Parameters:
+//   - ctx: The context for the operation
+//   - d: The Terraform resource data
+//   - m: The interface containing the CloudConnexa client
+//
+// Returns:
+//   - diag.Diagnostics: Diagnostics containing any errors that occurred during the operation
 func resourceRouteCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -72,6 +87,16 @@ func resourceRouteCreate(ctx context.Context, d *schema.ResourceData, m interfac
 	return diags
 }
 
+// resourceRouteRead handles the read operation for a CloudConnexa route.
+// It retrieves the route information and updates the Terraform state.
+//
+// Parameters:
+//   - ctx: The context for the operation
+//   - d: The Terraform resource data
+//   - m: The interface containing the CloudConnexa client
+//
+// Returns:
+//   - diag.Diagnostics: Diagnostics containing any errors that occurred during the operation
 func resourceRouteRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -93,6 +118,16 @@ func resourceRouteRead(ctx context.Context, d *schema.ResourceData, m interface{
 	return diags
 }
 
+// resourceRouteUpdate handles the update operation for a CloudConnexa route.
+// It updates the route's description and subnet if they have changed.
+//
+// Parameters:
+//   - ctx: The context for the operation
+//   - d: The Terraform resource data
+//   - m: The interface containing the CloudConnexa client
+//
+// Returns:
+//   - diag.Diagnostics: Diagnostics containing any errors that occurred during the operation
 func resourceRouteUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -115,6 +150,16 @@ func resourceRouteUpdate(ctx context.Context, d *schema.ResourceData, m interfac
 	return diags
 }
 
+// resourceRouteDelete handles the deletion of a CloudConnexa route.
+// It removes the route from the CloudConnexa network.
+//
+// Parameters:
+//   - ctx: The context for the operation
+//   - d: The Terraform resource data
+//   - m: The interface containing the CloudConnexa client
+//
+// Returns:
+//   - diag.Diagnostics: Diagnostics containing any errors that occurred during the operation
 func resourceRouteDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics

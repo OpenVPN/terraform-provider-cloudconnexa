@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
+// resourceHostConnector returns a Terraform resource schema for managing CloudConnexa host connectors.
+// It defines the CRUD operations and schema for connector configuration.
 func resourceHostConnector() *schema.Resource {
 	return &schema.Resource{
 		Description:   "Use `cloudconnexa_connector` to create an CloudConnexa connector.\n\n~> NOTE: This only creates the CloudConnexa connector object. Additional manual steps are required to associate a host in your infrastructure with the connector. Go to https://openvpn.net/cloud-docs/connector/ for more information.",
@@ -68,6 +70,8 @@ func resourceHostConnector() *schema.Resource {
 	}
 }
 
+// resourceHostConnectorUpdate updates an existing CloudConnexa host connector with new configuration.
+// It handles updating the connector's name, description, and VPN region.
 func resourceHostConnectorUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -84,6 +88,8 @@ func resourceHostConnectorUpdate(ctx context.Context, d *schema.ResourceData, m 
 	return diags
 }
 
+// resourceHostConnectorCreate creates a new CloudConnexa host connector.
+// It initializes the connector with the specified configuration and returns a warning about manual setup requirements.
 func resourceHostConnectorCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -120,6 +126,8 @@ func resourceHostConnectorCreate(ctx context.Context, d *schema.ResourceData, m 
 	})
 }
 
+// resourceHostConnectorRead retrieves the current state of a CloudConnexa host connector.
+// It fetches the connector's configuration, profile, and token information.
 func resourceHostConnectorRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -151,6 +159,8 @@ func resourceHostConnectorRead(ctx context.Context, d *schema.ResourceData, m in
 	return diags
 }
 
+// resourceHostConnectorDelete removes a CloudConnexa host connector.
+// It deletes the connector and its associated host configuration.
 func resourceHostConnectorDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics

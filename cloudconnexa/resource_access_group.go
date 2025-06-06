@@ -9,27 +9,37 @@ import (
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 )
 
-var (
-	validSource              = []string{"USER_GROUP", "NETWORK", "HOST"}
-	validDestination         = []string{"USER_GROUP", "NETWORK", "HOST", "PUBLISHED_APPLICATION"}
-	sourceRequestConversions = map[string]string{
-		"NETWORK": "NETWORK_SERVICE",
-	}
-	destinationRequestConversions = map[string]string{
-		"NETWORK":               "NETWORK_SERVICE",
-		"HOST":                  "HOST_SERVICE",
-		"PUBLISHED_APPLICATION": "PUBLISHED_SERVICE",
-	}
-	sourceResponseConversions = map[string]string{
-		"NETWORK_SERVICE": "NETWORK",
-	}
-	destinationResponseConversions = map[string]string{
-		"NETWORK_SERVICE":   "NETWORK",
-		"HOST_SERVICE":      "HOST",
-		"PUBLISHED_SERVICE": "PUBLISHED_APPLICATION",
-	}
-)
+// validSource contains the list of valid source types for access groups
+var validSource = []string{"USER_GROUP", "NETWORK", "HOST"}
 
+// validDestination contains the list of valid destination types for access groups
+var validDestination = []string{"USER_GROUP", "NETWORK", "HOST", "PUBLISHED_APPLICATION"}
+
+// sourceRequestConversions maps source types to their API request format
+var sourceRequestConversions = map[string]string{
+	"NETWORK": "NETWORK_SERVICE",
+}
+
+// destinationRequestConversions maps destination types to their API request format
+var destinationRequestConversions = map[string]string{
+	"NETWORK":               "NETWORK_SERVICE",
+	"HOST":                  "HOST_SERVICE",
+	"PUBLISHED_APPLICATION": "PUBLISHED_SERVICE",
+}
+
+// sourceResponseConversions maps API response source types back to their original format
+var sourceResponseConversions = map[string]string{
+	"NETWORK_SERVICE": "NETWORK",
+}
+
+// destinationResponseConversions maps API response destination types back to their original format
+var destinationResponseConversions = map[string]string{
+	"NETWORK_SERVICE":   "NETWORK",
+	"HOST_SERVICE":      "HOST",
+	"PUBLISHED_SERVICE": "PUBLISHED_APPLICATION",
+}
+
+// resourceAccessGroup returns a Terraform resource schema for CloudConnexa access groups
 func resourceAccessGroup() *schema.Resource {
 	return &schema.Resource{
 		Description:   "Use `cloudconnexa_access_group` to create an Access group.",
@@ -67,6 +77,7 @@ func resourceAccessGroup() *schema.Resource {
 	}
 }
 
+// resourceSource returns a schema for access group source configuration
 func resourceSource() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
@@ -98,6 +109,7 @@ func resourceSource() *schema.Resource {
 	}
 }
 
+// resourceDestination returns a schema for access group destination configuration
 func resourceDestination() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
@@ -129,6 +141,7 @@ func resourceDestination() *schema.Resource {
 	}
 }
 
+// resourceAccessGroupCreate creates a new access group in CloudConnexa
 func resourceAccessGroupCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -141,6 +154,7 @@ func resourceAccessGroupCreate(ctx context.Context, d *schema.ResourceData, m in
 	return diags
 }
 
+// resourceAccessGroupRead retrieves an access group from CloudConnexa
 func resourceAccessGroupRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -157,6 +171,7 @@ func resourceAccessGroupRead(ctx context.Context, d *schema.ResourceData, m inte
 	return diags
 }
 
+// resourceAccessGroupUpdate updates an existing access group in CloudConnexa
 func resourceAccessGroupUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -169,6 +184,7 @@ func resourceAccessGroupUpdate(ctx context.Context, d *schema.ResourceData, m in
 	return diags
 }
 
+// resourceAccessGroupDelete removes an access group from CloudConnexa
 func resourceAccessGroupDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -180,6 +196,7 @@ func resourceAccessGroupDelete(ctx context.Context, d *schema.ResourceData, m in
 	return diags
 }
 
+// setAccessGroupData sets the Terraform resource data from a CloudConnexa access group
 func setAccessGroupData(d *schema.ResourceData, ag *cloudconnexa.AccessGroup) {
 	d.SetId(ag.ID)
 	d.Set("name", ag.Name)
@@ -230,6 +247,7 @@ func setAccessGroupData(d *schema.ResourceData, ag *cloudconnexa.AccessGroup) {
 	d.Set("destination", destinations)
 }
 
+// resourceDataToAccessGroup converts Terraform resource data to a CloudConnexa access group
 func resourceDataToAccessGroup(data *schema.ResourceData) *cloudconnexa.AccessGroup {
 	name := data.Get("name").(string)
 	description := data.Get("description").(string)
@@ -272,6 +290,16 @@ func resourceDataToAccessGroup(data *schema.ResourceData) *cloudconnexa.AccessGr
 	return request
 }
 
+// convert transforms an input string using a provided conversion map.
+// If the input string exists as a key in the conversions map, it returns the mapped value.
+// Otherwise, it returns the original input string unchanged.
+//
+// Parameters:
+//   - input: The string to be converted
+//   - conversions: A map containing string-to-string conversions
+//
+// Returns:
+//   - string: The converted string or the original input if no conversion exists
 func convert(input string, conversions map[string]string) string {
 	if output, exists := conversions[input]; exists {
 		return output

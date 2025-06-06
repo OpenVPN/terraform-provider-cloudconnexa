@@ -11,10 +11,12 @@ import (
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 )
 
+// validValues contains the list of allowed service types for network IP services
 var (
 	validValues = []string{"ANY", "BGP", "DHCP", "DNS", "FTP", "HTTP", "HTTPS", "IMAP", "IMAPS", "NTP", "POP3", "POP3S", "SMTP", "SMTPS", "SNMP", "SSH", "TELNET", "TFTP"}
 )
 
+// resourceNetworkIPService returns a Terraform resource schema for managing network IP services
 func resourceNetworkIPService() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceNetworkIpServiceCreate,
@@ -65,6 +67,7 @@ func resourceNetworkIPService() *schema.Resource {
 	}
 }
 
+// resourceNetworkIpServiceUpdate updates an existing network IP service
 func resourceNetworkIpServiceUpdate(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 
@@ -76,6 +79,7 @@ func resourceNetworkIpServiceUpdate(ctx context.Context, data *schema.ResourceDa
 	return nil
 }
 
+// resourceNetworkIpServiceConfig returns the schema for network IP service configuration
 func resourceNetworkIpServiceConfig() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
@@ -92,7 +96,6 @@ func resourceNetworkIpServiceConfig() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 					ValidateDiagFunc: func(i interface{}, path cty.Path) diag.Diagnostics {
-
 						val := i.(string)
 						for _, validValue := range validValues {
 							if val == validValue {
@@ -107,6 +110,7 @@ func resourceNetworkIpServiceConfig() *schema.Resource {
 	}
 }
 
+// customNetworkIpServiceTypesConfig returns the schema for custom network IP service types
 func customNetworkIpServiceTypesConfig() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"protocol": {
@@ -125,6 +129,7 @@ func customNetworkIpServiceTypesConfig() map[string]*schema.Schema {
 	}
 }
 
+// resourceNetworkIpServiceRead retrieves a network IP service by ID
 func resourceNetworkIpServiceRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -140,6 +145,7 @@ func resourceNetworkIpServiceRead(ctx context.Context, data *schema.ResourceData
 	return diags
 }
 
+// setNetworkIpServiceResourceData sets the resource data from a network IP service response
 func setNetworkIpServiceResourceData(data *schema.ResourceData, service *cloudconnexa.IPServiceResponse) {
 	data.SetId(service.ID)
 	_ = data.Set("name", service.Name)
@@ -150,6 +156,7 @@ func setNetworkIpServiceResourceData(data *schema.ResourceData, service *cloudco
 	_ = data.Set("network_id", service.NetworkItemID)
 }
 
+// resourceNetworkIpServiceDelete deletes a network IP service
 func resourceNetworkIpServiceDelete(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -160,6 +167,7 @@ func resourceNetworkIpServiceDelete(ctx context.Context, data *schema.ResourceDa
 	return diags
 }
 
+// flattenNetworkIpServiceConfig flattens the network IP service configuration for Terraform state
 func flattenNetworkIpServiceConfig(config *cloudconnexa.IPServiceConfig) interface{} {
 	var data = map[string]interface{}{
 		"custom_service_types": flattenNetworkIpServiceCustomServiceTypes(config.CustomServiceTypes),
@@ -168,6 +176,7 @@ func flattenNetworkIpServiceConfig(config *cloudconnexa.IPServiceConfig) interfa
 	return []interface{}{data}
 }
 
+// flattenNetworkIpServiceCustomServiceTypes flattens custom service types for Terraform state
 func flattenNetworkIpServiceCustomServiceTypes(types []*cloudconnexa.CustomIPServiceType) interface{} {
 	var cst []interface{}
 	for _, t := range types {
@@ -189,6 +198,7 @@ func flattenNetworkIpServiceCustomServiceTypes(types []*cloudconnexa.CustomIPSer
 	return cst
 }
 
+// flattenNetworkIpServiceRoutes flattens network IP service routes for Terraform state
 func flattenNetworkIpServiceRoutes(routes []*cloudconnexa.Route) []string {
 	var data []string
 	for _, route := range routes {
@@ -200,6 +210,7 @@ func flattenNetworkIpServiceRoutes(routes []*cloudconnexa.Route) []string {
 	return data
 }
 
+// resourceNetworkIpServiceCreate creates a new network IP service
 func resourceNetworkIpServiceCreate(ctx context.Context, data *schema.ResourceData, m interface{}) diag.Diagnostics {
 	client := m.(*cloudconnexa.Client)
 
@@ -212,7 +223,10 @@ func resourceNetworkIpServiceCreate(ctx context.Context, data *schema.ResourceDa
 	return nil
 }
 
+// resourceDataToNetworkIpService converts Terraform resource data to a CloudConnexa network IP service configuration.
+// It maps the Terraform schema data to the corresponding CloudConnexa API structure.
 func resourceDataToNetworkIpService(data *schema.ResourceData) *cloudconnexa.IPService {
+	// Extract and process routes from Terraform data
 	routes := data.Get("routes").([]interface{})
 	var configRoutes []*cloudconnexa.IPServiceRoute
 	for _, r := range routes {
@@ -225,16 +239,19 @@ func resourceDataToNetworkIpService(data *schema.ResourceData) *cloudconnexa.IPS
 		)
 	}
 
+	// Initialize and process service configuration
 	config := cloudconnexa.IPServiceConfig{}
 	configList := data.Get("config").([]interface{})
 	if len(configList) > 0 && configList[0] != nil {
-
 		config.CustomServiceTypes = []*cloudconnexa.CustomIPServiceType{}
 		config.ServiceTypes = []string{}
 
+		// Process main configuration block
 		mainConfig := configList[0].(map[string]interface{})
 		var cst = mainConfig["custom_service_types"].(*schema.Set)
 		var groupedCst = make(map[string][]cloudconnexa.Range)
+
+		// Group custom service types by protocol
 		for _, item := range cst.List() {
 			var cstItem = item.(map[string]interface{})
 			var protocol = cstItem["protocol"].(string)
@@ -252,6 +269,7 @@ func resourceDataToNetworkIpService(data *schema.ResourceData) *cloudconnexa.IPS
 			}
 		}
 
+		// Process grouped custom service types
 		for protocol, ports := range groupedCst {
 			if protocol == "ICMP" {
 				config.CustomServiceTypes = append(
@@ -272,6 +290,7 @@ func resourceDataToNetworkIpService(data *schema.ResourceData) *cloudconnexa.IPS
 			}
 		}
 
+		// Process service types and ensure CUSTOM is included if needed
 		for _, r := range mainConfig["service_types"].([]interface{}) {
 			config.ServiceTypes = append(config.ServiceTypes, r.(string))
 		}
@@ -280,6 +299,7 @@ func resourceDataToNetworkIpService(data *schema.ResourceData) *cloudconnexa.IPS
 		}
 	}
 
+	// Create and return the final IP service configuration
 	s := &cloudconnexa.IPService{
 		Name:            data.Get("name").(string),
 		Description:     data.Get("description").(string),
