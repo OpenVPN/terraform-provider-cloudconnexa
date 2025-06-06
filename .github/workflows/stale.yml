@@ -1,4 +1,8 @@
 name: "Stale issues and pull requests"
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
 on:
   schedule:
     - cron: "40 17 * * *"
