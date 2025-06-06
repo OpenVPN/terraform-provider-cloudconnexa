@@ -112,51 +112,52 @@ func resourceSamlSso() *schema.Resource {
 
 // resourceSamlSsoUpdate handles the creation and update of CloudConnexa SAML SSO configuration
 func resourceSamlSsoUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	_ = m.(*cloudconnexa.Client)
+	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
 
-	// Note: This is a placeholder implementation as the actual SAML SSO API endpoints
-	// would need to be implemented in the cloudconnexa-go-client
-	// For now, we'll set a static ID to indicate the resource exists
+	// Build SAML configuration from resource data
+	samlConfig := buildSamlConfigFromResourceData(d)
+
+	// Update SAML SSO configuration
+	err := updateSamlSsoConfig(c, samlConfig)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+
+	// Set the resource ID
 	d.SetId("saml-sso-config")
 
-	// In a real implementation, you would call something like:
-	// samlConfig := buildSamlConfigFromResourceData(d)
-	// _, err := c.SamlSso.Update(samlConfig)
-	// if err != nil {
-	//     return append(diags, diag.FromErr(err)...)
-	// }
-
-	return diags
+	// Read back the configuration to ensure state consistency
+	return resourceSamlSsoRead(ctx, d, m)
 }
 
 // resourceSamlSsoRead reads the current state of CloudConnexa SAML SSO configuration
 func resourceSamlSsoRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	_ = m.(*cloudconnexa.Client)
+	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
 
-	// Note: This is a placeholder implementation
-	// In a real implementation, you would call something like:
-	// samlConfig, err := c.SamlSso.Get()
-	// if err != nil {
-	//     return append(diags, diag.FromErr(err)...)
-	// }
-	// updateSamlSsoResourceData(d, samlConfig)
+	// Get SAML SSO configuration
+	samlConfig, err := getSamlSsoConfig(c)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+
+	// Update resource data with current configuration
+	updateSamlSsoResourceData(d, samlConfig)
 
 	return diags
 }
 
 // resourceSamlSsoDelete handles the deletion of CloudConnexa SAML SSO configuration
 func resourceSamlSsoDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	_ = m.(*cloudconnexa.Client)
+	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
 
-	// Note: This is a placeholder implementation
-	// In a real implementation, you would call something like:
-	// err := c.SamlSso.Disable()
-	// if err != nil {
-	//     return append(diags, diag.FromErr(err)...)
-	// }
+	// Disable SAML SSO by setting connect_auth back to LOCAL
+	_, err := c.Settings.SetDefaultConnectAuth("LOCAL")
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
 
 	d.SetId("")
 	return diags
@@ -188,4 +189,60 @@ func buildSamlConfigFromResourceData(d *schema.ResourceData) map[string]interfac
 	}
 
 	return config
+}
+
+// updateSamlSsoConfig updates the SAML SSO configuration via API calls
+func updateSamlSsoConfig(c *cloudconnexa.Client, config map[string]interface{}) error {
+	// Enable/disable SAML authentication
+	enabled := config["enabled"].(bool)
+	if enabled {
+		_, err := c.Settings.SetDefaultConnectAuth("SAML")
+		if err != nil {
+			return err
+		}
+	} else {
+		_, err := c.Settings.SetDefaultConnectAuth("LOCAL")
+		if err != nil {
+			return err
+		}
+	}
+
+	// Note: Additional SAML configuration would be set here when the API supports it
+	// For now, we only manage the basic enable/disable functionality through connect_auth
+
+	return nil
+}
+
+// updateSamlSsoResourceData updates the Terraform resource data with SAML configuration
+func updateSamlSsoResourceData(d *schema.ResourceData, config *SamlSsoConfig) {
+	_ = d.Set("enabled", config.Enabled)
+	_ = d.Set("entity_id", config.EntityID)
+	_ = d.Set("sso_url", config.SsoURL)
+	_ = d.Set("slo_url", config.SloURL)
+	// Note: We don't set certificate as it's sensitive and write-only
+
+	// Set attribute mapping
+	if config.AttributeMapping != nil {
+		attributeMapping := []interface{}{
+			map[string]interface{}{
+				"email":      config.AttributeMapping.Email,
+				"first_name": config.AttributeMapping.FirstName,
+				"last_name":  config.AttributeMapping.LastName,
+				"groups":     config.AttributeMapping.Groups,
+			},
+		}
+		_ = d.Set("attribute_mapping", attributeMapping)
+	}
+
+	// Set auto provisioning settings
+	if config.AutoProvisioning != nil {
+		_ = d.Set("auto_provision_users", config.AutoProvisioning.Enabled)
+		_ = d.Set("default_user_group", config.AutoProvisioning.DefaultUserGroup)
+	}
+
+	// Set security settings
+	if config.SecuritySettings != nil {
+		_ = d.Set("require_signed_assertions", config.SecuritySettings.RequireSignedAssertions)
+		_ = d.Set("name_id_format", config.SecuritySettings.NameIDFormat)
+	}
 }

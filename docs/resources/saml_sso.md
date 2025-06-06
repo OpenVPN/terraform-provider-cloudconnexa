@@ -3,90 +3,23 @@
 page_title: "cloudconnexa_saml_sso Resource - terraform-provider-cloudconnexa"
 subcategory: ""
 description: |-
-  Use cloudconnexa_saml_sso resource to configure SAML Single Sign-On settings for your CloudConnexa organization.
+  Use cloudconnexa_saml_sso to configure SAML Single Sign-On authentication
 ---
 
 # cloudconnexa_saml_sso (Resource)
 
-Use `cloudconnexa_saml_sso` resource to configure SAML Single Sign-On settings for your CloudConnexa organization. This resource allows you to integrate with identity providers like Azure AD, Okta, Google Workspace, and other SAML 2.0 compliant providers.
+Use `cloudconnexa_saml_sso` to configure SAML Single Sign-On authentication
 
 ## Example Usage
 
-### Basic SAML SSO Configuration
-
 ```terraform
-resource "cloudconnexa_saml_sso" "example" {
-  enabled   = true
-  entity_id = "https://example.cloudconnexa.net"
-  sso_url   = "https://login.microsoftonline.com/tenant-id/saml2"
-  slo_url   = "https://login.microsoftonline.com/tenant-id/saml2"
-
-  certificate = file("${path.module}/saml-certificate.pem")
-
-  attribute_mapping {
-    email      = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
-    first_name = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"
-    last_name  = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"
-    groups     = "http://schemas.microsoft.com/ws/2008/06/identity/claims/groups"
-  }
-
-  auto_provisioning {
-    enabled = true
-    default_user_group = "saml-users"
-  }
-
-  security_settings {
-    require_signed_assertions = true
-    name_id_format           = "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent"
-  }
-}
-```
-
-### Azure AD Integration
-
-```terraform
-resource "cloudconnexa_saml_sso" "azure_ad" {
-  enabled   = true
-  entity_id = "https://mycompany.cloudconnexa.net"
-  sso_url   = "https://login.microsoftonline.com/${var.azure_tenant_id}/saml2"
-  slo_url   = "https://login.microsoftonline.com/${var.azure_tenant_id}/saml2"
-
-  certificate = var.azure_saml_certificate
-
-  attribute_mapping {
-    email      = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
-    first_name = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"
-    last_name  = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"
-    groups     = "http://schemas.microsoft.com/ws/2008/06/identity/claims/groups"
-  }
-
-  auto_provisioning {
-    enabled            = true
-    default_user_group = "azure-ad-users"
-    group_mapping = {
-      "IT-Department"    = "it-admins"
-      "Sales-Department" = "sales-team"
-      "HR-Department"    = "hr-team"
-    }
-  }
-
-  security_settings {
-    require_signed_assertions = true
-    name_id_format           = "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent"
-  }
-}
-```
-
-### Okta Integration
-
-```terraform
-resource "cloudconnexa_saml_sso" "okta" {
-  enabled   = true
-  entity_id = "https://mycompany.cloudconnexa.net"
-  sso_url   = "https://mycompany.okta.com/app/myapp/exk1234567890/sso/saml"
-  slo_url   = "https://mycompany.okta.com/app/myapp/exk1234567890/slo/saml"
-
-  certificate = var.okta_saml_certificate
+# Basic SAML SSO configuration
+resource "cloudconnexa_saml_sso" "basic" {
+  enabled     = true
+  entity_id   = "https://mycompany.cloudconnexa.com"
+  sso_url     = "https://idp.mycompany.com/sso/saml"
+  slo_url     = "https://idp.mycompany.com/slo/saml"
+  certificate = file("${path.module}/saml-cert.pem")
 
   attribute_mapping {
     email      = "email"
@@ -95,80 +28,214 @@ resource "cloudconnexa_saml_sso" "okta" {
     groups     = "groups"
   }
 
-  auto_provisioning {
-    enabled            = true
-    default_user_group = "okta-users"
+  auto_provision_users      = true
+  default_user_group        = cloudconnexa_user_group.saml_users.id
+  require_signed_assertions = true
+  name_id_format            = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+}
+
+# User group for SAML-authenticated users
+resource "cloudconnexa_user_group" "saml_users" {
+  name                 = "saml-users"
+  description          = "Users authenticated via SAML SSO"
+  connect_auth         = "SAML"
+  internet_access      = "SPLIT_TUNNEL_ON"
+  max_device           = 3
+  all_regions_included = true
+}
+
+# Advanced SAML SSO configuration with Azure AD
+resource "cloudconnexa_saml_sso" "azure_ad" {
+  enabled     = true
+  entity_id   = "https://mycompany.cloudconnexa.com"
+  sso_url     = "https://login.microsoftonline.com/${var.azure_tenant_id}/saml2"
+  slo_url     = "https://login.microsoftonline.com/${var.azure_tenant_id}/saml2"
+  certificate = var.azure_ad_certificate
+
+  attribute_mapping {
+    email      = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
+    first_name = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"
+    last_name  = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"
+    groups     = "http://schemas.microsoft.com/ws/2008/06/identity/claims/groups"
   }
 
-  security_settings {
-    require_signed_assertions = true
-    name_id_format           = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+  auto_provision_users      = true
+  default_user_group        = cloudconnexa_user_group.azure_ad_users.id
+  require_signed_assertions = true
+  name_id_format            = "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent"
+}
+
+# User group for Azure AD users
+resource "cloudconnexa_user_group" "azure_ad_users" {
+  name            = "azure-ad-users"
+  description     = "Users authenticated via Azure AD SAML"
+  connect_auth    = "SAML"
+  internet_access = "RESTRICTED_INTERNET"
+  max_device      = 2
+  vpn_region_ids  = ["us-east-1", "eu-central-1"]
+}
+
+# SAML SSO configuration with Okta
+resource "cloudconnexa_saml_sso" "okta" {
+  enabled     = true
+  entity_id   = "https://mycompany.cloudconnexa.com"
+  sso_url     = "https://mycompany.okta.com/app/cloudconnexa/exk1234567890/sso/saml"
+  slo_url     = "https://mycompany.okta.com/app/cloudconnexa/exk1234567890/slo/saml"
+  certificate = var.okta_certificate
+
+  attribute_mapping {
+    email      = "email"
+    first_name = "firstName"
+    last_name  = "lastName"
+    groups     = "groups"
+  }
+
+  auto_provision_users      = true
+  default_user_group        = cloudconnexa_user_group.okta_users.id
+  require_signed_assertions = true
+  name_id_format            = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+}
+
+# User group for Okta users
+resource "cloudconnexa_user_group" "okta_users" {
+  name            = "okta-users"
+  description     = "Users authenticated via Okta SAML"
+  connect_auth    = "SAML"
+  internet_access = "SPLIT_TUNNEL_ON"
+  max_device      = 5
+  vpn_region_ids  = ["us-east-1", "us-west-1", "eu-central-1"]
+}
+
+# SAML SSO configuration with Google Workspace
+resource "cloudconnexa_saml_sso" "google_workspace" {
+  enabled     = true
+  entity_id   = "https://mycompany.cloudconnexa.com"
+  sso_url     = "https://accounts.google.com/o/saml2/idp?idpid=${var.google_idp_id}"
+  certificate = var.google_workspace_certificate
+
+  attribute_mapping {
+    email      = "email"
+    first_name = "firstName"
+    last_name  = "lastName"
+    groups     = "groups"
+  }
+
+  auto_provision_users      = false # Manual provisioning for Google Workspace
+  require_signed_assertions = true
+  name_id_format            = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+}
+
+# Multiple user groups for different departments with SAML auth
+resource "cloudconnexa_user_group" "saml_engineering" {
+  name            = "saml-engineering"
+  description     = "Engineering team with SAML authentication"
+  connect_auth    = "SAML"
+  internet_access = "SPLIT_TUNNEL_ON"
+  max_device      = 5
+  vpn_region_ids  = ["us-east-1", "us-west-1", "eu-central-1", "ap-southeast-1"]
+}
+
+resource "cloudconnexa_user_group" "saml_sales" {
+  name            = "saml-sales"
+  description     = "Sales team with SAML authentication"
+  connect_auth    = "SAML"
+  internet_access = "SPLIT_TUNNEL_ON"
+  max_device      = 3
+  vpn_region_ids  = ["us-east-1", "eu-central-1"]
+}
+
+resource "cloudconnexa_user_group" "saml_support" {
+  name            = "saml-support"
+  description     = "Support team with SAML authentication"
+  connect_auth    = "SAML"
+  internet_access = "RESTRICTED_INTERNET"
+  max_device      = 2
+  vpn_region_ids  = ["us-east-1"]
+}
+
+# Variables for SAML configuration
+variable "azure_tenant_id" {
+  description = "Azure AD tenant ID"
+  type        = string
+  sensitive   = true
+}
+
+variable "azure_ad_certificate" {
+  description = "Azure AD SAML certificate"
+  type        = string
+  sensitive   = true
+}
+
+variable "okta_certificate" {
+  description = "Okta SAML certificate"
+  type        = string
+  sensitive   = true
+}
+
+variable "google_idp_id" {
+  description = "Google Workspace IdP ID"
+  type        = string
+  sensitive   = true
+}
+
+variable "google_workspace_certificate" {
+  description = "Google Workspace SAML certificate"
+  type        = string
+  sensitive   = true
+}
+
+# Data source example
+data "cloudconnexa_saml_sso" "current" {}
+
+# Outputs
+output "saml_sso_status" {
+  description = "Current SAML SSO configuration status"
+  value = {
+    enabled   = data.cloudconnexa_saml_sso.current.enabled
+    entity_id = data.cloudconnexa_saml_sso.current.entity_id
+    sso_url   = data.cloudconnexa_saml_sso.current.sso_url
+  }
+}
+
+output "saml_user_groups" {
+  description = "SAML-enabled user groups"
+  value = {
+    engineering = cloudconnexa_user_group.saml_engineering.id
+    sales       = cloudconnexa_user_group.saml_sales.id
+    support     = cloudconnexa_user_group.saml_support.id
   }
 }
 ```
 
+<!-- schema generated by tfplugindocs -->
 ## Schema
 
 ### Required
 
-- `enabled` (Boolean) Whether SAML SSO is enabled for the organization.
-- `entity_id` (String) The SAML entity ID (SP entity ID) for your CloudConnexa organization.
-- `sso_url` (String) The SAML Single Sign-On URL provided by your identity provider.
-- `certificate` (String, Sensitive) The X.509 certificate from your identity provider in PEM format.
+- `enabled` (Boolean) Enable or disable SAML SSO authentication.
 
 ### Optional
 
-- `slo_url` (String) The SAML Single Logout URL provided by your identity provider.
-- `attribute_mapping` (Block, Optional) Configuration for mapping SAML attributes to CloudConnexa user fields. (see [below for nested schema](#nestedblock--attribute_mapping))
-- `auto_provisioning` (Block, Optional) Configuration for automatic user provisioning from SAML assertions. (see [below for nested schema](#nestedblock--auto_provisioning))
-- `security_settings` (Block, Optional) Security-related SAML configuration options. (see [below for nested schema](#nestedblock--security_settings))
+- `attribute_mapping` (Block List, Max: 1) SAML attribute mapping configuration. (see [below for nested schema](#nestedblock--attribute_mapping))
+- `auto_provision_users` (Boolean) Automatically provision users from SAML assertions.
+- `certificate` (String, Sensitive) The X.509 certificate for SAML signature verification.
+- `default_user_group` (String) Default user group ID for auto-provisioned users.
+- `entity_id` (String) The SAML entity ID (SP entity ID).
+- `name_id_format` (String) SAML NameID format.
+- `require_signed_assertions` (Boolean) Require signed SAML assertions.
+- `slo_url` (String) The SAML Single Logout URL (IdP SLO URL).
+- `sso_url` (String) The SAML SSO URL (IdP SSO URL).
 
 ### Read-Only
 
-- `id` (String) The ID of the SAML SSO configuration.
-- `status` (String) The current status of the SAML SSO configuration.
-- `metadata_url` (String) The URL to download the SAML metadata for this configuration.
-- `acs_url` (String) The Assertion Consumer Service URL for your identity provider configuration.
+- `id` (String) The ID of this resource.
 
 <a id="nestedblock--attribute_mapping"></a>
-
 ### Nested Schema for `attribute_mapping`
 
 Optional:
 
-- `email` (String) The SAML attribute name that contains the user's email address. Default: `email`.
-- `first_name` (String) The SAML attribute name that contains the user's first name. Default: `firstName`.
-- `last_name` (String) The SAML attribute name that contains the user's last name. Default: `lastName`.
-- `groups` (String) The SAML attribute name that contains the user's group memberships. Default: `groups`.
-
-<a id="nestedblock--auto_provisioning"></a>
-
-### Nested Schema for `auto_provisioning`
-
-Optional:
-
-- `enabled` (Boolean) Whether to automatically provision users from SAML assertions. Default: `false`.
-- `default_user_group` (String) The default user group to assign to auto-provisioned users.
-- `group_mapping` (Map of String) A map of SAML group names to CloudConnexa user group names for automatic group assignment.
-- `update_user_attributes` (Boolean) Whether to update user attributes on each login. Default: `true`.
-
-<a id="nestedblock--security_settings"></a>
-
-### Nested Schema for `security_settings`
-
-Optional:
-
-- `require_signed_assertions` (Boolean) Whether to require signed SAML assertions. Default: `true`.
-- `name_id_format` (String) The NameID format to use in SAML requests. Valid values: `urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress`, `urn:oasis:names:tc:SAML:2.0:nameid-format:persistent`, `urn:oasis:names:tc:SAML:2.0:nameid-format:transient`. Default: `urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress`.
-- `signature_algorithm` (String) The signature algorithm to use for SAML requests. Valid values: `RSA_SHA1`, `RSA_SHA256`. Default: `RSA_SHA256`.
-- `digest_algorithm` (String) The digest algorithm to use for SAML requests. Valid values: `SHA1`, `SHA256`. Default: `SHA256`.
-
-## Import
-
-SAML SSO configuration can be imported using the organization ID:
-
-```shell
-terraform import cloudconnexa_saml_sso.example organization-id
-```
-
-Note: Since there is only one SAML SSO configuration per organization, the import ID is typically the organization identifier.
+- `email` (String) SAML attribute name for email. Defaults to 'email'.
+- `first_name` (String) SAML attribute name for first name. Defaults to 'firstName'.
+- `groups` (String) SAML attribute name for groups. Defaults to 'groups'.
+- `last_name` (String) SAML attribute name for last name. Defaults to 'lastName'.

@@ -26,6 +26,6 @@ Use an `cloudconnexa_connector` data source to read an existing CloudConnexa con
 - `ip_v4_address` (String) The IPV4 address of the connector.
 - `ip_v6_address` (String) The IPV6 address of the connector.
 - `name` (String) The name of the connector.
-- `profile` (String) OpenVPN profile
-- `token` (String) Connector token
+- `profile` (String, Sensitive) OpenVPN profile
+- `token` (String, Sensitive) Connector token
 - `vpn_region_id` (String) The id of the region where the connector is deployed.

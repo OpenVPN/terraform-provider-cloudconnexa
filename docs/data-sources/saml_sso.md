@@ -3,113 +3,113 @@
 page_title: "cloudconnexa_saml_sso Data Source - terraform-provider-cloudconnexa"
 subcategory: ""
 description: |-
-  Use cloudconnexa_saml_sso data source to retrieve information about the SAML Single Sign-On configuration for your CloudConnexa organization.
+  Use a cloudconnexa_saml_sso data source to read CloudConnexa SAML SSO configuration.
 ---
 
 # cloudconnexa_saml_sso (Data Source)
 
-Use `cloudconnexa_saml_sso` data source to retrieve information about the SAML Single Sign-On configuration for your CloudConnexa organization.
+Use a `cloudconnexa_saml_sso` data source to read CloudConnexa SAML SSO configuration.
 
 ## Example Usage
 
-### Basic Usage
-
 ```terraform
+# Basic SAML SSO data source
 data "cloudconnexa_saml_sso" "current" {}
 
-output "saml_enabled" {
-  value = data.cloudconnexa_saml_sso.current.enabled
+# Output current SAML SSO configuration
+output "saml_sso_config" {
+  description = "Current SAML SSO configuration"
+  value = {
+    enabled                   = data.cloudconnexa_saml_sso.current.enabled
+    entity_id                 = data.cloudconnexa_saml_sso.current.entity_id
+    sso_url                   = data.cloudconnexa_saml_sso.current.sso_url
+    slo_url                   = data.cloudconnexa_saml_sso.current.slo_url
+    auto_provision_users      = data.cloudconnexa_saml_sso.current.auto_provision_users
+    default_user_group        = data.cloudconnexa_saml_sso.current.default_user_group
+    require_signed_assertions = data.cloudconnexa_saml_sso.current.require_signed_assertions
+    name_id_format            = data.cloudconnexa_saml_sso.current.name_id_format
+  }
 }
 
-output "saml_entity_id" {
-  value = data.cloudconnexa_saml_sso.current.entity_id
+# Output SAML attribute mapping
+output "saml_attribute_mapping" {
+  description = "SAML attribute mapping configuration"
+  value = length(data.cloudconnexa_saml_sso.current.attribute_mapping) > 0 ? {
+    email      = data.cloudconnexa_saml_sso.current.attribute_mapping[0].email
+    first_name = data.cloudconnexa_saml_sso.current.attribute_mapping[0].first_name
+    last_name  = data.cloudconnexa_saml_sso.current.attribute_mapping[0].last_name
+    groups     = data.cloudconnexa_saml_sso.current.attribute_mapping[0].groups
+  } : null
+}
+
+# Conditional logic based on SAML SSO status
+locals {
+  saml_enabled = data.cloudconnexa_saml_sso.current.enabled
+
+  # Create different user group configurations based on SAML status
+  user_group_config = local.saml_enabled ? {
+    connect_auth = "SAML"
+    description  = "SAML-authenticated users"
+    } : {
+    connect_auth = "ON_PRIOR_AUTH"
+    description  = "Local authentication users"
+  }
+}
+
+# Example of using SAML SSO data in other resources
+resource "cloudconnexa_user_group" "conditional_auth" {
+  name            = "conditional-auth-group"
+  description     = local.user_group_config.description
+  connect_auth    = local.user_group_config.connect_auth
+  internet_access = "SPLIT_TUNNEL_ON"
+  max_device      = 3
+  vpn_region_ids  = ["us-east-1", "eu-central-1"]
+}
+
+# Check if SAML is properly configured
+output "saml_configuration_status" {
+  description = "SAML configuration validation"
+  value = {
+    is_enabled             = data.cloudconnexa_saml_sso.current.enabled
+    has_sso_url            = data.cloudconnexa_saml_sso.current.sso_url != null && data.cloudconnexa_saml_sso.current.sso_url != ""
+    has_entity_id          = data.cloudconnexa_saml_sso.current.entity_id != null && data.cloudconnexa_saml_sso.current.entity_id != ""
+    auto_provision_enabled = data.cloudconnexa_saml_sso.current.auto_provision_users
+    has_default_group      = data.cloudconnexa_saml_sso.current.default_user_group != null && data.cloudconnexa_saml_sso.current.default_user_group != ""
+
+    # Overall configuration status
+    is_fully_configured = (
+      data.cloudconnexa_saml_sso.current.enabled &&
+      data.cloudconnexa_saml_sso.current.sso_url != null &&
+      data.cloudconnexa_saml_sso.current.sso_url != "" &&
+      data.cloudconnexa_saml_sso.current.entity_id != null &&
+      data.cloudconnexa_saml_sso.current.entity_id != ""
+    )
+  }
 }
 ```
 
-### Conditional Configuration
-
-```terraform
-data "cloudconnexa_saml_sso" "current" {}
-
-# Create user groups only if SAML is enabled
-resource "cloudconnexa_user_group" "saml_users" {
-  count = data.cloudconnexa_saml_sso.current.enabled ? 1 : 0
-
-  name        = "SAML Users"
-  description = "Users authenticated via SAML SSO"
-  connect_auth = "SAML"
-}
-```
-
-### Integration with Other Resources
-
-```terraform
-data "cloudconnexa_saml_sso" "current" {}
-
-# Configure settings based on SAML status
-resource "cloudconnexa_settings" "org" {
-  connect_auth = data.cloudconnexa_saml_sso.current.enabled ? "SAML" : "LOCAL"
-
-  # Other settings...
-}
-
-# Output SAML metadata URL for IdP configuration
-output "saml_metadata_url" {
-  value       = data.cloudconnexa_saml_sso.current.metadata_url
-  description = "Use this URL to configure your identity provider"
-}
-
-output "saml_acs_url" {
-  value       = data.cloudconnexa_saml_sso.current.acs_url
-  description = "Assertion Consumer Service URL for IdP configuration"
-}
-```
-
+<!-- schema generated by tfplugindocs -->
 ## Schema
 
 ### Read-Only
 
-- `id` (String) The ID of the SAML SSO configuration.
-- `enabled` (Boolean) Whether SAML SSO is enabled for the organization.
-- `entity_id` (String) The SAML entity ID (SP entity ID) for your CloudConnexa organization.
-- `sso_url` (String) The SAML Single Sign-On URL provided by your identity provider.
-- `slo_url` (String) The SAML Single Logout URL provided by your identity provider.
-- `status` (String) The current status of the SAML SSO configuration.
-- `metadata_url` (String) The URL to download the SAML metadata for this configuration.
-- `acs_url` (String) The Assertion Consumer Service URL for your identity provider configuration.
-- `attribute_mapping` (Block) Configuration for mapping SAML attributes to CloudConnexa user fields. (see [below for nested schema](#nestedblock--attribute_mapping))
-- `auto_provisioning` (Block) Configuration for automatic user provisioning from SAML assertions. (see [below for nested schema](#nestedblock--auto_provisioning))
-- `security_settings` (Block) Security-related SAML configuration options. (see [below for nested schema](#nestedblock--security_settings))
+- `attribute_mapping` (List of Object) SAML attribute mapping configuration. (see [below for nested schema](#nestedatt--attribute_mapping))
+- `auto_provision_users` (Boolean) Whether users are automatically provisioned from SAML assertions.
+- `default_user_group` (String) Default user group ID for auto-provisioned users.
+- `enabled` (Boolean) Whether SAML SSO authentication is enabled.
+- `entity_id` (String) The SAML entity ID (SP entity ID).
+- `id` (String) The ID of this resource.
+- `name_id_format` (String) SAML NameID format.
+- `require_signed_assertions` (Boolean) Whether signed SAML assertions are required.
+- `slo_url` (String) The SAML Single Logout URL (IdP SLO URL).
+- `sso_url` (String) The SAML SSO URL (IdP SSO URL).
 
-<a id="nestedblock--attribute_mapping"></a>
-
+<a id="nestedatt--attribute_mapping"></a>
 ### Nested Schema for `attribute_mapping`
 
 Read-Only:
 
-- `email` (String) The SAML attribute name that contains the user's email address.
-- `first_name` (String) The SAML attribute name that contains the user's first name.
-- `last_name` (String) The SAML attribute name that contains the user's last name.
-- `groups` (String) The SAML attribute name that contains the user's group memberships.
-
-<a id="nestedblock--auto_provisioning"></a>
-
-### Nested Schema for `auto_provisioning`
-
-Read-Only:
-
-- `enabled` (Boolean) Whether automatic user provisioning from SAML assertions is enabled.
-- `default_user_group` (String) The default user group assigned to auto-provisioned users.
-- `group_mapping` (Map of String) A map of SAML group names to CloudConnexa user group names for automatic group assignment.
-- `update_user_attributes` (Boolean) Whether user attributes are updated on each login.
-
-<a id="nestedblock--security_settings"></a>
-
-### Nested Schema for `security_settings`
-
-Read-Only:
-
-- `require_signed_assertions` (Boolean) Whether signed SAML assertions are required.
-- `name_id_format` (String) The NameID format used in SAML requests.
-- `signature_algorithm` (String) The signature algorithm used for SAML requests.
-- `digest_algorithm` (String) The digest algorithm used for SAML requests.
+- `email` (String)
+- `first_name` (String)
+- `groups` (String)
+- `last_name` (String)
