@@ -10,6 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+// dataSourceUserGroup returns a Terraform data source resource for CloudConnexa user groups.
+// This resource allows users to read existing user group configurations.
+//
+// Returns:
+//   - *schema.Resource: A Terraform resource definition for user group data source
 func dataSourceUserGroup() *schema.Resource {
 	return &schema.Resource{
 		Description: "Use an `cloudconnexa_user_group` data source to read an CloudConnexa user group.",
@@ -65,6 +70,17 @@ func dataSourceUserGroup() *schema.Resource {
 	}
 }
 
+// dataSourceUserGroupRead handles the read operation for the user group data source.
+// It retrieves the user group configuration from CloudConnexa using the provided ID
+// and updates the Terraform state with the retrieved data.
+//
+// Parameters:
+//   - ctx: The context for the operation
+//   - d: The Terraform resource data
+//   - m: The interface containing the CloudConnexa client
+//
+// Returns:
+//   - diag.Diagnostics: Diagnostics containing any errors that occurred during the operation
 func dataSourceUserGroupRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics

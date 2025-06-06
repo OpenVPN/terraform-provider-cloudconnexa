@@ -8,6 +8,8 @@ import (
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 )
 
+// dataSourceHostConnector returns a Terraform data source resource for CloudConnexa host connectors.
+// This resource allows users to read existing host connector configurations.
 func dataSourceHostConnector() *schema.Resource {
 	return &schema.Resource{
 		Description: "Use an `cloudconnexa_connector` data source to read an existing CloudConnexa connector.",
@@ -62,6 +64,17 @@ func dataSourceHostConnector() *schema.Resource {
 	}
 }
 
+// dataSourceHostConnectorRead handles the read operation for the host connector data source.
+// It retrieves the host connector configuration from CloudConnexa using the provided ID
+// and updates the Terraform state with the retrieved data.
+//
+// Parameters:
+//   - ctx: The context for the operation
+//   - d: The Terraform resource data
+//   - m: The interface containing the CloudConnexa client
+//
+// Returns:
+//   - diag.Diagnostics: Diagnostics containing any errors that occurred during the operation
 func dataSourceHostConnectorRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics

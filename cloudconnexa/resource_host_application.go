@@ -11,6 +11,7 @@ import (
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 )
 
+// resourceHostApplication returns a Terraform resource schema for managing host applications
 func resourceHostApplication() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceHostApplicationCreate,
@@ -56,6 +57,7 @@ func resourceHostApplication() *schema.Resource {
 	}
 }
 
+// resourceHostApplicationUpdate updates an existing host application
 func resourceHostApplicationUpdate(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 
@@ -67,6 +69,7 @@ func resourceHostApplicationUpdate(ctx context.Context, data *schema.ResourceDat
 	return nil
 }
 
+// resourceHostApplicationRoute returns the schema for host application routes
 func resourceHostApplicationRoute() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
@@ -82,6 +85,7 @@ func resourceHostApplicationRoute() *schema.Resource {
 	}
 }
 
+// resourceHostApplicationConfig returns the schema for host application configuration
 func resourceHostApplicationConfig() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
@@ -98,7 +102,6 @@ func resourceHostApplicationConfig() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 					ValidateDiagFunc: func(i interface{}, path cty.Path) diag.Diagnostics {
-
 						val := i.(string)
 						for _, validValue := range validValues {
 							if val == validValue {
@@ -113,6 +116,7 @@ func resourceHostApplicationConfig() *schema.Resource {
 	}
 }
 
+// customApplicationTypesConfig returns the schema for custom application type configuration
 func customApplicationTypesConfig() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"protocol": {
@@ -131,6 +135,7 @@ func customApplicationTypesConfig() map[string]*schema.Schema {
 	}
 }
 
+// resourceHostApplicationRead reads the state of a host application
 func resourceHostApplicationRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -146,6 +151,7 @@ func resourceHostApplicationRead(ctx context.Context, data *schema.ResourceData,
 	return diags
 }
 
+// setApplicationData sets the Terraform state data from an application response
 func setApplicationData(data *schema.ResourceData, application *cloudconnexa.ApplicationResponse) {
 	data.SetId(application.ID)
 	_ = data.Set("name", application.Name)
@@ -155,6 +161,7 @@ func setApplicationData(data *schema.ResourceData, application *cloudconnexa.App
 	_ = data.Set("host_id", application.NetworkItemID)
 }
 
+// resourceHostApplicationDelete deletes a host application
 func resourceHostApplicationDelete(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -165,6 +172,7 @@ func resourceHostApplicationDelete(ctx context.Context, data *schema.ResourceDat
 	return diags
 }
 
+// flattenApplicationConfig converts an application config to Terraform state format
 func flattenApplicationConfig(config *cloudconnexa.ApplicationConfig) interface{} {
 	var data = map[string]interface{}{
 		"custom_service_types": flattenApplicationCustomTypes(config.CustomServiceTypes),
@@ -173,6 +181,7 @@ func flattenApplicationConfig(config *cloudconnexa.ApplicationConfig) interface{
 	return []interface{}{data}
 }
 
+// flattenApplicationCustomTypes converts custom application types to Terraform state format
 func flattenApplicationCustomTypes(types []*cloudconnexa.CustomApplicationType) interface{} {
 	var cst []interface{}
 	for _, t := range types {
@@ -194,6 +203,7 @@ func flattenApplicationCustomTypes(types []*cloudconnexa.CustomApplicationType) 
 	return cst
 }
 
+// flattenApplicationRoutes converts application routes to Terraform state format
 func flattenApplicationRoutes(routes []*cloudconnexa.Route) []map[string]interface{} {
 	var data []map[string]interface{}
 	for _, route := range routes {
@@ -205,6 +215,7 @@ func flattenApplicationRoutes(routes []*cloudconnexa.Route) []map[string]interfa
 	return data
 }
 
+// resourceHostApplicationCreate creates a new host application
 func resourceHostApplicationCreate(ctx context.Context, data *schema.ResourceData, m interface{}) diag.Diagnostics {
 	client := m.(*cloudconnexa.Client)
 
@@ -217,6 +228,15 @@ func resourceHostApplicationCreate(ctx context.Context, data *schema.ResourceDat
 	return nil
 }
 
+// resourceDataToHostApplication converts Terraform resource data to a host application.
+// It processes routes, custom service types, and service types from the Terraform state
+// and converts them into a CloudConnexa Application structure.
+//
+// Parameters:
+//   - data: The Terraform resource data containing the application configuration
+//
+// Returns:
+//   - *cloudconnexa.Application: A pointer to the created CloudConnexa Application
 func resourceDataToHostApplication(data *schema.ResourceData) *cloudconnexa.Application {
 	routes := data.Get("routes").([]interface{})
 	var configRoutes []*cloudconnexa.ApplicationRoute
@@ -234,7 +254,6 @@ func resourceDataToHostApplication(data *schema.ResourceData) *cloudconnexa.Appl
 	config := cloudconnexa.ApplicationConfig{}
 	configList := data.Get("config").([]interface{})
 	if len(configList) > 0 && configList[0] != nil {
-
 		config.CustomServiceTypes = []*cloudconnexa.CustomApplicationType{}
 		config.ServiceTypes = []string{}
 
@@ -297,6 +316,14 @@ func resourceDataToHostApplication(data *schema.ResourceData) *cloudconnexa.Appl
 	return s
 }
 
+// removeElement removes a specific element from a string slice.
+//
+// Parameters:
+//   - slice: The input slice of strings
+//   - element: The string element to remove
+//
+// Returns:
+//   - []string: A new slice with the specified element removed
 func removeElement(slice []string, element string) []string {
 	var result []string
 	for _, item := range slice {

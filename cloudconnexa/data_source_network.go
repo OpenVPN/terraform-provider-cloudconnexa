@@ -9,6 +9,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+// dataSourceNetwork returns a Terraform data source resource for CloudConnexa networks.
+// This resource allows users to read existing network configurations.
+//
+// Returns:
+//   - *schema.Resource: A Terraform resource definition for network data source
 func dataSourceNetwork() *schema.Resource {
 	return &schema.Resource{
 		Description: "Use a `cloudconnexa_network` data source to read an CloudConnexa network.",
@@ -51,6 +56,17 @@ func dataSourceNetwork() *schema.Resource {
 	}
 }
 
+// dataSourceNetworkRead handles the read operation for the network data source.
+// It retrieves the network configuration from CloudConnexa using the provided ID
+// and updates the Terraform state with the retrieved data.
+//
+// Parameters:
+//   - ctx: The context for the operation
+//   - d: The Terraform resource data
+//   - m: The interface containing the CloudConnexa client
+//
+// Returns:
+//   - diag.Diagnostics: Diagnostics containing any errors that occurred during the operation
 func dataSourceNetworkRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics

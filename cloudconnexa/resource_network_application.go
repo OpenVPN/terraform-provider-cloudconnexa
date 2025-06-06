@@ -11,6 +11,7 @@ import (
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 )
 
+// resourceNetworkApplication returns a Terraform resource schema for managing network applications
 func resourceNetworkApplication() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceNetworkApplicationCreate,
@@ -56,6 +57,7 @@ func resourceNetworkApplication() *schema.Resource {
 	}
 }
 
+// resourceNetworkApplicationUpdate handles updates to an existing network application
 func resourceNetworkApplicationUpdate(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 
@@ -67,6 +69,7 @@ func resourceNetworkApplicationUpdate(ctx context.Context, data *schema.Resource
 	return nil
 }
 
+// resourceNetworkApplicationRoute returns the schema for network application routes
 func resourceNetworkApplicationRoute() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
@@ -82,6 +85,7 @@ func resourceNetworkApplicationRoute() *schema.Resource {
 	}
 }
 
+// resourceNetworkApplicationConfig returns the schema for network application configuration
 func resourceNetworkApplicationConfig() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
@@ -98,7 +102,6 @@ func resourceNetworkApplicationConfig() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 					ValidateDiagFunc: func(i interface{}, path cty.Path) diag.Diagnostics {
-
 						val := i.(string)
 						for _, validValue := range validValues {
 							if val == validValue {
@@ -113,6 +116,7 @@ func resourceNetworkApplicationConfig() *schema.Resource {
 	}
 }
 
+// resourceNetworkApplicationRead retrieves and sets the state of a network application
 func resourceNetworkApplicationRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -128,6 +132,7 @@ func resourceNetworkApplicationRead(ctx context.Context, data *schema.ResourceDa
 	return diags
 }
 
+// resourceNetworkApplicationDelete handles the deletion of a network application
 func resourceNetworkApplicationDelete(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -138,6 +143,7 @@ func resourceNetworkApplicationDelete(ctx context.Context, data *schema.Resource
 	return diags
 }
 
+// resourceNetworkApplicationCreate handles the creation of a new network application
 func resourceNetworkApplicationCreate(ctx context.Context, data *schema.ResourceData, m interface{}) diag.Diagnostics {
 	client := m.(*cloudconnexa.Client)
 
@@ -150,6 +156,7 @@ func resourceNetworkApplicationCreate(ctx context.Context, data *schema.Resource
 	return nil
 }
 
+// resourceDataToNetworkApplication converts Terraform resource data to a CloudConnexa Application
 func resourceDataToNetworkApplication(data *schema.ResourceData) *cloudconnexa.Application {
 	routes := data.Get("routes").([]interface{})
 	var configRoutes []*cloudconnexa.ApplicationRoute
@@ -167,7 +174,6 @@ func resourceDataToNetworkApplication(data *schema.ResourceData) *cloudconnexa.A
 	config := cloudconnexa.ApplicationConfig{}
 	configList := data.Get("config").([]interface{})
 	if len(configList) > 0 && configList[0] != nil {
-
 		config.CustomServiceTypes = []*cloudconnexa.CustomApplicationType{}
 		config.ServiceTypes = []string{}
 
