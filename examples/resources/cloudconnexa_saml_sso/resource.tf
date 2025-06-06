@@ -96,6 +96,7 @@ resource "cloudconnexa_saml_sso" "google_workspace" {
   enabled     = true
   entity_id   = "https://mycompany.cloudconnexa.com"
   sso_url     = "https://accounts.google.com/o/saml2/idp?idpid=${var.google_idp_id}"
+  slo_url     = "https://accounts.google.com/o/saml2/logout?idpid=${var.google_idp_id}"
   certificate = var.google_workspace_certificate
 
   attribute_mapping {
