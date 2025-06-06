@@ -13,20 +13,317 @@ description: |-
 ## Example Usage
 
 ```terraform
-resource "cloudconnexa_network" "this" {
-  description     = "Test network"
+# Networks for different environments
+resource "cloudconnexa_network" "production" {
+  name            = "production-network"
+  description     = "Production environment network"
   egress          = true
-  name            = "my_test_network"
+  internet_access = "SPLIT_TUNNEL_OFF"
+}
+
+resource "cloudconnexa_network" "staging" {
+  name            = "staging-network"
+  description     = "Staging environment network"
+  egress          = true
   internet_access = "SPLIT_TUNNEL_ON"
 }
 
-resource "cloudconnexa_network_application" "example1" {
-  name        = "example-application-1"
-  description = "Managed by Terraform"
-  network_id  = cloudconnexa_network.this.id
+resource "cloudconnexa_network" "development" {
+  name            = "development-network"
+  description     = "Development environment network"
+  egress          = false
+  internet_access = "SPLIT_TUNNEL_ON"
+}
+
+# 1. Web application with standard HTTP/HTTPS services
+resource "cloudconnexa_network_application" "web_app" {
+  name        = "production-web-app"
+  description = "Production web application"
+  network_id  = cloudconnexa_network.production.id
+
   routes {
-    domain            = "example-application-1.com"
+    domain            = "app.example.com"
     allow_embedded_ip = false
+  }
+  routes {
+    domain            = "www.example.com"
+    allow_embedded_ip = false
+  }
+
+  config {
+    service_types = ["HTTP", "HTTPS"]
+  }
+}
+
+# 2. API service with custom port configuration
+resource "cloudconnexa_network_application" "api_service" {
+  name        = "rest-api-service"
+  description = "RESTful API service"
+  network_id  = cloudconnexa_network.production.id
+
+  routes {
+    domain            = "api.example.com"
+    allow_embedded_ip = false
+  }
+  routes {
+    domain            = "api-v2.example.com"
+    allow_embedded_ip = false
+  }
+
+  config {
+    service_types = ["HTTPS"]
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 8080
+      to_port   = 8080
+    }
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 8443
+      to_port   = 8443
+    }
+  }
+}
+
+# 3. Database application with specific port access
+resource "cloudconnexa_network_application" "database_app" {
+  name        = "postgresql-database"
+  description = "PostgreSQL database application"
+  network_id  = cloudconnexa_network.production.id
+
+  routes {
+    domain            = "db.internal.example.com"
+    allow_embedded_ip = true
+  }
+
+  config {
+    service_types = []
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 5432
+      to_port   = 5432
+    }
+  }
+}
+
+# 4. Microservices application with multiple ports
+resource "cloudconnexa_network_application" "microservices_platform" {
+  name        = "microservices-platform"
+  description = "Microservices platform with multiple services"
+  network_id  = cloudconnexa_network.production.id
+
+  routes {
+    domain            = "services.example.com"
+    allow_embedded_ip = false
+  }
+  routes {
+    domain            = "*.microservices.example.com"
+    allow_embedded_ip = false
+  }
+
+  config {
+    service_types = ["HTTPS"]
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 8000
+      to_port   = 8010
+    }
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 9000
+      to_port   = 9005
+    }
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 3000
+      to_port   = 3000
+    }
+  }
+}
+
+# 5. Monitoring and observability application
+resource "cloudconnexa_network_application" "monitoring_stack" {
+  name        = "monitoring-observability"
+  description = "Monitoring and observability stack"
+  network_id  = cloudconnexa_network.production.id
+
+  routes {
+    domain            = "monitoring.internal.example.com"
+    allow_embedded_ip = false
+  }
+  routes {
+    domain            = "grafana.internal.example.com"
+    allow_embedded_ip = false
+  }
+  routes {
+    domain            = "prometheus.internal.example.com"
+    allow_embedded_ip = false
+  }
+
+  config {
+    service_types = ["HTTPS"]
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 3000 # Grafana
+      to_port   = 3000
+    }
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 9090 # Prometheus
+      to_port   = 9090
+    }
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 9093 # Alertmanager
+      to_port   = 9093
+    }
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 9100 # Node Exporter
+      to_port   = 9100
+    }
+  }
+}
+
+# 6. Game server application with UDP
+resource "cloudconnexa_network_application" "game_server" {
+  name        = "multiplayer-game-server"
+  description = "Multiplayer game server"
+  network_id  = cloudconnexa_network.production.id
+
+  routes {
+    domain            = "game.example.com"
+    allow_embedded_ip = true
+  }
+
+  config {
+    service_types = ["HTTPS"]
+    custom_service_types {
+      protocol  = "UDP"
+      from_port = 7777
+      to_port   = 7777
+    }
+    custom_service_types {
+      protocol  = "UDP"
+      from_port = 7778
+      to_port   = 7790
+    }
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 8080
+      to_port   = 8080
+    }
+  }
+}
+
+# 7. VPN and network services
+resource "cloudconnexa_network_application" "vpn_services" {
+  name        = "vpn-network-services"
+  description = "VPN and network management services"
+  network_id  = cloudconnexa_network.production.id
+
+  routes {
+    domain            = "vpn.internal.example.com"
+    allow_embedded_ip = true
+  }
+
+  config {
+    service_types = ["HTTPS"]
+    custom_service_types {
+      protocol  = "UDP"
+      from_port = 1194 # OpenVPN
+      to_port   = 1194
+    }
+    custom_service_types {
+      protocol  = "UDP"
+      from_port = 500 # IPSec
+      to_port   = 500
+    }
+    custom_service_types {
+      protocol  = "UDP"
+      from_port = 4500 # IPSec NAT-T
+      to_port   = 4500
+    }
+    custom_service_types {
+      protocol  = "ICMP"
+      from_port = 8
+      to_port   = 8
+    }
+  }
+}
+
+# 8. Staging environment applications
+resource "cloudconnexa_network_application" "staging_web_app" {
+  name        = "staging-web-application"
+  description = "Staging web application for testing"
+  network_id  = cloudconnexa_network.staging.id
+
+  routes {
+    domain            = "staging.example.com"
+    allow_embedded_ip = false
+  }
+  routes {
+    domain            = "test.staging.example.com"
+    allow_embedded_ip = false
+  }
+
+  config {
+    service_types = ["HTTP", "HTTPS"]
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 3000
+      to_port   = 3000
+    }
+  }
+}
+
+# 9. Development tools and CI/CD
+resource "cloudconnexa_network_application" "dev_tools" {
+  name        = "development-tools"
+  description = "Development tools and CI/CD services"
+  network_id  = cloudconnexa_network.development.id
+
+  routes {
+    domain            = "jenkins.dev.example.com"
+    allow_embedded_ip = false
+  }
+  routes {
+    domain            = "gitlab.dev.example.com"
+    allow_embedded_ip = false
+  }
+  routes {
+    domain            = "nexus.dev.example.com"
+    allow_embedded_ip = false
+  }
+
+  config {
+    service_types = ["HTTP", "HTTPS", "SSH"]
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 8081 # Nexus
+      to_port   = 8081
+    }
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 8082 # Additional dev tools
+      to_port   = 8090
+    }
+  }
+}
+
+# 10. Any service type application (legacy/comprehensive)
+resource "cloudconnexa_network_application" "legacy_system" {
+  name        = "legacy-comprehensive-system"
+  description = "Legacy system with any service type access"
+  network_id  = cloudconnexa_network.production.id
+
+  routes {
+    domain            = "legacy.internal.example.com"
+    allow_embedded_ip = true
+  }
+  routes {
+    domain            = "old-system.example.com"
+    allow_embedded_ip = true
   }
 
   config {
@@ -34,40 +331,243 @@ resource "cloudconnexa_network_application" "example1" {
   }
 }
 
-resource "cloudconnexa_network_application" "example2" {
-  name        = "example-application-2"
-  description = "Managed by Terraform"
-  network_id  = cloudconnexa_network.this.id
+# Multiple applications using for_each pattern
+variable "microservice_apps" {
+  description = "Microservice applications to deploy"
+  type = map(object({
+    description   = string
+    network_id    = string
+    domain        = string
+    service_types = list(string)
+    custom_ports = list(object({
+      protocol  = string
+      from_port = number
+      to_port   = number
+    }))
+  }))
+  default = {
+    "user-service" = {
+      description   = "User management microservice"
+      network_id    = "production"
+      domain        = "users.api.example.com"
+      service_types = ["HTTPS"]
+      custom_ports = [
+        {
+          protocol  = "TCP"
+          from_port = 8080
+          to_port   = 8080
+        }
+      ]
+    }
+    "auth-service" = {
+      description   = "Authentication microservice"
+      network_id    = "production"
+      domain        = "auth.api.example.com"
+      service_types = ["HTTPS"]
+      custom_ports = [
+        {
+          protocol  = "TCP"
+          from_port = 8081
+          to_port   = 8081
+        }
+      ]
+    }
+    "payment-service" = {
+      description   = "Payment processing microservice"
+      network_id    = "production"
+      domain        = "payments.api.example.com"
+      service_types = ["HTTPS"]
+      custom_ports = [
+        {
+          protocol  = "TCP"
+          from_port = 8082
+          to_port   = 8082
+        }
+      ]
+    }
+    "notification-service" = {
+      description   = "Notification microservice"
+      network_id    = "staging"
+      domain        = "notifications.staging.example.com"
+      service_types = ["HTTP", "HTTPS"]
+      custom_ports = [
+        {
+          protocol  = "TCP"
+          from_port = 8083
+          to_port   = 8083
+        }
+      ]
+    }
+  }
+}
+
+resource "cloudconnexa_network_application" "microservice_apps" {
+  for_each = var.microservice_apps
+
+  name        = each.key
+  description = each.value.description
+  network_id = each.value.network_id == "production" ? cloudconnexa_network.production.id : (
+    each.value.network_id == "staging" ? cloudconnexa_network.staging.id : cloudconnexa_network.development.id
+  )
+
   routes {
-    domain            = "example-application-2.com"
+    domain            = each.value.domain
     allow_embedded_ip = false
   }
 
   config {
-    service_types = ["HTTP", "HTTPS"]
-    custom_service_types {
-      protocol = "TCP" # all TCP ports
+    service_types = each.value.service_types
+
+    dynamic "custom_service_types" {
+      for_each = each.value.custom_ports
+      content {
+        protocol  = custom_service_types.value.protocol
+        from_port = custom_service_types.value.from_port
+        to_port   = custom_service_types.value.to_port
+      }
     }
-    custom_service_types {
-      protocol  = "UDP"
-      from_port = 1194
-      to_port   = 1194
+  }
+}
+
+# Environment-specific applications
+locals {
+  environments = {
+    production  = cloudconnexa_network.production.id
+    staging     = cloudconnexa_network.staging.id
+    development = cloudconnexa_network.development.id
+  }
+}
+
+variable "env_applications" {
+  description = "Environment-specific applications"
+  type = map(object({
+    environments  = list(string)
+    service_types = list(string)
+    base_port     = number
+  }))
+  default = {
+    "redis-cache" = {
+      environments  = ["production", "staging"]
+      service_types = []
+      base_port     = 6379
     }
-    custom_service_types {
-      protocol  = "UDP"
-      from_port = 5000
-      to_port   = 5010
+    "elasticsearch" = {
+      environments  = ["production", "staging", "development"]
+      service_types = ["HTTP", "HTTPS"]
+      base_port     = 9200
     }
-    custom_service_types {
-      protocol  = "ICMP"
-      from_port = 8
-      to_port   = 8
+    "rabbitmq" = {
+      environments  = ["production", "staging"]
+      service_types = ["HTTP", "HTTPS"]
+      base_port     = 5672
     }
+  }
+}
+
+resource "cloudconnexa_network_application" "env_applications" {
+  for_each = {
+    for combo in flatten([
+      for app_name, app_config in var.env_applications : [
+        for env in app_config.environments : {
+          key           = "${app_name}-${env}"
+          app_name      = app_name
+          environment   = env
+          service_types = app_config.service_types
+          base_port     = app_config.base_port
+        }
+      ]
+    ]) : combo.key => combo
+  }
+
+  name        = "${each.value.app_name}-${each.value.environment}"
+  description = "${title(each.value.app_name)} service for ${each.value.environment} environment"
+  network_id  = local.environments[each.value.environment]
+
+  routes {
+    domain            = "${each.value.app_name}.${each.value.environment}.example.com"
+    allow_embedded_ip = false
+  }
+
+  config {
+    service_types = each.value.service_types
+
     custom_service_types {
-      protocol  = "ICMP"
-      from_port = 20
-      to_port   = 22
+      protocol  = "TCP"
+      from_port = each.value.base_port
+      to_port   = each.value.base_port
     }
+  }
+}
+
+# Outputs
+output "production_applications" {
+  description = "Production network applications"
+  value = {
+    web_app                = cloudconnexa_network_application.web_app.id
+    api_service            = cloudconnexa_network_application.api_service.id
+    database_app           = cloudconnexa_network_application.database_app.id
+    microservices_platform = cloudconnexa_network_application.microservices_platform.id
+    monitoring_stack       = cloudconnexa_network_application.monitoring_stack.id
+    game_server            = cloudconnexa_network_application.game_server.id
+    vpn_services           = cloudconnexa_network_application.vpn_services.id
+    legacy_system          = cloudconnexa_network_application.legacy_system.id
+  }
+}
+
+output "staging_applications" {
+  description = "Staging network applications"
+  value = {
+    staging_web_app = cloudconnexa_network_application.staging_web_app.id
+  }
+}
+
+output "development_applications" {
+  description = "Development network applications"
+  value = {
+    dev_tools = cloudconnexa_network_application.dev_tools.id
+  }
+}
+
+output "microservice_applications" {
+  description = "Microservice applications created with for_each"
+  value       = { for k, v in cloudconnexa_network_application.microservice_apps : k => v.id }
+}
+
+output "environment_applications" {
+  description = "Environment-specific applications"
+  value       = { for k, v in cloudconnexa_network_application.env_applications : k => v.id }
+}
+
+output "network_info" {
+  description = "Network information for reference"
+  value = {
+    production  = cloudconnexa_network.production.id
+    staging     = cloudconnexa_network.staging.id
+    development = cloudconnexa_network.development.id
+  }
+}
+
+output "application_summary" {
+  description = "Summary of applications by type"
+  value = {
+    web_applications = [
+      cloudconnexa_network_application.web_app.id,
+      cloudconnexa_network_application.staging_web_app.id
+    ]
+    api_services = [
+      cloudconnexa_network_application.api_service.id,
+      cloudconnexa_network_application.microservices_platform.id
+    ]
+    database_services = [
+      cloudconnexa_network_application.database_app.id
+    ]
+    infrastructure_services = [
+      cloudconnexa_network_application.monitoring_stack.id,
+      cloudconnexa_network_application.vpn_services.id
+    ]
+    development_tools = [
+      cloudconnexa_network_application.dev_tools.id
+    ]
   }
 }
 ```

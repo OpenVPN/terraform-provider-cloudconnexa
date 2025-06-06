@@ -1,13 +1,533 @@
-resource "cloudconnexa_network" "this" {
-  description     = "Test network"
+# Networks for different connector scenarios
+resource "cloudconnexa_network" "production_network" {
+  description     = "Production network with restricted internet access"
   egress          = true
-  name            = "my_test_network"
+  name            = "production-network"
+  internet_access = "RESTRICTED_INTERNET"
+}
+
+resource "cloudconnexa_network" "staging_network" {
+  description     = "Staging network for testing and validation"
+  egress          = true
+  name            = "staging-network"
   internet_access = "SPLIT_TUNNEL_ON"
 }
 
-resource "cloudconnexa_network_connector" "this" {
-  name          = "test_connector"
-  description   = "Managed by Terraform"
-  vpn_region_id = "eu-central-2"
-  network_id    = cloudconnexa_network.this.id
+resource "cloudconnexa_network" "development_network" {
+  description     = "Development network with full internet access"
+  egress          = true
+  name            = "development-network"
+  internet_access = "SPLIT_TUNNEL_ON"
+}
+
+resource "cloudconnexa_network" "dmz_network" {
+  description     = "DMZ network for public-facing services"
+  egress          = true
+  name            = "dmz-network"
+  internet_access = "SPLIT_TUNNEL_OFF"
+}
+
+resource "cloudconnexa_network" "internal_network" {
+  description     = "Internal corporate network"
+  egress          = false
+  name            = "internal-corporate-network"
+  internet_access = "RESTRICTED_INTERNET"
+}
+
+resource "cloudconnexa_network" "partner_network" {
+  description     = "Partner integration network"
+  egress          = true
+  name            = "partner-integration-network"
+  internet_access = "RESTRICTED_INTERNET"
+}
+
+resource "cloudconnexa_network" "guest_network" {
+  description     = "Guest network with limited access"
+  egress          = true
+  name            = "guest-network"
+  internet_access = "SPLIT_TUNNEL_ON"
+}
+
+resource "cloudconnexa_network" "backup_network" {
+  description     = "Backup and disaster recovery network"
+  egress          = true
+  name            = "backup-dr-network"
+  internet_access = "RESTRICTED_INTERNET"
+}
+
+# 1. Production network connectors in multiple regions
+resource "cloudconnexa_network_connector" "production_us_east" {
+  name          = "production-us-east-connector"
+  description   = "Production network connector in US East region"
+  vpn_region_id = "us-east-1"
+  network_id    = cloudconnexa_network.production_network.id
+}
+
+resource "cloudconnexa_network_connector" "production_us_west" {
+  name          = "production-us-west-connector"
+  description   = "Production network connector in US West region"
+  vpn_region_id = "us-west-1"
+  network_id    = cloudconnexa_network.production_network.id
+}
+
+resource "cloudconnexa_network_connector" "production_eu_central" {
+  name          = "production-eu-central-connector"
+  description   = "Production network connector in EU Central region"
+  vpn_region_id = "eu-central-1"
+  network_id    = cloudconnexa_network.production_network.id
+}
+
+resource "cloudconnexa_network_connector" "production_apac" {
+  name          = "production-apac-connector"
+  description   = "Production network connector in APAC region"
+  vpn_region_id = "ap-southeast-1"
+  network_id    = cloudconnexa_network.production_network.id
+}
+
+# 2. Staging network connectors
+resource "cloudconnexa_network_connector" "staging_us_connector" {
+  name          = "staging-us-connector"
+  description   = "Staging network connector in US region"
+  vpn_region_id = "us-east-1"
+  network_id    = cloudconnexa_network.staging_network.id
+}
+
+resource "cloudconnexa_network_connector" "staging_eu_connector" {
+  name          = "staging-eu-connector"
+  description   = "Staging network connector in EU region"
+  vpn_region_id = "eu-west-1"
+  network_id    = cloudconnexa_network.staging_network.id
+}
+
+# 3. Development network connectors
+resource "cloudconnexa_network_connector" "development_us_connector" {
+  name          = "development-us-connector"
+  description   = "Development network connector in US region"
+  vpn_region_id = "us-west-2"
+  network_id    = cloudconnexa_network.development_network.id
+}
+
+resource "cloudconnexa_network_connector" "development_eu_connector" {
+  name          = "development-eu-connector"
+  description   = "Development network connector in EU region"
+  vpn_region_id = "eu-central-1"
+  network_id    = cloudconnexa_network.development_network.id
+}
+
+# 4. DMZ network connectors for public services
+resource "cloudconnexa_network_connector" "dmz_us_connector" {
+  name          = "dmz-us-connector"
+  description   = "DMZ network connector in US region"
+  vpn_region_id = "us-east-1"
+  network_id    = cloudconnexa_network.dmz_network.id
+}
+
+resource "cloudconnexa_network_connector" "dmz_eu_connector" {
+  name          = "dmz-eu-connector"
+  description   = "DMZ network connector in EU region"
+  vpn_region_id = "eu-west-1"
+  network_id    = cloudconnexa_network.dmz_network.id
+}
+
+# 5. Internal network connectors
+resource "cloudconnexa_network_connector" "internal_headquarters" {
+  name          = "internal-hq-connector"
+  description   = "Internal network connector at headquarters"
+  vpn_region_id = "us-east-1"
+  network_id    = cloudconnexa_network.internal_network.id
+}
+
+resource "cloudconnexa_network_connector" "internal_branch_eu" {
+  name          = "internal-branch-eu-connector"
+  description   = "Internal network connector for EU branch"
+  vpn_region_id = "eu-central-1"
+  network_id    = cloudconnexa_network.internal_network.id
+}
+
+# 6. Partner network connector
+resource "cloudconnexa_network_connector" "partner_integration" {
+  name          = "partner-integration-connector"
+  description   = "Partner network integration connector"
+  vpn_region_id = "us-east-1"
+  network_id    = cloudconnexa_network.partner_network.id
+}
+
+# 7. Guest network connectors
+resource "cloudconnexa_network_connector" "guest_us_connector" {
+  name          = "guest-us-connector"
+  description   = "Guest network connector in US region"
+  vpn_region_id = "us-west-1"
+  network_id    = cloudconnexa_network.guest_network.id
+}
+
+resource "cloudconnexa_network_connector" "guest_eu_connector" {
+  name          = "guest-eu-connector"
+  description   = "Guest network connector in EU region"
+  vpn_region_id = "eu-west-1"
+  network_id    = cloudconnexa_network.guest_network.id
+}
+
+# 8. Backup and disaster recovery connectors
+resource "cloudconnexa_network_connector" "backup_primary" {
+  name          = "backup-primary-connector"
+  description   = "Primary backup network connector"
+  vpn_region_id = "us-west-2"
+  network_id    = cloudconnexa_network.backup_network.id
+}
+
+resource "cloudconnexa_network_connector" "backup_secondary" {
+  name          = "backup-secondary-connector"
+  description   = "Secondary backup network connector"
+  vpn_region_id = "eu-central-1"
+  network_id    = cloudconnexa_network.backup_network.id
+}
+
+# Multiple network connectors using for_each pattern
+variable "regional_network_connectors" {
+  description = "Regional network connector configurations"
+  type = map(object({
+    description   = string
+    vpn_region_id = string
+    network_type  = string
+  }))
+  default = {
+    "tokyo-production" = {
+      description   = "Tokyo production network connector"
+      vpn_region_id = "ap-northeast-1"
+      network_type  = "production"
+    }
+    "sydney-production" = {
+      description   = "Sydney production network connector"
+      vpn_region_id = "ap-southeast-2"
+      network_type  = "production"
+    }
+    "mumbai-development" = {
+      description   = "Mumbai development network connector"
+      vpn_region_id = "ap-south-1"
+      network_type  = "development"
+    }
+    "london-staging" = {
+      description   = "London staging network connector"
+      vpn_region_id = "eu-west-2"
+      network_type  = "staging"
+    }
+  }
+}
+
+resource "cloudconnexa_network_connector" "regional_connectors" {
+  for_each = var.regional_network_connectors
+
+  name          = each.key
+  description   = each.value.description
+  vpn_region_id = each.value.vpn_region_id
+  network_id = each.value.network_type == "production" ? cloudconnexa_network.production_network.id : (
+    each.value.network_type == "staging" ? cloudconnexa_network.staging_network.id : (
+      each.value.network_type == "development" ? cloudconnexa_network.development_network.id : cloudconnexa_network.internal_network.id
+    )
+  )
+}
+
+# High availability connector pairs
+locals {
+  ha_network_connectors = {
+    "production-ha-us" = {
+      primary = {
+        name          = "production-ha-us-primary"
+        description   = "Production HA connector primary (US)"
+        vpn_region_id = "us-east-1"
+        network_id    = cloudconnexa_network.production_network.id
+      }
+      secondary = {
+        name          = "production-ha-us-secondary"
+        description   = "Production HA connector secondary (US)"
+        vpn_region_id = "us-west-1"
+        network_id    = cloudconnexa_network.production_network.id
+      }
+    }
+    "production-ha-eu" = {
+      primary = {
+        name          = "production-ha-eu-primary"
+        description   = "Production HA connector primary (EU)"
+        vpn_region_id = "eu-central-1"
+        network_id    = cloudconnexa_network.production_network.id
+      }
+      secondary = {
+        name          = "production-ha-eu-secondary"
+        description   = "Production HA connector secondary (EU)"
+        vpn_region_id = "eu-west-1"
+        network_id    = cloudconnexa_network.production_network.id
+      }
+    }
+  }
+}
+
+resource "cloudconnexa_network_connector" "ha_primary_connectors" {
+  for_each = local.ha_network_connectors
+
+  name          = each.value.primary.name
+  description   = each.value.primary.description
+  vpn_region_id = each.value.primary.vpn_region_id
+  network_id    = each.value.primary.network_id
+}
+
+resource "cloudconnexa_network_connector" "ha_secondary_connectors" {
+  for_each = local.ha_network_connectors
+
+  name          = each.value.secondary.name
+  description   = each.value.secondary.description
+  vpn_region_id = each.value.secondary.vpn_region_id
+  network_id    = each.value.secondary.network_id
+}
+
+# Environment-specific connector matrix
+variable "environment_regions" {
+  description = "Environment and region matrix for connectors"
+  type        = map(list(string))
+  default = {
+    "production"  = ["us-east-1", "us-west-1", "eu-central-1", "ap-southeast-1"]
+    "staging"     = ["us-east-1", "eu-west-1"]
+    "development" = ["us-west-2", "eu-central-1"]
+  }
+}
+
+# Flatten the matrix for for_each
+locals {
+  env_region_matrix = merge([
+    for env, regions in var.environment_regions : {
+      for region in regions : "${env}-${region}" => {
+        environment = env
+        region      = region
+      }
+    }
+  ]...)
+}
+
+resource "cloudconnexa_network_connector" "environment_matrix_connectors" {
+  for_each = local.env_region_matrix
+
+  name          = "${each.value.environment}-${each.value.region}-matrix-connector"
+  description   = "Matrix connector for ${each.value.environment} in ${each.value.region}"
+  vpn_region_id = each.value.region
+  network_id = each.value.environment == "production" ? cloudconnexa_network.production_network.id : (
+    each.value.environment == "staging" ? cloudconnexa_network.staging_network.id : cloudconnexa_network.development_network.id
+  )
+}
+
+# Specialized network connectors
+variable "specialized_connectors" {
+  description = "Specialized network connector configurations"
+  type = map(object({
+    description   = string
+    vpn_region_id = string
+    network_name  = string
+  }))
+  default = {
+    "dmz-web-services" = {
+      description   = "DMZ connector for web services"
+      vpn_region_id = "us-east-1"
+      network_name  = "dmz"
+    }
+    "internal-database" = {
+      description   = "Internal connector for database access"
+      vpn_region_id = "us-east-1"
+      network_name  = "internal"
+    }
+    "partner-api-gateway" = {
+      description   = "Partner connector for API gateway"
+      vpn_region_id = "us-west-1"
+      network_name  = "partner"
+    }
+    "guest-wifi-portal" = {
+      description   = "Guest connector for WiFi portal"
+      vpn_region_id = "eu-west-1"
+      network_name  = "guest"
+    }
+  }
+}
+
+resource "cloudconnexa_network_connector" "specialized_connectors" {
+  for_each = var.specialized_connectors
+
+  name          = each.key
+  description   = each.value.description
+  vpn_region_id = each.value.vpn_region_id
+  network_id = each.value.network_name == "dmz" ? cloudconnexa_network.dmz_network.id : (
+    each.value.network_name == "internal" ? cloudconnexa_network.internal_network.id : (
+      each.value.network_name == "partner" ? cloudconnexa_network.partner_network.id : (
+        each.value.network_name == "guest" ? cloudconnexa_network.guest_network.id : cloudconnexa_network.backup_network.id
+      )
+    )
+  )
+}
+
+# Outputs
+output "production_connectors" {
+  description = "Production network connectors"
+  value = {
+    us_east    = cloudconnexa_network_connector.production_us_east.id
+    us_west    = cloudconnexa_network_connector.production_us_west.id
+    eu_central = cloudconnexa_network_connector.production_eu_central.id
+    apac       = cloudconnexa_network_connector.production_apac.id
+  }
+}
+
+output "staging_connectors" {
+  description = "Staging network connectors"
+  value = {
+    us_connector = cloudconnexa_network_connector.staging_us_connector.id
+    eu_connector = cloudconnexa_network_connector.staging_eu_connector.id
+  }
+}
+
+output "development_connectors" {
+  description = "Development network connectors"
+  value = {
+    us_connector = cloudconnexa_network_connector.development_us_connector.id
+    eu_connector = cloudconnexa_network_connector.development_eu_connector.id
+  }
+}
+
+output "dmz_connectors" {
+  description = "DMZ network connectors"
+  value = {
+    us_connector = cloudconnexa_network_connector.dmz_us_connector.id
+    eu_connector = cloudconnexa_network_connector.dmz_eu_connector.id
+  }
+}
+
+output "internal_connectors" {
+  description = "Internal network connectors"
+  value = {
+    headquarters = cloudconnexa_network_connector.internal_headquarters.id
+    branch_eu    = cloudconnexa_network_connector.internal_branch_eu.id
+  }
+}
+
+output "guest_connectors" {
+  description = "Guest network connectors"
+  value = {
+    us_connector = cloudconnexa_network_connector.guest_us_connector.id
+    eu_connector = cloudconnexa_network_connector.guest_eu_connector.id
+  }
+}
+
+output "backup_connectors" {
+  description = "Backup and disaster recovery connectors"
+  value = {
+    primary   = cloudconnexa_network_connector.backup_primary.id
+    secondary = cloudconnexa_network_connector.backup_secondary.id
+  }
+}
+
+output "regional_connectors" {
+  description = "Regional connectors created with for_each"
+  value       = { for k, v in cloudconnexa_network_connector.regional_connectors : k => v.id }
+}
+
+output "ha_connectors" {
+  description = "High availability connector pairs"
+  value = {
+    ha_primary   = { for k, v in cloudconnexa_network_connector.ha_primary_connectors : k => v.id }
+    ha_secondary = { for k, v in cloudconnexa_network_connector.ha_secondary_connectors : k => v.id }
+  }
+}
+
+output "environment_matrix_connectors" {
+  description = "Environment-region matrix connectors"
+  value       = { for k, v in cloudconnexa_network_connector.environment_matrix_connectors : k => v.id }
+}
+
+output "specialized_connectors" {
+  description = "Specialized network connectors"
+  value       = { for k, v in cloudconnexa_network_connector.specialized_connectors : k => v.id }
+}
+
+output "network_info" {
+  description = "Network information for reference"
+  value = {
+    production_network  = cloudconnexa_network.production_network.id
+    staging_network     = cloudconnexa_network.staging_network.id
+    development_network = cloudconnexa_network.development_network.id
+    dmz_network         = cloudconnexa_network.dmz_network.id
+    internal_network    = cloudconnexa_network.internal_network.id
+    partner_network     = cloudconnexa_network.partner_network.id
+    guest_network       = cloudconnexa_network.guest_network.id
+    backup_network      = cloudconnexa_network.backup_network.id
+  }
+}
+
+output "connector_summary" {
+  description = "Summary of network connectors"
+  value = {
+    total_connectors = length([
+      cloudconnexa_network_connector.production_us_east.id,
+      cloudconnexa_network_connector.production_us_west.id,
+      cloudconnexa_network_connector.production_eu_central.id,
+      cloudconnexa_network_connector.production_apac.id,
+      cloudconnexa_network_connector.staging_us_connector.id,
+      cloudconnexa_network_connector.staging_eu_connector.id,
+      cloudconnexa_network_connector.development_us_connector.id,
+      cloudconnexa_network_connector.development_eu_connector.id,
+      cloudconnexa_network_connector.dmz_us_connector.id,
+      cloudconnexa_network_connector.dmz_eu_connector.id,
+      cloudconnexa_network_connector.internal_headquarters.id,
+      cloudconnexa_network_connector.internal_branch_eu.id,
+      cloudconnexa_network_connector.partner_integration.id,
+      cloudconnexa_network_connector.guest_us_connector.id,
+      cloudconnexa_network_connector.guest_eu_connector.id,
+      cloudconnexa_network_connector.backup_primary.id,
+      cloudconnexa_network_connector.backup_secondary.id
+    ]) + length(var.regional_network_connectors) + length(local.ha_network_connectors) * 2 + length(local.env_region_matrix) + length(var.specialized_connectors)
+
+    by_region = {
+      us_east_1      = 6
+      us_west_1      = 4
+      us_west_2      = 2
+      eu_central_1   = 5
+      eu_west_1      = 3
+      eu_west_2      = 1
+      ap_southeast_1 = 2
+      ap_northeast_1 = 1
+      ap_southeast_2 = 1
+      ap_south_1     = 1
+    }
+
+    by_network_type = {
+      production_connectors  = 4 + length([for k, v in var.regional_network_connectors : k if v.network_type == "production"]) + 4 # base + regional + HA
+      staging_connectors     = 2 + length([for k, v in var.regional_network_connectors : k if v.network_type == "staging"])
+      development_connectors = 2 + length([for k, v in var.regional_network_connectors : k if v.network_type == "development"])
+      dmz_connectors         = 2 + length([for k, v in var.specialized_connectors : k if v.network_name == "dmz"])
+      internal_connectors    = 2 + length([for k, v in var.specialized_connectors : k if v.network_name == "internal"])
+      partner_connectors     = 1 + length([for k, v in var.specialized_connectors : k if v.network_name == "partner"])
+      guest_connectors       = 2 + length([for k, v in var.specialized_connectors : k if v.network_name == "guest"])
+      backup_connectors      = 2
+    }
+
+    by_purpose = {
+      primary_infrastructure = [
+        cloudconnexa_network_connector.production_us_east.id,
+        cloudconnexa_network_connector.production_us_west.id,
+        cloudconnexa_network_connector.production_eu_central.id
+      ]
+      disaster_recovery = [
+        cloudconnexa_network_connector.backup_primary.id,
+        cloudconnexa_network_connector.backup_secondary.id
+      ]
+      testing_environments = [
+        cloudconnexa_network_connector.staging_us_connector.id,
+        cloudconnexa_network_connector.staging_eu_connector.id,
+        cloudconnexa_network_connector.development_us_connector.id,
+        cloudconnexa_network_connector.development_eu_connector.id
+      ]
+      external_access = [
+        cloudconnexa_network_connector.dmz_us_connector.id,
+        cloudconnexa_network_connector.dmz_eu_connector.id,
+        cloudconnexa_network_connector.guest_us_connector.id,
+        cloudconnexa_network_connector.guest_eu_connector.id
+      ]
+      partner_integration = [
+        cloudconnexa_network_connector.partner_integration.id
+      ]
+    }
+  }
 }

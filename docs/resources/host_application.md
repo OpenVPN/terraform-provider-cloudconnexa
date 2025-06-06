@@ -70,6 +70,683 @@ resource "cloudconnexa_host_application" "example2" {
     }
   }
 }
+
+# Hosts for different application types
+resource "cloudconnexa_host" "database_server" {
+  name            = "database-server"
+  description     = "Production database server"
+  internet_access = "RESTRICTED_INTERNET"
+  domain          = "db.production.example.com"
+}
+
+resource "cloudconnexa_host" "web_server" {
+  name            = "web-application-server"
+  description     = "Web application server"
+  internet_access = "SPLIT_TUNNEL_ON"
+  domain          = "web.example.com"
+}
+
+resource "cloudconnexa_host" "api_server" {
+  name            = "api-server"
+  description     = "REST API server"
+  internet_access = "SPLIT_TUNNEL_ON"
+  domain          = "api.example.com"
+}
+
+resource "cloudconnexa_host" "monitoring_server" {
+  name            = "monitoring-server"
+  description     = "Monitoring and observability server"
+  internet_access = "SPLIT_TUNNEL_ON"
+  domain          = "monitoring.internal.example.com"
+}
+
+resource "cloudconnexa_host" "bastion_host" {
+  name            = "bastion-host"
+  description     = "Secure bastion host for SSH access"
+  internet_access = "RESTRICTED_INTERNET"
+  domain          = "bastion.secure.example.com"
+}
+
+resource "cloudconnexa_host" "file_server" {
+  name            = "file-server"
+  description     = "File sharing and storage server"
+  internet_access = "SPLIT_TUNNEL_ON"
+  domain          = "files.internal.example.com"
+}
+
+# 1. Database applications with specific port access
+resource "cloudconnexa_host_application" "postgresql_app" {
+  name        = "postgresql-database"
+  description = "PostgreSQL database application"
+  host_id     = cloudconnexa_host.database_server.id
+
+  routes {
+    domain            = "postgres.db.example.com"
+    allow_embedded_ip = true
+  }
+
+  config {
+    service_types = []
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 5432
+      to_port   = 5432
+    }
+  }
+}
+
+resource "cloudconnexa_host_application" "mysql_app" {
+  name        = "mysql-database"
+  description = "MySQL database application"
+  host_id     = cloudconnexa_host.database_server.id
+
+  routes {
+    domain            = "mysql.db.example.com"
+    allow_embedded_ip = true
+  }
+
+  config {
+    service_types = []
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 3306
+      to_port   = 3306
+    }
+  }
+}
+
+resource "cloudconnexa_host_application" "redis_app" {
+  name        = "redis-cache"
+  description = "Redis cache application"
+  host_id     = cloudconnexa_host.database_server.id
+
+  routes {
+    domain            = "redis.cache.example.com"
+    allow_embedded_ip = true
+  }
+
+  config {
+    service_types = []
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 6379
+      to_port   = 6379
+    }
+  }
+}
+
+# 2. Web applications with HTTP/HTTPS access
+resource "cloudconnexa_host_application" "nginx_app" {
+  name        = "nginx-web-server"
+  description = "Nginx web server application"
+  host_id     = cloudconnexa_host.web_server.id
+
+  routes {
+    domain            = "www.example.com"
+    allow_embedded_ip = false
+  }
+  routes {
+    domain            = "example.com"
+    allow_embedded_ip = false
+  }
+
+  config {
+    service_types = ["HTTP", "HTTPS"]
+  }
+}
+
+resource "cloudconnexa_host_application" "apache_app" {
+  name        = "apache-web-server"
+  description = "Apache web server application"
+  host_id     = cloudconnexa_host.web_server.id
+
+  routes {
+    domain            = "apache.example.com"
+    allow_embedded_ip = false
+  }
+
+  config {
+    service_types = ["HTTP", "HTTPS"]
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 8080
+      to_port   = 8080
+    }
+  }
+}
+
+# 3. API applications with custom configurations
+resource "cloudconnexa_host_application" "rest_api" {
+  name        = "rest-api-service"
+  description = "RESTful API service"
+  host_id     = cloudconnexa_host.api_server.id
+
+  routes {
+    domain            = "api.v1.example.com"
+    allow_embedded_ip = false
+  }
+  routes {
+    domain            = "api.v2.example.com"
+    allow_embedded_ip = false
+  }
+
+  config {
+    service_types = ["HTTPS"]
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 8080
+      to_port   = 8080
+    }
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 8443
+      to_port   = 8443
+    }
+  }
+}
+
+resource "cloudconnexa_host_application" "graphql_api" {
+  name        = "graphql-api"
+  description = "GraphQL API service"
+  host_id     = cloudconnexa_host.api_server.id
+
+  routes {
+    domain            = "graphql.api.example.com"
+    allow_embedded_ip = false
+  }
+
+  config {
+    service_types = ["HTTPS"]
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 4000
+      to_port   = 4000
+    }
+  }
+}
+
+# 4. Monitoring and observability applications
+resource "cloudconnexa_host_application" "prometheus_app" {
+  name        = "prometheus-monitoring"
+  description = "Prometheus monitoring service"
+  host_id     = cloudconnexa_host.monitoring_server.id
+
+  routes {
+    domain            = "prometheus.monitoring.example.com"
+    allow_embedded_ip = false
+  }
+
+  config {
+    service_types = ["HTTPS"]
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 9090
+      to_port   = 9090
+    }
+  }
+}
+
+resource "cloudconnexa_host_application" "grafana_app" {
+  name        = "grafana-dashboard"
+  description = "Grafana dashboard service"
+  host_id     = cloudconnexa_host.monitoring_server.id
+
+  routes {
+    domain            = "grafana.monitoring.example.com"
+    allow_embedded_ip = false
+  }
+
+  config {
+    service_types = ["HTTPS"]
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 3000
+      to_port   = 3000
+    }
+  }
+}
+
+resource "cloudconnexa_host_application" "elk_stack" {
+  name        = "elasticsearch-logstash-kibana"
+  description = "ELK stack for logging and analytics"
+  host_id     = cloudconnexa_host.monitoring_server.id
+
+  routes {
+    domain            = "elk.monitoring.example.com"
+    allow_embedded_ip = false
+  }
+
+  config {
+    service_types = ["HTTPS"]
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 9200 # Elasticsearch
+      to_port   = 9200
+    }
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 5601 # Kibana
+      to_port   = 5601
+    }
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 5044 # Logstash
+      to_port   = 5044
+    }
+  }
+}
+
+# 5. Secure access applications
+resource "cloudconnexa_host_application" "ssh_access" {
+  name        = "ssh-management"
+  description = "SSH access for server management"
+  host_id     = cloudconnexa_host.bastion_host.id
+
+  routes {
+    domain            = "ssh.bastion.example.com"
+    allow_embedded_ip = true
+  }
+
+  config {
+    service_types = ["SSH"]
+  }
+}
+
+resource "cloudconnexa_host_application" "sftp_service" {
+  name        = "sftp-file-transfer"
+  description = "SFTP service for secure file transfer"
+  host_id     = cloudconnexa_host.bastion_host.id
+
+  routes {
+    domain            = "sftp.secure.example.com"
+    allow_embedded_ip = true
+  }
+
+  config {
+    service_types = []
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 22
+      to_port   = 22
+    }
+  }
+}
+
+# 6. File and storage applications
+resource "cloudconnexa_host_application" "samba_share" {
+  name        = "samba-file-share"
+  description = "Samba file sharing service"
+  host_id     = cloudconnexa_host.file_server.id
+
+  routes {
+    domain            = "files.samba.example.com"
+    allow_embedded_ip = true
+  }
+
+  config {
+    service_types = []
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 445 # SMB
+      to_port   = 445
+    }
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 139 # NetBIOS
+      to_port   = 139
+    }
+  }
+}
+
+resource "cloudconnexa_host_application" "nfs_share" {
+  name        = "nfs-file-share"
+  description = "NFS file sharing service"
+  host_id     = cloudconnexa_host.file_server.id
+
+  routes {
+    domain            = "nfs.files.example.com"
+    allow_embedded_ip = true
+  }
+
+  config {
+    service_types = []
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 2049 # NFS
+      to_port   = 2049
+    }
+    custom_service_types {
+      protocol  = "UDP"
+      from_port = 2049 # NFS UDP
+      to_port   = 2049
+    }
+  }
+}
+
+# 7. Comprehensive service application (legacy support)
+resource "cloudconnexa_host_application" "legacy_comprehensive" {
+  name        = "legacy-any-service"
+  description = "Legacy application with comprehensive service access"
+  host_id     = cloudconnexa_host.web_server.id
+
+  routes {
+    domain            = "legacy.internal.example.com"
+    allow_embedded_ip = true
+  }
+
+  config {
+    service_types = ["ANY"]
+  }
+}
+
+# 8. Custom protocol applications
+resource "cloudconnexa_host_application" "vpn_service" {
+  name        = "openvpn-service"
+  description = "OpenVPN service"
+  host_id     = cloudconnexa_host.bastion_host.id
+
+  routes {
+    domain            = "vpn.service.example.com"
+    allow_embedded_ip = true
+  }
+
+  config {
+    service_types = []
+    custom_service_types {
+      protocol  = "UDP"
+      from_port = 1194
+      to_port   = 1194
+    }
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 443 # TCP mode
+      to_port   = 443
+    }
+  }
+}
+
+resource "cloudconnexa_host_application" "dns_service" {
+  name        = "dns-server"
+  description = "DNS server service"
+  host_id     = cloudconnexa_host.bastion_host.id
+
+  routes {
+    domain            = "dns.internal.example.com"
+    allow_embedded_ip = true
+  }
+
+  config {
+    service_types = []
+    custom_service_types {
+      protocol  = "UDP"
+      from_port = 53
+      to_port   = 53
+    }
+    custom_service_types {
+      protocol  = "TCP"
+      from_port = 53
+      to_port   = 53
+    }
+  }
+}
+
+# Multiple applications using for_each pattern
+variable "microservice_host_apps" {
+  description = "Microservice applications to deploy on hosts"
+  type = map(object({
+    description   = string
+    host_id       = string
+    domain        = string
+    service_types = list(string)
+    custom_ports = list(object({
+      protocol  = string
+      from_port = number
+      to_port   = number
+    }))
+    allow_embedded_ip = bool
+  }))
+  default = {
+    "user-auth-service" = {
+      description       = "User authentication microservice"
+      host_id           = "api_server"
+      domain            = "auth.microservices.example.com"
+      service_types     = ["HTTPS"]
+      allow_embedded_ip = false
+      custom_ports = [
+        {
+          protocol  = "TCP"
+          from_port = 8081
+          to_port   = 8081
+        }
+      ]
+    }
+    "order-processing" = {
+      description       = "Order processing microservice"
+      host_id           = "api_server"
+      domain            = "orders.microservices.example.com"
+      service_types     = ["HTTPS"]
+      allow_embedded_ip = false
+      custom_ports = [
+        {
+          protocol  = "TCP"
+          from_port = 8082
+          to_port   = 8082
+        }
+      ]
+    }
+    "inventory-service" = {
+      description       = "Inventory management microservice"
+      host_id           = "api_server"
+      domain            = "inventory.microservices.example.com"
+      service_types     = ["HTTPS"]
+      allow_embedded_ip = false
+      custom_ports = [
+        {
+          protocol  = "TCP"
+          from_port = 8083
+          to_port   = 8083
+        }
+      ]
+    }
+  }
+}
+
+resource "cloudconnexa_host_application" "microservice_host_apps" {
+  for_each = var.microservice_host_apps
+
+  name        = each.key
+  description = each.value.description
+  host_id = each.value.host_id == "api_server" ? cloudconnexa_host.api_server.id : (
+    each.value.host_id == "database_server" ? cloudconnexa_host.database_server.id : cloudconnexa_host.web_server.id
+  )
+
+  routes {
+    domain            = each.value.domain
+    allow_embedded_ip = each.value.allow_embedded_ip
+  }
+
+  config {
+    service_types = each.value.service_types
+
+    dynamic "custom_service_types" {
+      for_each = each.value.custom_ports
+      content {
+        protocol  = custom_service_types.value.protocol
+        from_port = custom_service_types.value.from_port
+        to_port   = custom_service_types.value.to_port
+      }
+    }
+  }
+}
+
+# Protocol-specific applications
+locals {
+  protocol_services = {
+    "mail-smtp" = {
+      description = "SMTP mail server"
+      host_id     = "web_server"
+      domain      = "mail.example.com"
+      ports = [
+        { protocol = "TCP", from_port = 25, to_port = 25 },
+        { protocol = "TCP", from_port = 587, to_port = 587 },
+        { protocol = "TCP", from_port = 465, to_port = 465 }
+      ]
+    }
+    "mail-imap" = {
+      description = "IMAP mail server"
+      host_id     = "web_server"
+      domain      = "imap.example.com"
+      ports = [
+        { protocol = "TCP", from_port = 143, to_port = 143 },
+        { protocol = "TCP", from_port = 993, to_port = 993 }
+      ]
+    }
+    "ldap-service" = {
+      description = "LDAP directory service"
+      host_id     = "database_server"
+      domain      = "ldap.internal.example.com"
+      ports = [
+        { protocol = "TCP", from_port = 389, to_port = 389 },
+        { protocol = "TCP", from_port = 636, to_port = 636 }
+      ]
+    }
+  }
+}
+
+resource "cloudconnexa_host_application" "protocol_services" {
+  for_each = local.protocol_services
+
+  name        = each.key
+  description = each.value.description
+  host_id = each.value.host_id == "api_server" ? cloudconnexa_host.api_server.id : (
+    each.value.host_id == "database_server" ? cloudconnexa_host.database_server.id : cloudconnexa_host.web_server.id
+  )
+
+  routes {
+    domain            = each.value.domain
+    allow_embedded_ip = true
+  }
+
+  config {
+    service_types = []
+
+    dynamic "custom_service_types" {
+      for_each = each.value.ports
+      content {
+        protocol  = custom_service_types.value.protocol
+        from_port = custom_service_types.value.from_port
+        to_port   = custom_service_types.value.to_port
+      }
+    }
+  }
+}
+
+# Outputs
+output "database_applications" {
+  description = "Database host applications"
+  value = {
+    postgresql = cloudconnexa_host_application.postgresql_app.id
+    mysql      = cloudconnexa_host_application.mysql_app.id
+    redis      = cloudconnexa_host_application.redis_app.id
+  }
+}
+
+output "web_applications" {
+  description = "Web server host applications"
+  value = {
+    nginx  = cloudconnexa_host_application.nginx_app.id
+    apache = cloudconnexa_host_application.apache_app.id
+  }
+}
+
+output "api_applications" {
+  description = "API host applications"
+  value = {
+    rest_api    = cloudconnexa_host_application.rest_api.id
+    graphql_api = cloudconnexa_host_application.graphql_api.id
+  }
+}
+
+output "monitoring_applications" {
+  description = "Monitoring host applications"
+  value = {
+    prometheus = cloudconnexa_host_application.prometheus_app.id
+    grafana    = cloudconnexa_host_application.grafana_app.id
+    elk_stack  = cloudconnexa_host_application.elk_stack.id
+  }
+}
+
+output "security_applications" {
+  description = "Security and access host applications"
+  value = {
+    ssh_access   = cloudconnexa_host_application.ssh_access.id
+    sftp_service = cloudconnexa_host_application.sftp_service.id
+    vpn_service  = cloudconnexa_host_application.vpn_service.id
+  }
+}
+
+output "file_storage_applications" {
+  description = "File and storage host applications"
+  value = {
+    samba_share = cloudconnexa_host_application.samba_share.id
+    nfs_share   = cloudconnexa_host_application.nfs_share.id
+  }
+}
+
+output "microservice_applications" {
+  description = "Microservice host applications created with for_each"
+  value       = { for k, v in cloudconnexa_host_application.microservice_host_apps : k => v.id }
+}
+
+output "protocol_service_applications" {
+  description = "Protocol-specific service applications"
+  value       = { for k, v in cloudconnexa_host_application.protocol_services : k => v.id }
+}
+
+output "host_info" {
+  description = "Host information for reference"
+  value = {
+    database_server   = cloudconnexa_host.database_server.id
+    web_server        = cloudconnexa_host.web_server.id
+    api_server        = cloudconnexa_host.api_server.id
+    monitoring_server = cloudconnexa_host.monitoring_server.id
+    bastion_host      = cloudconnexa_host.bastion_host.id
+    file_server       = cloudconnexa_host.file_server.id
+  }
+}
+
+output "application_summary" {
+  description = "Summary of applications by category"
+  value = {
+    database_apps = [
+      cloudconnexa_host_application.postgresql_app.id,
+      cloudconnexa_host_application.mysql_app.id,
+      cloudconnexa_host_application.redis_app.id
+    ]
+    web_apps = [
+      cloudconnexa_host_application.nginx_app.id,
+      cloudconnexa_host_application.apache_app.id
+    ]
+    api_apps = [
+      cloudconnexa_host_application.rest_api.id,
+      cloudconnexa_host_application.graphql_api.id
+    ]
+    monitoring_apps = [
+      cloudconnexa_host_application.prometheus_app.id,
+      cloudconnexa_host_application.grafana_app.id,
+      cloudconnexa_host_application.elk_stack.id
+    ]
+    security_apps = [
+      cloudconnexa_host_application.ssh_access.id,
+      cloudconnexa_host_application.sftp_service.id,
+      cloudconnexa_host_application.vpn_service.id
+    ]
+    file_storage_apps = [
+      cloudconnexa_host_application.samba_share.id,
+      cloudconnexa_host_application.nfs_share.id
+    ]
+  }
+}
 ```
 
 <!-- schema generated by tfplugindocs -->

@@ -13,23 +13,447 @@ Use `cloudconnexa_user_group` to create an CloudConnexa user group.
 ## Example Usage
 
 ```terraform
-resource "cloudconnexa_user_group" "ug01" {
-  name                 = "ug01"
+# 1. Executive group with maximum flexibility
+resource "cloudconnexa_user_group" "executives" {
+  name                 = "executives"
+  description          = "Executive team with global access and maximum device allowance"
   all_regions_included = true
   connect_auth         = "ON_PRIOR_AUTH"
-  internet_access      = "SPLIT_TUNNEL_ON"
-  max_device           = "3"
+  internet_access      = "SPLIT_TUNNEL_OFF"
+  max_device           = "10"
 }
 
-resource "cloudconnexa_user_group" "ug02" {
-  name = "ug02"
+# 2. High-security administrative group
+resource "cloudconnexa_user_group" "security_admins" {
+  name                 = "security-administrators"
+  description          = "Security administrators with strict authentication requirements"
+  all_regions_included = true
+  connect_auth         = "EVERY_TIME"
+  internet_access      = "RESTRICTED_INTERNET"
+  max_device           = "2"
+}
+
+# 3. Development team with specific regions
+resource "cloudconnexa_user_group" "developers_us" {
+  name        = "developers-us"
+  description = "US-based development team"
+  vpn_region_ids = [
+    "us-east-1",
+    "us-west-1",
+    "us-west-2"
+  ]
+  connect_auth    = "ON_PRIOR_AUTH"
+  internet_access = "SPLIT_TUNNEL_ON"
+  max_device      = "5"
+}
+
+# 4. European development team
+resource "cloudconnexa_user_group" "developers_eu" {
+  name        = "developers-eu"
+  description = "European development team"
   vpn_region_ids = [
     "eu-central-1",
-    "eu-central-2"
+    "eu-central-2",
+    "eu-west-1",
+    "eu-north-1"
+  ]
+  connect_auth    = "ON_PRIOR_AUTH"
+  internet_access = "SPLIT_TUNNEL_ON"
+  max_device      = "5"
+}
+
+# 5. Asia-Pacific development team
+resource "cloudconnexa_user_group" "developers_apac" {
+  name        = "developers-apac"
+  description = "Asia-Pacific development team"
+  vpn_region_ids = [
+    "ap-south-1",
+    "ap-southeast-1",
+    "ap-southeast-2",
+    "ap-northeast-1"
+  ]
+  connect_auth    = "ON_PRIOR_AUTH"
+  internet_access = "SPLIT_TUNNEL_ON"
+  max_device      = "4"
+}
+
+# 6. QA and testing team
+resource "cloudconnexa_user_group" "qa_testers" {
+  name                 = "qa-testers"
+  description          = "Quality assurance and testing team"
+  all_regions_included = false
+  vpn_region_ids = [
+    "us-east-1",
+    "eu-central-1",
+    "ap-southeast-1"
   ]
   connect_auth    = "ON_PRIOR_AUTH"
   internet_access = "SPLIT_TUNNEL_ON"
   max_device      = "3"
+}
+
+# 7. Customer support team
+resource "cloudconnexa_user_group" "customer_support" {
+  name        = "customer-support"
+  description = "Customer support representatives"
+  vpn_region_ids = [
+    "us-east-1",
+    "us-west-1",
+    "eu-central-1",
+    "eu-west-1"
+  ]
+  connect_auth    = "ON_PRIOR_AUTH"
+  internet_access = "RESTRICTED_INTERNET"
+  max_device      = "2"
+}
+
+# 8. External contractors with limited access
+resource "cloudconnexa_user_group" "contractors" {
+  name        = "external-contractors"
+  description = "External contractors with limited regional access"
+  vpn_region_ids = [
+    "us-east-1",
+    "eu-central-1"
+  ]
+  connect_auth    = "EVERY_TIME"
+  internet_access = "RESTRICTED_INTERNET"
+  max_device      = "1"
+}
+
+# 9. DevOps engineers with global access
+resource "cloudconnexa_user_group" "devops_engineers" {
+  name                 = "devops-engineers"
+  description          = "DevOps engineers with global infrastructure access"
+  all_regions_included = true
+  connect_auth         = "ON_PRIOR_AUTH"
+  internet_access      = "SPLIT_TUNNEL_OFF"
+  max_device           = "6"
+}
+
+# 10. Temporary project team
+resource "cloudconnexa_user_group" "project_alpha" {
+  name        = "project-alpha-team"
+  description = "Temporary project team with specific regional access"
+  vpn_region_ids = [
+    "us-west-1",
+    "eu-central-1"
+  ]
+  connect_auth    = "ON_PRIOR_AUTH"
+  internet_access = "SPLIT_TUNNEL_ON"
+  max_device      = "3"
+}
+
+# 11. Sales team with mobile-friendly access
+resource "cloudconnexa_user_group" "sales_team" {
+  name        = "sales-team"
+  description = "Sales team with mobile device support"
+  vpn_region_ids = [
+    "us-east-1",
+    "us-west-1",
+    "eu-central-1",
+    "eu-west-1",
+    "ap-southeast-1"
+  ]
+  connect_auth    = "ON_PRIOR_AUTH"
+  internet_access = "SPLIT_TUNNEL_ON"
+  max_device      = "4"
+}
+
+# 12. Finance team with restricted access
+resource "cloudconnexa_user_group" "finance_team" {
+  name        = "finance-team"
+  description = "Finance team with strict security requirements"
+  vpn_region_ids = [
+    "us-east-1",
+    "eu-central-1"
+  ]
+  connect_auth    = "EVERY_TIME"
+  internet_access = "RESTRICTED_INTERNET"
+  max_device      = "2"
+}
+
+# 13. Marketing team with content access
+resource "cloudconnexa_user_group" "marketing_team" {
+  name                 = "marketing-team"
+  description          = "Marketing team with content creation access"
+  all_regions_included = false
+  vpn_region_ids = [
+    "us-east-1",
+    "us-west-1",
+    "eu-central-1"
+  ]
+  connect_auth    = "ON_PRIOR_AUTH"
+  internet_access = "SPLIT_TUNNEL_ON"
+  max_device      = "3"
+}
+
+# Multiple user groups using for_each pattern
+variable "department_groups" {
+  description = "Department-based user groups"
+  type = map(object({
+    description          = string
+    all_regions_included = bool
+    vpn_region_ids       = list(string)
+    connect_auth         = string
+    internet_access      = string
+    max_device           = string
+  }))
+  default = {
+    "hr-team" = {
+      description          = "Human Resources team"
+      all_regions_included = false
+      vpn_region_ids       = ["us-east-1", "eu-central-1"]
+      connect_auth         = "ON_PRIOR_AUTH"
+      internet_access      = "RESTRICTED_INTERNET"
+      max_device           = "2"
+    }
+    "legal-team" = {
+      description          = "Legal department"
+      all_regions_included = false
+      vpn_region_ids       = ["us-east-1", "eu-central-1"]
+      connect_auth         = "EVERY_TIME"
+      internet_access      = "RESTRICTED_INTERNET"
+      max_device           = "2"
+    }
+    "operations-team" = {
+      description          = "Operations team"
+      all_regions_included = true
+      vpn_region_ids       = []
+      connect_auth         = "ON_PRIOR_AUTH"
+      internet_access      = "SPLIT_TUNNEL_ON"
+      max_device           = "4"
+    }
+    "product-managers" = {
+      description          = "Product management team"
+      all_regions_included = false
+      vpn_region_ids       = ["us-east-1", "us-west-1", "eu-central-1", "ap-southeast-1"]
+      connect_auth         = "ON_PRIOR_AUTH"
+      internet_access      = "SPLIT_TUNNEL_ON"
+      max_device           = "4"
+    }
+  }
+}
+
+resource "cloudconnexa_user_group" "department_groups" {
+  for_each = var.department_groups
+
+  name                 = each.key
+  description          = each.value.description
+  all_regions_included = each.value.all_regions_included
+  vpn_region_ids       = each.value.all_regions_included ? null : each.value.vpn_region_ids
+  connect_auth         = each.value.connect_auth
+  internet_access      = each.value.internet_access
+  max_device           = each.value.max_device
+}
+
+# Regional user groups based on office locations
+locals {
+  office_locations = {
+    "new-york" = {
+      description = "New York office employees"
+      regions     = ["us-east-1"]
+      max_devices = "3"
+    }
+    "san-francisco" = {
+      description = "San Francisco office employees"
+      regions     = ["us-west-1"]
+      max_devices = "3"
+    }
+    "london" = {
+      description = "London office employees"
+      regions     = ["eu-west-1", "eu-central-1"]
+      max_devices = "3"
+    }
+    "frankfurt" = {
+      description = "Frankfurt office employees"
+      regions     = ["eu-central-1", "eu-central-2"]
+      max_devices = "3"
+    }
+    "singapore" = {
+      description = "Singapore office employees"
+      regions     = ["ap-southeast-1"]
+      max_devices = "3"
+    }
+    "tokyo" = {
+      description = "Tokyo office employees"
+      regions     = ["ap-northeast-1"]
+      max_devices = "3"
+    }
+  }
+}
+
+resource "cloudconnexa_user_group" "office_locations" {
+  for_each = local.office_locations
+
+  name            = "${each.key}-office"
+  description     = each.value.description
+  vpn_region_ids  = each.value.regions
+  connect_auth    = "ON_PRIOR_AUTH"
+  internet_access = "SPLIT_TUNNEL_ON"
+  max_device      = each.value.max_devices
+}
+
+# Security level based groups
+variable "security_levels" {
+  description = "Security level based user groups"
+  type = map(object({
+    description     = string
+    connect_auth    = string
+    internet_access = string
+    max_device      = string
+    regions         = list(string)
+  }))
+  default = {
+    "security-level-1" = {
+      description     = "Lowest security clearance"
+      connect_auth    = "ON_PRIOR_AUTH"
+      internet_access = "SPLIT_TUNNEL_ON"
+      max_device      = "2"
+      regions         = ["us-east-1"]
+    }
+    "security-level-2" = {
+      description     = "Medium security clearance"
+      connect_auth    = "ON_PRIOR_AUTH"
+      internet_access = "RESTRICTED_INTERNET"
+      max_device      = "3"
+      regions         = ["us-east-1", "eu-central-1"]
+    }
+    "security-level-3" = {
+      description     = "High security clearance"
+      connect_auth    = "EVERY_TIME"
+      internet_access = "RESTRICTED_INTERNET"
+      max_device      = "2"
+      regions         = ["us-east-1", "eu-central-1", "ap-southeast-1"]
+    }
+    "security-level-4" = {
+      description     = "Maximum security clearance"
+      connect_auth    = "EVERY_TIME"
+      internet_access = "RESTRICTED_INTERNET"
+      max_device      = "1"
+      regions         = [] # Will use all_regions_included = true
+    }
+  }
+}
+
+resource "cloudconnexa_user_group" "security_levels" {
+  for_each = var.security_levels
+
+  name                 = each.key
+  description          = each.value.description
+  all_regions_included = length(each.value.regions) == 0
+  vpn_region_ids       = length(each.value.regions) == 0 ? null : each.value.regions
+  connect_auth         = each.value.connect_auth
+  internet_access      = each.value.internet_access
+  max_device           = each.value.max_device
+}
+
+# Outputs
+output "management_groups" {
+  description = "Management and executive user groups"
+  value = {
+    executives       = cloudconnexa_user_group.executives.id
+    security_admins  = cloudconnexa_user_group.security_admins.id
+    devops_engineers = cloudconnexa_user_group.devops_engineers.id
+  }
+}
+
+output "development_groups" {
+  description = "Development team user groups"
+  value = {
+    developers_us   = cloudconnexa_user_group.developers_us.id
+    developers_eu   = cloudconnexa_user_group.developers_eu.id
+    developers_apac = cloudconnexa_user_group.developers_apac.id
+    qa_testers      = cloudconnexa_user_group.qa_testers.id
+  }
+}
+
+output "business_groups" {
+  description = "Business function user groups"
+  value = {
+    customer_support = cloudconnexa_user_group.customer_support.id
+    sales_team       = cloudconnexa_user_group.sales_team.id
+    finance_team     = cloudconnexa_user_group.finance_team.id
+    marketing_team   = cloudconnexa_user_group.marketing_team.id
+  }
+}
+
+output "external_groups" {
+  description = "External user groups"
+  value = {
+    contractors   = cloudconnexa_user_group.contractors.id
+    project_alpha = cloudconnexa_user_group.project_alpha.id
+  }
+}
+
+output "department_groups" {
+  description = "Department-based user groups created with for_each"
+  value       = { for k, v in cloudconnexa_user_group.department_groups : k => v.id }
+}
+
+output "office_location_groups" {
+  description = "Office location based user groups"
+  value       = { for k, v in cloudconnexa_user_group.office_locations : k => v.id }
+}
+
+output "security_level_groups" {
+  description = "Security level based user groups"
+  value       = { for k, v in cloudconnexa_user_group.security_levels : k => v.id }
+}
+
+output "group_summary" {
+  description = "Summary of user groups by category"
+  value = {
+    total_groups = length([
+      cloudconnexa_user_group.executives.id,
+      cloudconnexa_user_group.security_admins.id,
+      cloudconnexa_user_group.developers_us.id,
+      cloudconnexa_user_group.developers_eu.id,
+      cloudconnexa_user_group.developers_apac.id,
+      cloudconnexa_user_group.qa_testers.id,
+      cloudconnexa_user_group.customer_support.id,
+      cloudconnexa_user_group.contractors.id,
+      cloudconnexa_user_group.devops_engineers.id,
+      cloudconnexa_user_group.project_alpha.id,
+      cloudconnexa_user_group.sales_team.id,
+      cloudconnexa_user_group.finance_team.id,
+      cloudconnexa_user_group.marketing_team.id
+    ]) + length(var.department_groups) + length(local.office_locations) + length(var.security_levels)
+
+    global_access_groups = [
+      cloudconnexa_user_group.executives.id,
+      cloudconnexa_user_group.security_admins.id,
+      cloudconnexa_user_group.devops_engineers.id
+    ]
+
+    high_security_groups = [
+      cloudconnexa_user_group.security_admins.id,
+      cloudconnexa_user_group.contractors.id,
+      cloudconnexa_user_group.finance_team.id
+    ]
+
+    development_focused_groups = [
+      cloudconnexa_user_group.developers_us.id,
+      cloudconnexa_user_group.developers_eu.id,
+      cloudconnexa_user_group.developers_apac.id,
+      cloudconnexa_user_group.qa_testers.id,
+      cloudconnexa_user_group.devops_engineers.id
+    ]
+  }
+}
+
+output "regional_coverage" {
+  description = "Regional coverage analysis"
+  value = {
+    us_regions = [
+      "us-east-1", "us-west-1", "us-west-2"
+    ]
+    eu_regions = [
+      "eu-central-1", "eu-central-2", "eu-west-1", "eu-north-1"
+    ]
+    apac_regions = [
+      "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ap-northeast-1"
+    ]
+  }
 }
 ```
 
