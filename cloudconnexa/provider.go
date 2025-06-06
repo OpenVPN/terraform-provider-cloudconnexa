@@ -3,7 +3,6 @@ package cloudconnexa
 import (
 	"context"
 	"fmt"
-
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -49,9 +48,15 @@ func Provider() *schema.Provider {
 				DefaultFunc: schema.EnvDefaultFunc(ClientSecretEnvVar, nil),
 			},
 			"base_url": {
-				Description: "The target CloudConnexa Base API URL in the format `https://[companyName].api.openvpn.com`",
+				Description:  "The target CloudConnexa Base API URL in the format `https://[companyName].api.openvpn.com`",
+				Type:         schema.TypeString,
+				Optional:     true,
+				ExactlyOneOf: []string{"base_url", "cloud_id"},
+			},
+			"cloud_id": {
+				Description: "Cloud ID",
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
@@ -107,6 +112,10 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	clientId := d.Get("client_id").(string)
 	clientSecret := d.Get("client_secret").(string)
 	baseUrl := d.Get("base_url").(string)
+	if baseUrl == "" {
+		cloudId := d.Get("cloud_id").(string)
+		baseUrl = "https://" + cloudId + ".api.openvpn.com"
+	}
 	cloudConnexaClient, err := cloudconnexa.NewClient(baseUrl, clientId, clientSecret)
 	cloudConnexaClient.UserAgent = fmt.Sprintf("terraform-provider-cloudconnexa/%v", version)
 	var diags diag.Diagnostics
