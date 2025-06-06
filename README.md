@@ -28,7 +28,7 @@ The Terraform provider for [CloudConnexa](https://openvpn.net/cloud-vpn/?utm_sou
 This provider plugin is maintained by:
 
 - OpenVPN team at [CloudConnexa](https://openvpn.net/cloud-vpn/?utm_source=terraform&utm_medium=docs)
-- SRE Team at [ANNA Money](https://anna.money/?utm_source=terraform&utm_medium=referral&utm_campaign=docs) / [GitHub ANNA Money](http://github.com/anna-money/)
+- [@arslanbekov](https://github.com/arslanbekov) Head of SRE at [ANNA Money](https://anna.money/?utm_source=terraform&utm_medium=referral&utm_campaign=docs) / [GitHub ANNA Money](http://github.com/anna-money/)
 - [@patoarvizu](https://github.com/patoarvizu)
 
 ## Requirements
