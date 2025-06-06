@@ -52,6 +52,7 @@ func resourceNetworkApplication() *schema.Resource {
 			"network_id": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 		},
 	}
