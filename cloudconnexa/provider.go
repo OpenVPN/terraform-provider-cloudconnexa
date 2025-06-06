@@ -3,6 +3,7 @@ package cloudconnexa
 import (
 	"context"
 	"fmt"
+
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -117,15 +118,15 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		baseUrl = "https://" + cloudId + ".api.openvpn.com"
 	}
 	cloudConnexaClient, err := cloudconnexa.NewClient(baseUrl, clientId, clientSecret)
-	cloudConnexaClient.UserAgent = fmt.Sprintf("terraform-provider-cloudconnexa/%v", version)
 	var diags diag.Diagnostics
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  "Unable to create client",
-			Detail:   fmt.Sprintf("Error: %v", err),
+			Summary:  "Unable to create CloudConnexa client",
+			Detail:   fmt.Sprintf("Failed to create CloudConnexa client with base URL '%s': %v", baseUrl, err),
 		})
 		return nil, diags
 	}
+	cloudConnexaClient.UserAgent = fmt.Sprintf("terraform-provider-cloudconnexa/%v", version)
 	return cloudConnexaClient, nil
 }
