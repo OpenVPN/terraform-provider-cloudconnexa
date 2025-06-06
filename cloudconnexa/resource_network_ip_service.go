@@ -199,18 +199,6 @@ func flattenNetworkIpServiceCustomServiceTypes(types []*cloudconnexa.CustomIPSer
 	return cst
 }
 
-// flattenNetworkIpServiceRoutes flattens network IP service routes for Terraform state
-func flattenNetworkIpServiceRoutes(routes []*cloudconnexa.Route) []string {
-	var data []string
-	for _, route := range routes {
-		data = append(
-			data,
-			route.Subnet,
-		)
-	}
-	return data
-}
-
 // resourceNetworkIpServiceCreate creates a new network IP service
 func resourceNetworkIpServiceCreate(ctx context.Context, data *schema.ResourceData, m interface{}) diag.Diagnostics {
 	client := m.(*cloudconnexa.Client)

@@ -188,18 +188,6 @@ func flattenCustomHostServiceTypes(types []*cloudconnexa.CustomIPServiceType) in
 	return cst
 }
 
-// flattenHostIpServiceRoutes flattens host IP service routes into a slice of strings
-func flattenHostIpServiceRoutes(routes []*cloudconnexa.Route) []string {
-	var data []string
-	for _, route := range routes {
-		data = append(
-			data,
-			route.Subnet,
-		)
-	}
-	return data
-}
-
 // resourceHostIpServiceCreate creates a new host IP service
 func resourceHostIpServiceCreate(ctx context.Context, data *schema.ResourceData, m interface{}) diag.Diagnostics {
 	client := m.(*cloudconnexa.Client)
