@@ -52,6 +52,7 @@ func resourceHostApplication() *schema.Resource {
 			"host_id": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 		},
 	}
