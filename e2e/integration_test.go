@@ -13,15 +13,20 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// CloudConnexaHostKey is the environment variable key for the CloudConnexa host URL
 const (
 	CloudConnexaHostKey = "OVPN_HOST"
 )
 
+// TestCreationDeletion tests the creation and deletion of CloudConnexa resources.
+// It verifies that a connector can be created and becomes online within the expected timeframe.
+//
+// Parameters:
+//   - t: The testing context
 func TestCreationDeletion(t *testing.T) {
 	validateEnvVars(t)
 
 	terraformOptions := &terraform.Options{
-
 		NoColor: os.Getenv("NO_COLOR") == "1",
 
 		// The path to where our Terraform code is located
@@ -71,12 +76,23 @@ func TestCreationDeletion(t *testing.T) {
 	assert.True(t, connectorWasOnline)
 }
 
+// validateEnvVars checks that all required environment variables are set.
+// It validates the CloudConnexa host, client ID, and client secret environment variables.
+//
+// Parameters:
+//   - t: The testing context
 func validateEnvVars(t *testing.T) {
 	validateEnvVar(t, CloudConnexaHostKey)
 	validateEnvVar(t, cloudconnexa.ClientIDEnvVar)
 	validateEnvVar(t, cloudconnexa.ClientSecretEnvVar)
 }
 
+// validateEnvVar checks if a specific environment variable is set.
+// It fails the test if the environment variable is empty.
+//
+// Parameters:
+//   - t: The testing context
+//   - envVar: The name of the environment variable to validate
 func validateEnvVar(t *testing.T, envVar string) {
 	fmt.Println(os.Getenv(envVar))
 	require.NotEmptyf(t, os.Getenv(envVar), "%s must be set for acceptance tests", envVar)

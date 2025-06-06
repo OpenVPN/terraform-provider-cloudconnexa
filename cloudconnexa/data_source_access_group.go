@@ -2,11 +2,14 @@ package cloudconnexa
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 )
 
+// dataSourceAccessGroup returns a Terraform data source resource for CloudConnexa access groups.
+// This resource allows users to read existing access group configurations.
 func dataSourceAccessGroup() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceAccessGroupRead,
@@ -39,6 +42,17 @@ func dataSourceAccessGroup() *schema.Resource {
 	}
 }
 
+// dataSourceAccessGroupRead handles the read operation for the access group data source.
+// It retrieves the access group configuration from CloudConnexa using the provided ID
+// and updates the Terraform state with the retrieved data.
+//
+// Parameters:
+//   - ctx: The context for the operation
+//   - data: The Terraform resource data
+//   - i: The interface containing the CloudConnexa client
+//
+// Returns:
+//   - diag.Diagnostics: Diagnostics containing any errors that occurred during the operation
 func dataSourceAccessGroupRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics

@@ -10,6 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
+// TestAccCloudConnexaConnector_basic tests the basic creation and configuration of a CloudConnexa connector.
+// It verifies that all required attributes are set correctly after creation.
+//
+// Parameters:
+//   - t: The testing context
 func TestAccCloudConnexaConnector_basic(t *testing.T) {
 	rName := acctest.RandomWithPrefix("test-connector")
 	resourceName := "cloudconnexa_connector.test"
@@ -35,6 +40,13 @@ func TestAccCloudConnexaConnector_basic(t *testing.T) {
 	})
 }
 
+// testAccCheckCloudConnexaConnectorExists verifies that a CloudConnexa connector exists in the Terraform state.
+//
+// Parameters:
+//   - n: The name of the resource to check
+//
+// Returns:
+//   - resource.TestCheckFunc: A function that performs the existence check
 func testAccCheckCloudConnexaConnectorExists(n string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -48,6 +60,14 @@ func testAccCheckCloudConnexaConnectorExists(n string) resource.TestCheckFunc {
 	}
 }
 
+// testAccCheckCloudConnexaConnectorDestroy verifies that a CloudConnexa connector has been properly destroyed.
+// It checks that the connector no longer exists in the CloudConnexa API.
+//
+// Parameters:
+//   - s: The Terraform state to check
+//
+// Returns:
+//   - error: An error if the connector still exists or if there was an error checking its existence
 func testAccCheckCloudConnexaConnectorDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*cloudconnexa.Client)
 
@@ -71,6 +91,13 @@ func testAccCheckCloudConnexaConnectorDestroy(s *terraform.State) error {
 	return nil
 }
 
+// testAccCloudConnexaConnectorConfigBasic generates a basic Terraform configuration for a CloudConnexa connector.
+//
+// Parameters:
+//   - rName: The name to use for the connector resource
+//
+// Returns:
+//   - string: The Terraform configuration as a string
 func testAccCloudConnexaConnectorConfigBasic(rName string) string {
 	return fmt.Sprintf(`
 provider "cloudconnexa" {

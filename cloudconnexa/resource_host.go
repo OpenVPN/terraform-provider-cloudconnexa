@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
+// resourceHost returns a Terraform resource schema for managing CloudConnexa hosts
 func resourceHost() *schema.Resource {
 	return &schema.Resource{
 		Description:   "Use `cloudconnexa_host` to create an CloudConnexa host.",
@@ -58,6 +59,7 @@ func resourceHost() *schema.Resource {
 	}
 }
 
+// resourceHostCreate creates a new CloudConnexa host
 func resourceHostCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -76,6 +78,7 @@ func resourceHostCreate(ctx context.Context, d *schema.ResourceData, m interface
 	return diags
 }
 
+// resourceHostRead retrieves information about an existing CloudConnexa host
 func resourceHostRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -96,6 +99,7 @@ func resourceHostRead(ctx context.Context, d *schema.ResourceData, m interface{}
 	return diags
 }
 
+// resourceHostUpdate updates an existing CloudConnexa host
 func resourceHostUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -116,6 +120,7 @@ func resourceHostUpdate(ctx context.Context, d *schema.ResourceData, m interface
 	return append(diags, resourceHostRead(ctx, d, m)...)
 }
 
+// resourceHostDelete removes an existing CloudConnexa host
 func resourceHostDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics

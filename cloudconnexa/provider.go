@@ -10,19 +10,25 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-const (
-	ClientIDEnvVar     = "CLOUDCONNEXA_CLIENT_ID"
-	ClientSecretEnvVar = "CLOUDCONNEXA_CLIENT_SECRET"
-)
+// ClientIDEnvVar is the environment variable name for the CloudConnexa client ID
+const ClientIDEnvVar = "CLOUDCONNEXA_CLIENT_ID"
 
-var (
-	version = "v1.1.0"
-)
+// ClientSecretEnvVar is the environment variable name for the CloudConnexa client secret
+const ClientSecretEnvVar = "CLOUDCONNEXA_CLIENT_SECRET"
 
+// version represents the current version of the Terraform provider
+var version = "v1.1.0"
+
+// Token represents the authentication token structure returned by the CloudConnexa API
 type Token struct {
 	AccessToken string `json:"access_token"`
 }
 
+// Provider returns a Terraform provider for CloudConnexa.
+// It configures the provider schema, available resources, and data sources.
+//
+// Returns:
+//   - *schema.Provider: A configured Terraform provider instance
 func Provider() *schema.Provider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
@@ -87,6 +93,16 @@ func Provider() *schema.Provider {
 	}
 }
 
+// providerConfigure configures the CloudConnexa client with the provided credentials and base URL.
+// It sets up the client with proper authentication and user agent information.
+//
+// Parameters:
+//   - ctx: The context for the operation
+//   - d: The Terraform resource data containing provider configuration
+//
+// Returns:
+//   - interface{}: The configured CloudConnexa client
+//   - diag.Diagnostics: Diagnostics containing any errors that occurred during configuration
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	clientId := d.Get("client_id").(string)
 	clientSecret := d.Get("client_secret").(string)

@@ -12,6 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
+// TestAccCloudConnexaUser_basic tests the basic functionality of creating and updating a user resource.
+// It verifies that the user is created with the correct username, email, first name, and last name, and can be updated.
+//
+// Parameters:
+//   - t: The testing context
 func TestAccCloudConnexaUser_basic(t *testing.T) {
 	rn := "cloudconnexa_user.test"
 	user := cloudconnexa.User{
@@ -57,6 +62,14 @@ func TestAccCloudConnexaUser_basic(t *testing.T) {
 	})
 }
 
+// testAccCheckCloudConnexaUserDestroy verifies that the user has been properly destroyed.
+// It checks that the user no longer exists in the CloudConnexa API.
+//
+// Parameters:
+//   - s: The Terraform state containing information about the destroyed resources
+//
+// Returns:
+//   - error: An error if the user still exists or if there was an error checking its existence
 func testAccCheckCloudConnexaUserDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*cloudconnexa.Client)
 	for _, rs := range s.RootModule().Resources {
@@ -74,6 +87,15 @@ func testAccCheckCloudConnexaUserDestroy(s *terraform.State) error {
 	return nil
 }
 
+// testAccCheckCloudConnexaUserExists verifies that a user exists in the CloudConnexa API.
+// It checks that the resource exists and has a valid ID.
+//
+// Parameters:
+//   - n: The resource name to check
+//   - teamID: A pointer to store the team ID if needed
+//
+// Returns:
+//   - resource.TestCheckFunc: A function that performs the existence check
 func testAccCheckCloudConnexaUserExists(n string, teamID *string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -94,6 +116,14 @@ func testAccCheckCloudConnexaUserExists(n string, teamID *string) resource.TestC
 	}
 }
 
+// testAccCloudConnexaUserImportStateIdFunc generates a function to retrieve the import state ID.
+// It returns the primary ID of the resource for import operations.
+//
+// Parameters:
+//   - n: The resource name to get the import state ID for
+//
+// Returns:
+//   - resource.ImportStateIdFunc: A function that returns the import state ID
 func testAccCloudConnexaUserImportStateIdFunc(n string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[n]
@@ -104,6 +134,14 @@ func testAccCloudConnexaUserImportStateIdFunc(n string) resource.ImportStateIdFu
 	}
 }
 
+// testAccCloudConnexaUserConfig generates a Terraform configuration for a user resource.
+// It creates a configuration string with the specified user properties and associated user group.
+//
+// Parameters:
+//   - user: The user configuration to use
+//
+// Returns:
+//   - string: A Terraform configuration string for the user
 func testAccCloudConnexaUserConfig(user cloudconnexa.User) string {
 	return fmt.Sprintf(`
 provider "cloudconnexa" {

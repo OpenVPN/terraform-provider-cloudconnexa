@@ -9,6 +9,7 @@ import (
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 )
 
+// resourceUser returns a Terraform resource schema for managing CloudConnexa users
 func resourceUser() *schema.Resource {
 	return &schema.Resource{
 		Description:   "Use `cloudconnexa_user` to create an CloudConnexa user.",
@@ -94,6 +95,7 @@ func resourceUser() *schema.Resource {
 	}
 }
 
+// resourceUserCreate creates a new CloudConnexa user
 func resourceUserCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -135,6 +137,7 @@ func resourceUserCreate(ctx context.Context, d *schema.ResourceData, m interface
 	return diags
 }
 
+// resourceUserRead retrieves information about an existing CloudConnexa user
 func resourceUserRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -158,6 +161,7 @@ func resourceUserRead(ctx context.Context, d *schema.ResourceData, m interface{}
 	return diags
 }
 
+// resourceUserUpdate updates an existing CloudConnexa user's information
 func resourceUserUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -194,6 +198,7 @@ func resourceUserUpdate(ctx context.Context, d *schema.ResourceData, m interface
 	return diags
 }
 
+// resourceUserDelete removes an existing CloudConnexa user
 func resourceUserDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics

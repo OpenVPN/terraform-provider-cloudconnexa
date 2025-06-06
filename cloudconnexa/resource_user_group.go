@@ -9,6 +9,11 @@ import (
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 )
 
+// resourceUserGroup returns a Terraform resource for managing CloudConnexa user groups.
+// It defines the schema and CRUD operations for user group resources.
+//
+// Returns:
+//   - *schema.Resource: A configured Terraform resource for user groups
 func resourceUserGroup() *schema.Resource {
 	return &schema.Resource{
 		Description:   "Use `cloudconnexa_user_group` to create an CloudConnexa user group.",
@@ -77,6 +82,16 @@ func resourceUserGroup() *schema.Resource {
 	}
 }
 
+// resourceUserGroupUpdate updates an existing CloudConnexa user group.
+// It handles the update operation and updates the Terraform state accordingly.
+//
+// Parameters:
+//   - ctx: The context for the operation
+//   - data: The Terraform resource data
+//   - i: The interface containing the CloudConnexa client
+//
+// Returns:
+//   - diag.Diagnostics: Diagnostics containing any errors that occurred
 func resourceUserGroupUpdate(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -96,6 +111,14 @@ func resourceUserGroupUpdate(ctx context.Context, data *schema.ResourceData, i i
 	return diags
 }
 
+// resourceDataToUserGroup converts Terraform resource data to a CloudConnexa UserGroup.
+// It extracts all relevant fields from the Terraform state and creates a UserGroup object.
+//
+// Parameters:
+//   - data: The Terraform resource data
+//
+// Returns:
+//   - *cloudconnexa.UserGroup: A configured UserGroup object
 func resourceDataToUserGroup(data *schema.ResourceData) *cloudconnexa.UserGroup {
 	name := data.Get("name").(string)
 	connectAuth := data.Get("connect_auth").(string)
@@ -125,6 +148,12 @@ func resourceDataToUserGroup(data *schema.ResourceData) *cloudconnexa.UserGroup 
 	return ug
 }
 
+// updateUserGroupData updates the Terraform resource data with values from a CloudConnexa UserGroup.
+// It sets all relevant fields in the Terraform state based on the provided UserGroup.
+//
+// Parameters:
+//   - data: The Terraform resource data to update
+//   - userGroup: The CloudConnexa UserGroup containing the values to set
 func updateUserGroupData(data *schema.ResourceData, userGroup *cloudconnexa.UserGroup) {
 	data.SetId(userGroup.ID)
 	_ = data.Set("connect_auth", userGroup.ConnectAuth)
@@ -138,6 +167,16 @@ func updateUserGroupData(data *schema.ResourceData, userGroup *cloudconnexa.User
 	_ = data.Set("all_regions_included", userGroup.AllRegionsIncluded)
 }
 
+// resourceUserGroupDelete deletes a CloudConnexa user group.
+// It handles the deletion operation and updates the Terraform state accordingly.
+//
+// Parameters:
+//   - ctx: The context for the operation
+//   - data: The Terraform resource data
+//   - i: The interface containing the CloudConnexa client
+//
+// Returns:
+//   - diag.Diagnostics: Diagnostics containing any errors that occurred
 func resourceUserGroupDelete(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -149,6 +188,16 @@ func resourceUserGroupDelete(ctx context.Context, data *schema.ResourceData, i i
 	return diags
 }
 
+// resourceUserGroupRead reads a CloudConnexa user group.
+// It retrieves the current state of the user group and updates the Terraform state accordingly.
+//
+// Parameters:
+//   - ctx: The context for the operation
+//   - data: The Terraform resource data
+//   - i: The interface containing the CloudConnexa client
+//
+// Returns:
+//   - diag.Diagnostics: Diagnostics containing any errors that occurred
 func resourceUserGroupRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -165,6 +214,16 @@ func resourceUserGroupRead(ctx context.Context, data *schema.ResourceData, i int
 	return diags
 }
 
+// resourceUserGroupCreate creates a new CloudConnexa user group.
+// It handles the creation operation and updates the Terraform state accordingly.
+//
+// Parameters:
+//   - ctx: The context for the operation
+//   - d: The Terraform resource data
+//   - m: The interface containing the CloudConnexa client
+//
+// Returns:
+//   - diag.Diagnostics: Diagnostics containing any errors that occurred
 func resourceUserGroupCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
