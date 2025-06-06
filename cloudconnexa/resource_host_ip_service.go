@@ -140,7 +140,8 @@ func setHostIpServiceResourceData(data *schema.ResourceData, service *cloudconne
 	data.SetId(service.ID)
 	_ = data.Set("name", service.Name)
 	_ = data.Set("description", service.Description)
-	_ = data.Set("routes", flattenHostIpServiceRoutes(service.Routes))
+	// Note: Routes field removed in API v1.1.0 - routes are now managed separately
+	_ = data.Set("routes", []string{})
 	_ = data.Set("config", flattenHostServiceConfig(service.Config))
 	_ = data.Set("host_id", service.NetworkItemID)
 }

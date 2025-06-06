@@ -151,7 +151,8 @@ func setNetworkIpServiceResourceData(data *schema.ResourceData, service *cloudco
 	_ = data.Set("name", service.Name)
 	_ = data.Set("description", service.Description)
 	_ = data.Set("type", service.Type)
-	_ = data.Set("routes", flattenNetworkIpServiceRoutes(service.Routes))
+	// Note: Routes field removed in API v1.1.0 - routes are now managed separately
+	_ = data.Set("routes", []string{})
 	_ = data.Set("config", flattenNetworkIpServiceConfig(service.Config))
 	_ = data.Set("network_id", service.NetworkItemID)
 }

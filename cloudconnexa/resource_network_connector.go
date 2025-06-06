@@ -67,6 +67,17 @@ func resourceNetworkConnector() *schema.Resource {
 				Sensitive:   true,
 				Description: "Connector token.",
 			},
+			"ipsec_enabled": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Enable IPsec tunnel for this connector.",
+			},
+			"ipsec_status": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Current IPsec tunnel status.",
+			},
 		},
 	}
 }
@@ -85,6 +96,23 @@ func resourceNetworkConnectorUpdate(ctx context.Context, d *schema.ResourceData,
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
+
+	// Handle IPsec configuration changes
+	if d.HasChange("ipsec_enabled") {
+		ipsecEnabled := d.Get("ipsec_enabled").(bool)
+		if ipsecEnabled {
+			_, err := c.NetworkConnectors.StartIPsec(d.Id())
+			if err != nil {
+				return append(diags, diag.FromErr(err)...)
+			}
+		} else {
+			_, err := c.NetworkConnectors.StopIPsec(d.Id())
+			if err != nil {
+				return append(diags, diag.FromErr(err)...)
+			}
+		}
+	}
+
 	return diags
 }
 
@@ -118,6 +146,15 @@ func resourceNetworkConnectorCreate(ctx context.Context, d *schema.ResourceData,
 		return append(diags, diag.FromErr(err)...)
 	}
 	d.Set("token", token)
+
+	// Handle IPsec configuration if enabled
+	if d.Get("ipsec_enabled").(bool) {
+		_, err := c.NetworkConnectors.StartIPsec(conn.ID)
+		if err != nil {
+			return append(diags, diag.FromErr(err)...)
+		}
+	}
+
 	return append(diags, diag.Diagnostic{
 		Severity: diag.Warning,
 		Summary:  "Connector needs to be set up manually",
