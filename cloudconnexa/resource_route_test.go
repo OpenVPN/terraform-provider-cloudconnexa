@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestAccCloudConnexaRoute_basic tests the basic functionality of the CloudConnexa route resource
 func TestAccCloudConnexaRoute_basic(t *testing.T) {
 	rn := "cloudconnexa_route.test"
 	ip, err := acctest.RandIpAddress("10.0.0.0/8")
@@ -27,6 +28,7 @@ func TestAccCloudConnexaRoute_basic(t *testing.T) {
 	networkRandString := "test" + acctest.RandString(10)
 	var routeId string
 
+	// check is a helper function that verifies the route resource state
 	check := func(r cloudconnexa.Route) resource.TestCheckFunc {
 		return resource.ComposeTestCheckFunc(
 			testAccCheckCloudConnexaRouteExists(rn, &routeId),
@@ -59,6 +61,7 @@ func TestAccCloudConnexaRoute_basic(t *testing.T) {
 	})
 }
 
+// testAccCheckCloudConnexaRouteDestroy verifies that the route has been destroyed
 func testAccCheckCloudConnexaRouteDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*cloudconnexa.Client)
 	for _, rs := range s.RootModule().Resources {
@@ -77,6 +80,7 @@ func testAccCheckCloudConnexaRouteDestroy(s *terraform.State) error {
 	return nil
 }
 
+// testAccCheckCloudConnexaRouteExists verifies that the route exists in the state
 func testAccCheckCloudConnexaRouteExists(n string, routeID *string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -97,6 +101,7 @@ func testAccCheckCloudConnexaRouteExists(n string, routeID *string) resource.Tes
 	}
 }
 
+// testAccCloudConnexaRouteImportStateIdFunc returns the import state ID function for the route resource
 func testAccCloudConnexaRouteImportStateIdFunc(n string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[n]
@@ -107,6 +112,7 @@ func testAccCloudConnexaRouteImportStateIdFunc(n string) resource.ImportStateIdF
 	}
 }
 
+// testAccCloudConnexaRouteConfig generates the Terraform configuration for testing the route resource
 func testAccCloudConnexaRouteConfig(r cloudconnexa.Route, networkRandStr string) string {
 	return fmt.Sprintf(`
 provider "cloudconnexa" {

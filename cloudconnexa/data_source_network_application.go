@@ -9,6 +9,8 @@ import (
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 )
 
+// dataSourceNetworkApplication returns a Terraform data source resource for network applications.
+// This resource allows users to read information about a specific network application by its ID.
 func dataSourceNetworkApplication() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceNetworkApplicationRead,
@@ -45,6 +47,15 @@ func dataSourceNetworkApplication() *schema.Resource {
 	}
 }
 
+// dataSourceNetworkApplicationRead handles the read operation for the network application data source.
+// It retrieves application details using the provided ID and sets the data in the Terraform state.
+// Parameters:
+//   - ctx: Context for the operation
+//   - data: The Terraform resource data
+//   - i: The interface containing the CloudConnexa client
+//
+// Returns:
+//   - diag.Diagnostics: Diagnostics containing any errors or warnings
 func dataSourceNetworkApplicationRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics

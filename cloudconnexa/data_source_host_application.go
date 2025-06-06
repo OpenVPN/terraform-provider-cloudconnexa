@@ -9,6 +9,8 @@ import (
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 )
 
+// dataSourceHostApplication returns a Terraform data source resource for CloudConnexa host applications.
+// This resource allows users to read existing host application configurations.
 func dataSourceHostApplication() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceHostApplicationRead,
@@ -45,6 +47,17 @@ func dataSourceHostApplication() *schema.Resource {
 	}
 }
 
+// dataSourceHostApplicationRead handles the read operation for the host application data source.
+// It retrieves the host application configuration from CloudConnexa using the provided ID
+// and updates the Terraform state with the retrieved data.
+//
+// Parameters:
+//   - ctx: The context for the operation
+//   - data: The Terraform resource data
+//   - i: The interface containing the CloudConnexa client
+//
+// Returns:
+//   - diag.Diagnostics: Diagnostics containing any errors that occurred during the operation
 func dataSourceHostApplicationRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics

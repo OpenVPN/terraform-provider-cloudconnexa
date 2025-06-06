@@ -9,6 +9,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+// dataSourceNetworkRoutes returns a Terraform data source resource for CloudConnexa network routes.
+// This resource allows users to read all routes associated with a specific CloudConnexa network.
+//
+// Returns:
+//   - *schema.Resource: A Terraform resource definition for network routes
 func dataSourceNetworkRoutes() *schema.Resource {
 	return &schema.Resource{
 		Description: "Use an `cloudconnexa_network_routes` data source to read all the routes associated with an CloudConnexa network.",
@@ -52,6 +57,17 @@ func dataSourceNetworkRoutes() *schema.Resource {
 	}
 }
 
+// dataSourceNetworkRoutesRead handles the read operation for the network routes data source.
+// It retrieves all routes associated with a specific network ID from CloudConnexa
+// and updates the Terraform state with the retrieved data.
+//
+// Parameters:
+//   - ctx: The context for the operation
+//   - d: The Terraform resource data
+//   - m: The interface containing the CloudConnexa client
+//
+// Returns:
+//   - diag.Diagnostics: Diagnostics containing any errors that occurred during the operation
 func dataSourceNetworkRoutesRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
