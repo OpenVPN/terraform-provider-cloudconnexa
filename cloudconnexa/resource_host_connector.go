@@ -59,11 +59,13 @@ func resourceHostConnector() *schema.Resource {
 			"profile": {
 				Type:        schema.TypeString,
 				Computed:    true,
+				Sensitive:   true,
 				Description: "OpenVPN profile of the connector.",
 			},
 			"token": {
 				Type:        schema.TypeString,
 				Computed:    true,
+				Sensitive:   true,
 				Description: "Connector token.",
 			},
 		},
