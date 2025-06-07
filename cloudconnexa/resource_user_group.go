@@ -34,7 +34,7 @@ func resourceUserGroup() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Default:      "AUTO",
-				ValidateFunc: validation.StringInSlice([]string{"NO_AUTH", "ON_PRIOR_AUTH", "EVERY_TIME", "SAML"}, false),
+				ValidateFunc: validation.StringInSlice([]string{"NO_AUTH", "ON_PRIOR_AUTH", "EVERY_TIME"}, false),
 			},
 			"internet_access": {
 				Type:         schema.TypeString,
