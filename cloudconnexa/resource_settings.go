@@ -51,7 +51,7 @@ func resourceSettings() *schema.Resource {
 			"connect_auth": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice([]string{"NO_AUTH", "ON_PRIOR_AUTH", "EVERY_TIME", "SAML"}, false),
+				ValidateFunc: validation.StringInSlice([]string{"NO_AUTH", "ON_PRIOR_AUTH", "EVERY_TIME"}, false),
 			},
 			"device_allowance_per_user": {
 				Type:     schema.TypeInt,
