@@ -72,13 +72,13 @@ func dataSourceNetworkRoutesRead(ctx context.Context, d *schema.ResourceData, m 
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
 
-	networkId := d.Get("id").(string)
-	if networkId == "" {
+	id := d.Get("id").(string)
+	if id == "" {
 		return append(diags, diag.Errorf("ID cannot be empty")...)
 	}
-	network, err := c.Networks.Get(networkId)
+	network, err := c.Networks.Get(id)
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		return append(diags, diag.Errorf("Failed to get network with ID: %s, %s", id, err)...)
 	}
 
 	configRoutes := make([]map[string]interface{}, len(network.Routes))
@@ -94,7 +94,7 @@ func dataSourceNetworkRoutesRead(ctx context.Context, d *schema.ResourceData, m 
 	if err := d.Set("routes", configRoutes); err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	d.SetId(networkId)
+	d.SetId(id)
 
 	return diags
 }

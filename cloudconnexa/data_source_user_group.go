@@ -2,8 +2,6 @@ package cloudconnexa
 
 import (
 	"context"
-	"strings"
-
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -89,11 +87,7 @@ func dataSourceUserGroupRead(ctx context.Context, d *schema.ResourceData, m inte
 	id := d.Get("id").(string)
 	userGroup, err = c.UserGroups.Get(id)
 	if err != nil {
-		if strings.Contains(err.Error(), "user group not found") {
-			return append(diags, diag.Errorf("User group with id %s was not found", id)...)
-		} else {
-			return append(diags, diag.FromErr(err)...)
-		}
+		return diag.Errorf("Failed to get user group with ID: %s, %s", id, err)
 	}
 	if userGroup == nil {
 		return append(diags, diag.Errorf("User group with id %s was not found", id)...)

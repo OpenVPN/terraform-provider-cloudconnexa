@@ -82,9 +82,10 @@ func resourceHostCreate(ctx context.Context, d *schema.ResourceData, m interface
 func resourceHostRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	host, err := c.Hosts.Get(d.Id())
+	id := d.Id()
+	host, err := c.Hosts.Get(id)
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		return append(diags, diag.Errorf("Failed to get host with ID: %s, %s", id, err)...)
 	}
 	if host == nil {
 		d.SetId("")

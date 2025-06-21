@@ -121,9 +121,10 @@ func resourceNetworkApplicationConfig() *schema.Resource {
 func resourceNetworkApplicationRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	application, err := c.NetworkApplications.Get(data.Id())
+	id := data.Id()
+	application, err := c.NetworkApplications.Get(id)
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		return append(diags, diag.Errorf("Failed to get network application with ID: %s, %s", id, err)...)
 	}
 	if application == nil {
 		data.SetId("")

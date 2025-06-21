@@ -60,7 +60,7 @@ func dataSourceAccessGroupRead(ctx context.Context, data *schema.ResourceData, i
 	group, err := c.AccessGroups.Get(id)
 
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diags, diag.Errorf("Failed to get access group with ID: %s, %s", id, err)...)
 	}
 	if group == nil {
 		return append(diags, diag.Errorf("Access Group with id %s was not found", id)...)

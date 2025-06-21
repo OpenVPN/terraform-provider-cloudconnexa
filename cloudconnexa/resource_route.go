@@ -100,10 +100,10 @@ func resourceRouteCreate(ctx context.Context, d *schema.ResourceData, m interfac
 func resourceRouteRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	routeId := d.Id()
-	r, err := c.Routes.Get(routeId)
+	id := d.Id()
+	r, err := c.Routes.Get(id)
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		return append(diags, diag.Errorf("Failed to get route with ID: %s, %s", id, err)...)
 	}
 	if r == nil {
 		d.SetId("")

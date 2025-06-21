@@ -133,9 +133,10 @@ func resourceHostConnectorCreate(ctx context.Context, d *schema.ResourceData, m 
 func resourceHostConnectorRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	connector, err := c.HostConnectors.GetByID(d.Id())
+	id := d.Id()
+	connector, err := c.HostConnectors.GetByID(id)
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		return append(diags, diag.Errorf("Failed to get host connector with ID: %s, %s", id, err)...)
 	}
 	token, err := c.HostConnectors.GetToken(d.Id())
 	if err != nil {

@@ -86,7 +86,7 @@ func dataSourceNetworkConnectorRead(ctx context.Context, d *schema.ResourceData,
 	id := d.Get("id").(string)
 	connector, err = c.NetworkConnectors.GetByID(id)
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		return append(diags, diag.Errorf("Failed to get network connector with ID: %s, %s", id, err)...)
 	}
 	if connector == nil {
 		return append(diags, diag.Errorf("Connector with id %s was not found", id)...)

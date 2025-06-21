@@ -75,7 +75,7 @@ func dataSourceNetworkRead(ctx context.Context, d *schema.ResourceData, m interf
 	id := d.Get("id").(string)
 	network, err = c.Networks.Get(id)
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		return append(diags, diag.Errorf("Failed to get network with ID: %s, %s", id, err)...)
 	}
 	if network == nil {
 		return append(diags, diag.Errorf("Network with id %s was not found", id)...)

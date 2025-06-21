@@ -63,10 +63,12 @@ func dataSourceNetworkIPService() *schema.Resource {
 //   - diag.Diagnostics: Diagnostics containing any errors that occurred during the operation
 func dataSourceNetworkIPServiceRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
-	service, err := c.NetworkIPServices.Get(data.Get("id").(string))
+	var diags diag.Diagnostics
+	id := data.Get("id").(string)
+	service, err := c.NetworkIPServices.Get(id)
 
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diags, diag.Errorf("Failed to get network IP service with ID: %s, %s", id, err)...)
 	}
 	setNetworkIpServiceResourceData(data, service)
 	return nil

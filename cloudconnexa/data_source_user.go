@@ -124,7 +124,7 @@ func dataSourceUserRead(ctx context.Context, d *schema.ResourceData, m interface
 	userName := d.Get("username").(string)
 	user, err := c.Users.GetByUsername(userName)
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		return diag.Errorf("Failed to get user with username: %s, %s", userName, err)
 	}
 	if user == nil {
 		return append(diags, diag.Errorf("User with name %s was not found", userName)...)

@@ -70,7 +70,7 @@ func dataSourceLocationContextRead(ctx context.Context, data *schema.ResourceDat
 	context, err := c.LocationContexts.Get(id)
 
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diags, diag.Errorf("Failed to get location context with ID: %s, %s", id, err)...)
 	}
 	if context == nil {
 		return append(diags, diag.Errorf("Location Context with ID %s was not found", id)...)

@@ -201,9 +201,10 @@ func resourceUserGroupDelete(ctx context.Context, data *schema.ResourceData, i i
 func resourceUserGroupRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	userGroup, err := c.UserGroups.Get(data.Id())
+	id := data.Id()
+	userGroup, err := c.UserGroups.Get(id)
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		return append(diags, diag.Errorf("Failed to get user group with ID: %s, %s", id, err)...)
 	}
 
 	if userGroup == nil {
