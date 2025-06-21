@@ -3,7 +3,7 @@ module github.com/OpenVPN/terraform-provider-cloudconnexa
 go 1.23.0
 
 require (
-	github.com/gruntwork-io/terratest v0.49.0
+	github.com/gruntwork-io/terratest v0.50.0
 	github.com/hashicorp/go-cty v1.5.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.37.0
 	github.com/openvpn/cloudconnexa-go-client/v2 v2.2.0
