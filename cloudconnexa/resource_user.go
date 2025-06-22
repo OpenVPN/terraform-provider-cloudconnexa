@@ -141,11 +141,11 @@ func resourceUserCreate(ctx context.Context, d *schema.ResourceData, m interface
 func resourceUserRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	userId := d.Id()
-	u, err := c.Users.Get(userId)
+	id := d.Id()
+	u, err := c.Users.Get(id)
 
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		return append(diags, diag.Errorf("Failed to get user with ID: %s, %s", id, err)...)
 	}
 	if u == nil {
 		d.SetId("")

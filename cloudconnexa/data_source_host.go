@@ -70,7 +70,7 @@ func dataSourceHostRead(ctx context.Context, d *schema.ResourceData, m interface
 	id := d.Get("id").(string)
 	host, err := c.Hosts.Get(id)
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		return append(diags, diag.Errorf("Failed to get host with ID: %s, %s", id, err)...)
 	}
 	if host == nil {
 		return append(diags, diag.Errorf("Host with id %s was not found", id)...)

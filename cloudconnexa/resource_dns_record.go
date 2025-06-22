@@ -111,10 +111,10 @@ func resourceDnsRecordCreate(ctx context.Context, d *schema.ResourceData, m inte
 func resourceDnsRecordRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	recordId := d.Id()
-	r, err := c.DNSRecords.GetDNSRecord(recordId)
+	id := d.Id()
+	r, err := c.DNSRecords.GetDNSRecord(id)
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		return append(diags, diag.Errorf("Failed to get DNS record with ID: %s, %s", id, err)...)
 	}
 	if r == nil {
 		d.SetId("")

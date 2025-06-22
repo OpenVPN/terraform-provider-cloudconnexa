@@ -161,7 +161,7 @@ func resourceAccessGroupRead(ctx context.Context, d *schema.ResourceData, m inte
 	id := d.Id()
 	ag, err := c.AccessGroups.Get(id)
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		return append(diags, diag.Errorf("Failed to get access group with ID: %s, %s", id, err)...)
 	}
 	if ag == nil {
 		d.SetId("")

@@ -184,9 +184,10 @@ func resourceNetworkConnectorCreate(ctx context.Context, d *schema.ResourceData,
 func resourceNetworkConnectorRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	connector, err := c.NetworkConnectors.GetByID(d.Id())
+	id := d.Id()
+	connector, err := c.NetworkConnectors.GetByID(id)
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		return append(diags, diag.Errorf("Failed to get network connector with ID: %s, %s", id, err)...)
 	}
 	token, err := c.NetworkConnectors.GetToken(connector.ID)
 	if err != nil {

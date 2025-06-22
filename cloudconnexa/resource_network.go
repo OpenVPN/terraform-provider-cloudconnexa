@@ -81,9 +81,10 @@ func resourceNetworkCreate(ctx context.Context, d *schema.ResourceData, m interf
 func resourceNetworkRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	network, err := c.Networks.Get(d.Id())
+	id := d.Id()
+	network, err := c.Networks.Get(id)
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		return append(diags, diag.Errorf("Failed to get network with ID: %s, %s", id, err)...)
 	}
 	if network == nil {
 		d.SetId("")

@@ -147,10 +147,10 @@ func resourceLocationContextCreate(ctx context.Context, d *schema.ResourceData, 
 func resourceLocationContextRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	recordId := d.Id()
-	lc, err := c.LocationContexts.Get(recordId)
+	id := d.Id()
+	lc, err := c.LocationContexts.Get(id)
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		return append(diags, diag.Errorf("Failed to get location context with ID: %s, %s", id, err)...)
 	}
 	if lc == nil {
 		d.SetId("")

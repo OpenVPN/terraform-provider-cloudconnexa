@@ -140,9 +140,10 @@ func customApplicationTypesConfig() map[string]*schema.Schema {
 func resourceHostApplicationRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	application, err := c.HostApplications.Get(data.Id())
+	id := data.Id()
+	application, err := c.HostApplications.Get(id)
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		return append(diags, diag.Errorf("Failed to get host application with ID: %s, %s", id, err)...)
 	}
 	if application == nil {
 		data.SetId("")

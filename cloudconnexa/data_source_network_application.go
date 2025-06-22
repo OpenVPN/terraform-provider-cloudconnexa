@@ -2,8 +2,6 @@ package cloudconnexa
 
 import (
 	"context"
-	"strings"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
@@ -64,11 +62,7 @@ func dataSourceNetworkApplicationRead(ctx context.Context, data *schema.Resource
 	id := data.Get("id").(string)
 	application, err = c.NetworkApplications.Get(id)
 	if err != nil {
-		if strings.Contains(err.Error(), "status code: 404") {
-			return append(diags, diag.Errorf("Application with id %s was not found", id)...)
-		} else {
-			return append(diags, diag.FromErr(err)...)
-		}
+		return append(diags, diag.Errorf("Failed to get network application with ID: %s, %s", id, err)...)
 	}
 	if application == nil {
 		return append(diags, diag.Errorf("Application with id %s was not found", id)...)

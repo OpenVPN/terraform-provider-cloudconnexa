@@ -123,9 +123,10 @@ func customHostServiceTypesConfig() map[string]*schema.Schema {
 func resourceHostIpServiceRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	service, err := c.HostIPServices.Get(data.Id())
+	id := data.Id()
+	service, err := c.HostIPServices.Get(id)
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		return append(diags, diag.Errorf("Failed to get host IP service with ID: %s, %s", id, err)...)
 	}
 	if service == nil {
 		data.SetId("")

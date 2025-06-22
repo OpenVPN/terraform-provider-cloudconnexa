@@ -62,10 +62,12 @@ func dataSourceHostIPService() *schema.Resource {
 //   - diag.Diagnostics: Diagnostics containing any errors that occurred during the operation
 func dataSourceHostIPServiceRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
-	service, err := c.HostIPServices.Get(data.Get("id").(string))
+	var diags diag.Diagnostics
+	id := data.Get("id").(string)
+	service, err := c.HostIPServices.Get(id)
 
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diags, diag.Errorf("Failed to get host IP service with ID: %s, %s", id, err)...)
 	}
 	setHostIpServiceResourceData(data, service)
 	return nil
