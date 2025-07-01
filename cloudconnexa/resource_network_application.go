@@ -66,7 +66,7 @@ func resourceNetworkApplicationUpdate(ctx context.Context, data *schema.Resource
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	setApplicationData(data, s)
+	setNetworkApplicationData(data, s)
 	return nil
 }
 
@@ -130,7 +130,7 @@ func resourceNetworkApplicationRead(ctx context.Context, data *schema.ResourceDa
 		data.SetId("")
 		return diags
 	}
-	setApplicationData(data, application)
+	setNetworkApplicationData(data, application)
 	return diags
 }
 
@@ -154,7 +154,7 @@ func resourceNetworkApplicationCreate(ctx context.Context, data *schema.Resource
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	setApplicationData(data, createdApplication)
+	setNetworkApplicationData(data, createdApplication)
 	return nil
 }
 
@@ -236,4 +236,14 @@ func resourceDataToNetworkApplication(data *schema.ResourceData) *cloudconnexa.A
 		Config:          &config,
 	}
 	return s
+}
+
+// setNetworkApplicationData sets the Terraform state data from a network application response
+func setNetworkApplicationData(data *schema.ResourceData, application *cloudconnexa.ApplicationResponse) {
+	data.SetId(application.ID)
+	_ = data.Set("name", application.Name)
+	_ = data.Set("description", application.Description)
+	_ = data.Set("routes", flattenApplicationRoutes(application.Routes))
+	_ = data.Set("config", flattenApplicationConfig(application.Config))
+	_ = data.Set("network_id", application.NetworkItemID)
 }

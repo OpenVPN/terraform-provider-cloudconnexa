@@ -2,6 +2,7 @@ package cloudconnexa
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
@@ -67,6 +68,6 @@ func dataSourceNetworkApplicationRead(ctx context.Context, data *schema.Resource
 	if application == nil {
 		return append(diags, diag.Errorf("Application with id %s was not found", id)...)
 	}
-	setApplicationData(data, application)
+	setNetworkApplicationData(data, application)
 	return nil
 }
