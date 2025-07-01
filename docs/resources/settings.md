@@ -753,3 +753,13 @@ Optional:
 
 - `ip_v4_address` (List of String)
 - `ip_v6_address` (List of String)
+
+## Import
+
+Import is supported using the following syntax:
+
+```shell
+# Settings is a singleton resource, so the import ID can be any value
+# The actual ID will always be set to "settings" during import
+terraform import cloudconnexa_settings.example settings
+```
