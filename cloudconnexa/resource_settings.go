@@ -559,9 +559,9 @@ func resourceSettingsImport(ctx context.Context, d *schema.ResourceData, m inter
 		for _, diagnostic := range diags {
 			if diagnostic.Severity == diag.Error {
 				if err == nil {
-					err = fmt.Errorf("%s", diagnostic.Summary)
+					err = fmt.Errorf("Summary: %s; Detail: %s", diagnostic.Summary, diagnostic.Detail)
 				} else {
-					err = fmt.Errorf("%s; %s", err.Error(), diagnostic.Summary)
+					err = fmt.Errorf("%s; Summary: %s; Detail: %s", err.Error(), diagnostic.Summary, diagnostic.Detail)
 				}
 			}
 		}
