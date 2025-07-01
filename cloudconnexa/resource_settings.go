@@ -2,6 +2,7 @@ package cloudconnexa
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -17,6 +18,9 @@ func resourceSettings() *schema.Resource {
 		ReadContext:   resourceSettingsRead,
 		DeleteContext: resourceSettingsDelete,
 		UpdateContext: resourceSettingsUpdate,
+		Importer: &schema.ResourceImporter{
+			StateContext: resourceSettingsImport,
+		},
 		Schema: map[string]*schema.Schema{
 			"allow_trusted_devices": {
 				Type:     schema.TypeBool,
@@ -529,4 +533,40 @@ func resourceSettingsRead(ctx context.Context, d *schema.ResourceData, m interfa
 func resourceSettingsDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	return diags
+}
+
+// resourceSettingsImport handles the import of CloudConnexa settings.
+// Since settings is a singleton resource, it always uses the fixed ID "settings"
+// and ignores the provided import ID.
+//
+// Parameters:
+//   - ctx: The context for the operation
+//   - d: The Terraform resource data
+//   - m: The provider meta interface
+//
+// Returns:
+//   - []*schema.ResourceData: Resource data slice for imported settings
+//   - error: Any error that occurred during import
+func resourceSettingsImport(ctx context.Context, d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+	// Settings is a singleton resource with a fixed ID
+	d.SetId("settings")
+
+	// Read the current settings from the API to populate the state
+	diags := resourceSettingsRead(ctx, d, m)
+	if diags.HasError() {
+		// Convert diagnostics to error for import function
+		var err error
+		for _, diagnostic := range diags {
+			if diagnostic.Severity == diag.Error {
+				if err == nil {
+					err = fmt.Errorf("%s", diagnostic.Summary)
+				} else {
+					err = fmt.Errorf("%s; %s", err.Error(), diagnostic.Summary)
+				}
+			}
+		}
+		return nil, err
+	}
+
+	return []*schema.ResourceData{d}, nil
 }
