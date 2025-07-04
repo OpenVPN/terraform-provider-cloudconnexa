@@ -137,7 +137,7 @@ func resourceHostIpServiceRead(ctx context.Context, data *schema.ResourceData, i
 }
 
 // setHostIpServiceResourceData sets the resource data from a host IP service response
-func setHostIpServiceResourceData(data *schema.ResourceData, service *cloudconnexa.IPServiceResponse) {
+func setHostIpServiceResourceData(data *schema.ResourceData, service *cloudconnexa.HostIPServiceResponse) {
 	data.SetId(service.ID)
 	_ = data.Set("name", service.Name)
 	_ = data.Set("description", service.Description)
