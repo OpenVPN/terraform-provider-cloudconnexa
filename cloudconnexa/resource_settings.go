@@ -113,6 +113,16 @@ func resourceSettings() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: validation.StringInSlice([]string{"FULL_MESH", "CUSTOM"}, false),
 			},
+			"dns_log_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+			"access_visibility_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 		},
 	}
 }
@@ -352,6 +362,20 @@ func resourceSettingsUpdate(ctx context.Context, d *schema.ResourceData, m inter
 		}
 	}
 
+	if d.HasChange("dns_log_enabled") {
+		err := c.Settings.SetDNSLogEnabled(d.Get("dns_log_enabled").(bool))
+		if err != nil {
+			return append(diags, diag.FromErr(err)...)
+		}
+	}
+
+	if d.HasChange("access_visibility_enabled") {
+		err := c.Settings.SetAccessVisibilityEnabled(d.Get("access_visibility_enabled").(bool))
+		if err != nil {
+			return append(diags, diag.FromErr(err)...)
+		}
+	}
+
 	d.SetId("settings")
 	return diags
 }
@@ -515,6 +539,20 @@ func resourceSettingsRead(ctx context.Context, d *schema.ResourceData, m interfa
 		}
 		d.Set("topology", topology)
 	}
+
+	// Get and set DNS Log enabled status
+	dnsLog, err := c.Settings.GetDNSLogEnabled()
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	d.Set("dns_log_enabled", dnsLog)
+
+	// Get and set Access Visibility enabled status
+	accessVisibility, err := c.Settings.GetAccessVisibilityEnabled()
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	d.Set("access_visibility_enabled", accessVisibility)
 
 	d.SetId("settings")
 	return diags
