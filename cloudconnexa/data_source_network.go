@@ -34,6 +34,11 @@ func dataSourceNetwork() *schema.Resource {
 				Computed:    true,
 				Description: "The description of the network.",
 			},
+			"tunneling_protocol": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The tunneling protocol of the network.",
+			},
 			"egress": {
 				Type:        schema.TypeBool,
 				Computed:    true,
@@ -86,5 +91,6 @@ func dataSourceNetworkRead(ctx context.Context, d *schema.ResourceData, m interf
 	d.Set("egress", network.Egress)
 	d.Set("internet_access", network.InternetAccess)
 	d.Set("system_subnets", network.SystemSubnets)
+	d.Set("tunneling_protocol", network.TunnelingProtocol)
 	return diags
 }
