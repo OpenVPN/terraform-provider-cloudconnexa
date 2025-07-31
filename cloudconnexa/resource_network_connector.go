@@ -2,7 +2,6 @@ package cloudconnexa
 
 import (
 	"context"
-
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -67,16 +66,164 @@ func resourceNetworkConnector() *schema.Resource {
 				Sensitive:   true,
 				Description: "Connector token.",
 			},
-			"ipsec_enabled": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Enable IPsec tunnel for this connector.",
+			"ipsec_config": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem:     ipSecConfigSchema(),
 			},
-			"ipsec_status": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Current IPsec tunnel status.",
+		},
+	}
+}
+
+// ipSecConfigSchema returns a Terraform resource schema for managing ipsec config
+func ipSecConfigSchema() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"platform": {
+				Type:         schema.TypeString,
+				ValidateFunc: validation.StringInSlice([]string{"AWS", "CISCO", "AZURE", "GCP", "OTHER"}, false),
+				Required:     true,
+			},
+			"authentication_type": {
+				Type:         schema.TypeString,
+				ValidateFunc: validation.StringInSlice([]string{"SHARED_SECRET", "CERTIFICATE"}, false),
+				Required:     true,
+			},
+			"remote_site_public_ip": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"pre_shared_key": {
+				Type:      schema.TypeString,
+				Optional:  true,
+				Sensitive: true,
+			},
+			"ca_certificate": {
+				Type:      schema.TypeString,
+				Optional:  true,
+				Sensitive: true,
+			},
+			"peer_certificate": {
+				Type:      schema.TypeString,
+				Optional:  true,
+				Sensitive: true,
+			},
+			"remote_gateway_certificate": {
+				Type:      schema.TypeString,
+				Optional:  true,
+				Sensitive: true,
+			},
+			"peer_certificate_private_key": {
+				Type:      schema.TypeString,
+				Optional:  true,
+				Sensitive: true,
+			},
+			"peer_certificate_key_passphrase": {
+				Type:      schema.TypeString,
+				Optional:  true,
+				Sensitive: true,
+			},
+			"protocol_version": {
+				Type:         schema.TypeString,
+				ValidateFunc: validation.StringInSlice([]string{"IKE_V1", "IKE_V2"}, false),
+				Required:     true,
+			},
+			"startup_action": {
+				Type:         schema.TypeString,
+				ValidateFunc: validation.StringInSlice([]string{"START", "ATTACH"}, false),
+				Required:     true,
+			},
+			"phase_1_encryption_algorithms": {
+				Type:     schema.TypeList,
+				Required: true,
+				MinItems: 1,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{"AES128", "AES256", "AES128_GCM_16", "AES256_GCM_16"}, false),
+				},
+			},
+			"phase_1_integrity_algorithms": {
+				Type:     schema.TypeList,
+				Required: true,
+				MinItems: 1,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{"SHA1", "SHA2_256", "SHA2_384", "SHA2_512"}, false),
+				},
+			},
+			"phase_1_diffie_hellman_groups": {
+				Type:     schema.TypeList,
+				Required: true,
+				MinItems: 1,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{"G_1", "G_2", "G_5", "G_14", "G_15", "G_16", "G_19", "G_20", "G_24"}, false),
+				},
+			},
+			"phase_1_lifetime_sec": {
+				Type:     schema.TypeInt,
+				Required: true,
+			},
+			"phase_2_encryption_algorithms": {
+				Type:     schema.TypeList,
+				Required: true,
+				MinItems: 1,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{"AES128", "AES256", "AES128_GCM_16", "AES256_GCM_16"}, false),
+				},
+			},
+			"phase_2_integrity_algorithms": {
+				Type:     schema.TypeList,
+				Required: true,
+				MinItems: 1,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{"SHA1", "SHA2_256", "SHA2_384", "SHA2_512"}, false),
+				},
+			},
+			"phase_2_diffie_hellman_groups": {
+				Type:     schema.TypeList,
+				Required: true,
+				MinItems: 1,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{"G_1", "G_2", "G_5", "G_14", "G_15", "G_16", "G_19", "G_20", "G_24"}, false),
+				},
+			},
+			"phase_2_lifetime_sec": {
+				Type:     schema.TypeInt,
+				Required: true,
+			},
+			"margin_time_sec": {
+				Type:     schema.TypeInt,
+				Required: true,
+			},
+			"fuzz_percent": {
+				Type:     schema.TypeInt,
+				Required: true,
+			},
+			"replay_window_size": {
+				Type:     schema.TypeInt,
+				Required: true,
+			},
+			"timeout_sec": {
+				Type:     schema.TypeInt,
+				Required: true,
+			},
+			"dead_peer_handling": {
+				Type:         schema.TypeString,
+				ValidateFunc: validation.StringInSlice([]string{"RESTART", "NONE"}, false),
+				Required:     true,
+			},
+			"hostname": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"domain": {
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 		},
 	}
@@ -86,40 +233,17 @@ func resourceNetworkConnector() *schema.Resource {
 func resourceNetworkConnectorUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	connector := cloudconnexa.NetworkConnector{
-		ID:          d.Id(),
-		Name:        d.Get("name").(string),
-		Description: d.Get("description").(string),
-		VpnRegionID: d.Get("vpn_region_id").(string),
-	}
+	connector := resourceDataToNetworkConnector(d)
 	_, err := c.NetworkConnectors.Update(connector)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-
-	// Handle IPsec configuration changes
-	if d.HasChange("ipsec_enabled") {
-		ipsecEnabled := d.Get("ipsec_enabled").(bool)
-		if ipsecEnabled {
-			_, err := c.NetworkConnectors.StartIPsec(d.Id())
-			if err != nil {
-				return append(diags, diag.FromErr(err)...)
-			}
-			// Set ipsec_enabled to true in state after successful start
-			d.Set("ipsec_enabled", true)
-		} else {
-			_, err := c.NetworkConnectors.StopIPsec(d.Id())
-			if err != nil {
-				return append(diags, diag.FromErr(err)...)
-			}
-			// Set ipsec_enabled to false in state after successful stop
-			d.Set("ipsec_enabled", false)
+	if connector.IPSecConfig != nil {
+		err := c.NetworkConnectors.StartIPsec(connector.ID)
+		if err != nil {
+			return append(diags, diag.FromErr(err)...)
 		}
-
-		// Refresh state to update ipsec_status after starting/stopping IPsec
-		return resourceNetworkConnectorRead(ctx, d, m)
 	}
-
 	return diags
 }
 
@@ -127,50 +251,30 @@ func resourceNetworkConnectorUpdate(ctx context.Context, d *schema.ResourceData,
 func resourceNetworkConnectorCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	name := d.Get("name").(string)
-	description := d.Get("description").(string)
-	networkItemId := d.Get("network_id").(string)
-	vpnRegionId := d.Get("vpn_region_id").(string)
-	connector := cloudconnexa.NetworkConnector{
-		Name:            name,
-		NetworkItemID:   networkItemId,
-		NetworkItemType: "NETWORK",
-		VpnRegionID:     vpnRegionId,
-		Description:     description,
-	}
-	conn, err := c.NetworkConnectors.Create(connector, networkItemId)
+	connector := resourceDataToNetworkConnector(d)
+	conn, err := c.NetworkConnectors.Create(connector, connector.NetworkItemID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	d.SetId(conn.ID)
-	profile, err := c.NetworkConnectors.GetProfile(conn.ID)
-	if err != nil {
-		return append(diags, diag.FromErr(err)...)
-	}
-	d.Set("profile", profile)
-	token, err := c.NetworkConnectors.GetToken(conn.ID)
-	if err != nil {
-		return append(diags, diag.FromErr(err)...)
-	}
-	d.Set("token", token)
-
-	// Handle IPsec configuration if enabled
-	ipsecEnabled := d.Get("ipsec_enabled").(bool)
-	if ipsecEnabled {
-		_, err := c.NetworkConnectors.StartIPsec(conn.ID)
+	if conn.TunnelingProtocol == "OPENVPN" {
+		profile, err := c.NetworkConnectors.GetProfile(conn.ID)
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
+		d.Set("profile", profile)
+		token, err := c.NetworkConnectors.GetToken(conn.ID)
+		if err != nil {
+			return append(diags, diag.FromErr(err)...)
+		}
+		d.Set("token", token)
+	}
 
-		// Set ipsec_enabled to true in state after successful start
-		d.Set("ipsec_enabled", true)
-
-		// Refresh state to update ipsec_status after starting IPsec
-		readDiags := resourceNetworkConnectorRead(ctx, d, m)
-		diags = append(diags, readDiags...)
-	} else {
-		// Set ipsec_enabled to false in state when not enabled
-		d.Set("ipsec_enabled", false)
+	if conn.IPSecConfig != nil {
+		err := c.NetworkConnectors.StartIPsec(conn.ID)
+		if err != nil {
+			return append(diags, diag.FromErr(err)...)
+		}
 	}
 
 	return append(diags, diag.Diagnostic{
@@ -189,36 +293,19 @@ func resourceNetworkConnectorRead(ctx context.Context, d *schema.ResourceData, m
 	if err != nil {
 		return append(diags, diag.Errorf("Failed to get network connector with ID: %s, %s", id, err)...)
 	}
-	token, err := c.NetworkConnectors.GetToken(connector.ID)
-	if err != nil {
-		return append(diags, diag.FromErr(err)...)
-	}
+	setNetworkConnectorData(d, connector)
 
-	if connector == nil {
-		d.SetId("")
-	} else {
-		d.SetId(connector.ID)
-		d.Set("name", connector.Name)
-		d.Set("vpn_region_id", connector.VpnRegionID)
-		d.Set("network_id", connector.NetworkItemID)
-		d.Set("ip_v4_address", connector.IPv4Address)
-		d.Set("ip_v6_address", connector.IPv6Address)
+	if connector.TunnelingProtocol == "OPENVPN" {
+		token, err := c.NetworkConnectors.GetToken(connector.ID)
+		if err != nil {
+			return append(diags, diag.FromErr(err)...)
+		}
 		d.Set("token", token)
 		profile, err := c.NetworkConnectors.GetProfile(connector.ID)
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
 		d.Set("profile", profile)
-
-		// Update IPsec status based on current configuration
-		// Note: Since the API doesn't provide IPsec status directly in NetworkConnector,
-		// we set a descriptive status based on the ipsec_enabled configuration
-		ipsecEnabled := d.Get("ipsec_enabled").(bool)
-		if ipsecEnabled {
-			d.Set("ipsec_status", "enabled")
-		} else {
-			d.Set("ipsec_status", "disabled")
-		}
 	}
 	return diags
 }
@@ -232,4 +319,112 @@ func resourceNetworkConnectorDelete(ctx context.Context, d *schema.ResourceData,
 		return append(diags, diag.FromErr(err)...)
 	}
 	return diags
+}
+
+// resourceDataToNetworkConnector converts Terraform resource data to a CloudConnexa network connector
+func resourceDataToNetworkConnector(data *schema.ResourceData) cloudconnexa.NetworkConnector {
+	name := data.Get("name").(string)
+	description := data.Get("description").(string)
+	networkItemId := data.Get("network_id").(string)
+	vpnRegionId := data.Get("vpn_region_id").(string)
+	connector := cloudconnexa.NetworkConnector{
+		ID:              data.Id(),
+		Name:            name,
+		NetworkItemID:   networkItemId,
+		NetworkItemType: "NETWORK",
+		VpnRegionID:     vpnRegionId,
+		Description:     description,
+	}
+	ipSecConfigs := data.Get("ipsec_config").([]interface{})
+	if len(ipSecConfigs) > 0 {
+		ipSecConfigData := ipSecConfigs[0].(map[string]interface{})
+		ipSecConfig := &cloudconnexa.IPSecConfig{
+			Platform:                     ipSecConfigData["platform"].(string),
+			AuthenticationType:           ipSecConfigData["authentication_type"].(string),
+			RemoteSitePublicIP:           ipSecConfigData["remote_site_public_ip"].(string),
+			PreSharedKey:                 ipSecConfigData["pre_shared_key"].(string),
+			CaCertificate:                ipSecConfigData["ca_certificate"].(string),
+			PeerCertificate:              ipSecConfigData["peer_certificate"].(string),
+			RemoteGatewayCertificate:     ipSecConfigData["remote_gateway_certificate"].(string),
+			PeerCertificatePrivateKey:    ipSecConfigData["peer_certificate_private_key"].(string),
+			PeerCertificateKeyPassphrase: ipSecConfigData["peer_certificate_key_passphrase"].(string),
+			IkeProtocol: cloudconnexa.IkeProtocol{
+				ProtocolVersion: ipSecConfigData["protocol_version"].(string),
+				Phase1: cloudconnexa.Phase{
+					EncryptionAlgorithms: toStrings(ipSecConfigData["phase_1_encryption_algorithms"].([]interface{})),
+					IntegrityAlgorithms:  toStrings(ipSecConfigData["phase_1_integrity_algorithms"].([]interface{})),
+					DiffieHellmanGroups:  toStrings(ipSecConfigData["phase_1_diffie_hellman_groups"].([]interface{})),
+					LifetimeSec:          ipSecConfigData["phase_1_lifetime_sec"].(int),
+				},
+				Phase2: cloudconnexa.Phase{
+					EncryptionAlgorithms: toStrings(ipSecConfigData["phase_2_encryption_algorithms"].([]interface{})),
+					IntegrityAlgorithms:  toStrings(ipSecConfigData["phase_2_integrity_algorithms"].([]interface{})),
+					DiffieHellmanGroups:  toStrings(ipSecConfigData["phase_2_diffie_hellman_groups"].([]interface{})),
+					LifetimeSec:          ipSecConfigData["phase_2_lifetime_sec"].(int),
+				},
+				Rekey: cloudconnexa.Rekey{
+					MarginTimeSec:    ipSecConfigData["margin_time_sec"].(int),
+					FuzzPercent:      ipSecConfigData["fuzz_percent"].(int),
+					ReplayWindowSize: ipSecConfigData["replay_window_size"].(int),
+				},
+				DeadPeerDetection: cloudconnexa.DeadPeerDetection{
+					TimeoutSec:       ipSecConfigData["timeout_sec"].(int),
+					DeadPeerHandling: ipSecConfigData["dead_peer_handling"].(string),
+				},
+				StartupAction: ipSecConfigData["startup_action"].(string),
+			},
+			Hostname: ipSecConfigData["hostname"].(string),
+			Domain:   ipSecConfigData["domain"].(string),
+		}
+		connector.IPSecConfig = ipSecConfig
+	}
+	return connector
+}
+
+// setNetworkConnectorData sets the Terraform resource data from a CloudConnexa network connector
+func setNetworkConnectorData(d *schema.ResourceData, connector *cloudconnexa.NetworkConnector) {
+	d.SetId(connector.ID)
+	d.Set("name", connector.Name)
+	d.Set("vpn_region_id", connector.VpnRegionID)
+	d.Set("network_id", connector.NetworkItemID)
+	d.Set("ip_v4_address", connector.IPv4Address)
+	d.Set("ip_v6_address", connector.IPv6Address)
+	if connector.IPSecConfig != nil {
+		ipSecConfig := make(map[string]interface{})
+		ipSecConfig["platform"] = connector.IPSecConfig.Platform
+		ipSecConfig["authentication_type"] = connector.IPSecConfig.AuthenticationType
+		ipSecConfig["remote_site_public_ip"] = connector.IPSecConfig.RemoteSitePublicIP
+		ipSecConfig["pre_shared_key"] = connector.IPSecConfig.PreSharedKey
+		ipSecConfig["ca_certificate"] = connector.IPSecConfig.CaCertificate
+		ipSecConfig["peer_certificate"] = connector.IPSecConfig.PeerCertificate
+		ipSecConfig["remote_gateway_certificate"] = connector.IPSecConfig.RemoteGatewayCertificate
+		ipSecConfig["peer_certificate_private_key"] = connector.IPSecConfig.PeerCertificatePrivateKey
+		ipSecConfig["peer_certificate_key_passphrase"] = connector.IPSecConfig.PeerCertificateKeyPassphrase
+		ipSecConfig["protocol_version"] = connector.IPSecConfig.IkeProtocol.ProtocolVersion
+		ipSecConfig["phase_1_encryption_algorithms"] = connector.IPSecConfig.IkeProtocol.Phase1.EncryptionAlgorithms
+		ipSecConfig["phase_1_integrity_algorithms"] = connector.IPSecConfig.IkeProtocol.Phase1.IntegrityAlgorithms
+		ipSecConfig["phase_1_diffie_hellman_groups"] = connector.IPSecConfig.IkeProtocol.Phase1.DiffieHellmanGroups
+		ipSecConfig["phase_1_lifetime_sec"] = connector.IPSecConfig.IkeProtocol.Phase1.LifetimeSec
+		ipSecConfig["phase_2_encryption_algorithms"] = connector.IPSecConfig.IkeProtocol.Phase2.EncryptionAlgorithms
+		ipSecConfig["phase_2_integrity_algorithms"] = connector.IPSecConfig.IkeProtocol.Phase2.IntegrityAlgorithms
+		ipSecConfig["phase_2_diffie_hellman_groups"] = connector.IPSecConfig.IkeProtocol.Phase2.DiffieHellmanGroups
+		ipSecConfig["phase_2_lifetime_sec"] = connector.IPSecConfig.IkeProtocol.Phase2.LifetimeSec
+		ipSecConfig["margin_time_sec"] = connector.IPSecConfig.IkeProtocol.Rekey.MarginTimeSec
+		ipSecConfig["replay_window_size"] = connector.IPSecConfig.IkeProtocol.Rekey.ReplayWindowSize
+		ipSecConfig["fuzz_percent"] = connector.IPSecConfig.IkeProtocol.Rekey.FuzzPercent
+		ipSecConfig["timeout_sec"] = connector.IPSecConfig.IkeProtocol.DeadPeerDetection.TimeoutSec
+		ipSecConfig["dead_peer_handling"] = connector.IPSecConfig.IkeProtocol.DeadPeerDetection.DeadPeerHandling
+		ipSecConfig["startup_action"] = connector.IPSecConfig.IkeProtocol.StartupAction
+		ipSecConfig["hostname"] = connector.IPSecConfig.Hostname
+		ipSecConfig["domain"] = connector.IPSecConfig.Domain
+		d.Set("ipsec_config", []interface{}{ipSecConfig})
+	}
+}
+
+func toStrings(strings []interface{}) []string {
+	array := make([]string, len(strings))
+	for i, v := range strings {
+		array[i] = v.(string)
+	}
+	return array
 }

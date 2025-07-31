@@ -55,6 +55,13 @@ func resourceNetwork() *schema.Resource {
 				},
 				Description: "The IPV4 and IPV6 subnets automatically assigned to this network.",
 			},
+			"tunneling_protocol": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "OPENVPN",
+				ValidateFunc: validation.StringInSlice([]string{"OPENVPN", "IPSEC"}, false),
+				Description:  "The tunneling protocol used for this network.",
+			},
 		},
 	}
 }
@@ -64,10 +71,11 @@ func resourceNetworkCreate(ctx context.Context, d *schema.ResourceData, m interf
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
 	n := cloudconnexa.Network{
-		Name:           d.Get("name").(string),
-		Description:    d.Get("description").(string),
-		Egress:         d.Get("egress").(bool),
-		InternetAccess: d.Get("internet_access").(string),
+		Name:              d.Get("name").(string),
+		Description:       d.Get("description").(string),
+		Egress:            d.Get("egress").(bool),
+		InternetAccess:    d.Get("internet_access").(string),
+		TunnelingProtocol: d.Get("tunneling_protocol").(string),
 	}
 	network, err := c.Networks.Create(n)
 	if err != nil {
@@ -95,6 +103,7 @@ func resourceNetworkRead(ctx context.Context, d *schema.ResourceData, m interfac
 	d.Set("egress", network.Egress)
 	d.Set("internet_access", network.InternetAccess)
 	d.Set("system_subnets", network.SystemSubnets)
+	d.Set("tunneling_protocol", network.TunnelingProtocol)
 	return diags
 }
 
@@ -107,12 +116,14 @@ func resourceNetworkUpdate(ctx context.Context, d *schema.ResourceData, m interf
 	_, newDescription := d.GetChange("description")
 	_, newEgress := d.GetChange("egress")
 	_, newAccess := d.GetChange("internet_access")
+	_, tunnelingProtocol := d.GetChange("tunneling_protocol")
 	err := c.Networks.Update(cloudconnexa.Network{
-		ID:             d.Id(),
-		Name:           newName.(string),
-		Description:    newDescription.(string),
-		Egress:         newEgress.(bool),
-		InternetAccess: newAccess.(string),
+		ID:                d.Id(),
+		Name:              newName.(string),
+		Description:       newDescription.(string),
+		Egress:            newEgress.(bool),
+		InternetAccess:    newAccess.(string),
+		TunnelingProtocol: tunnelingProtocol.(string),
 	})
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
