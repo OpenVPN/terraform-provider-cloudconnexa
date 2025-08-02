@@ -17,7 +17,7 @@ const ClientIDEnvVar = "CLOUDCONNEXA_CLIENT_ID"
 const ClientSecretEnvVar = "CLOUDCONNEXA_CLIENT_SECRET"
 
 // version represents the current version of the Terraform provider
-var version = "v1.0.6"
+var version = "v1.1.1"
 
 // Token represents the authentication token structure returned by the CloudConnexa API
 type Token struct {
