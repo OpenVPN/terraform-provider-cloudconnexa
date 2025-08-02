@@ -26,3 +26,4 @@ Use a `cloudconnexa_network` data source to read an CloudConnexa network.
 - `internet_access` (String) The type of internet access provided. Valid values are `SPLIT_TUNNEL_ON`, `SPLIT_TUNNEL_OFF`, or `RESTRICTED_INTERNET`. Defaults to `SPLIT_TUNNEL_ON`.
 - `name` (String) The network name.
 - `system_subnets` (List of String) The IPV4 and IPV6 subnets automatically assigned to this network.
+- `tunneling_protocol` (String) The tunneling protocol of the network.

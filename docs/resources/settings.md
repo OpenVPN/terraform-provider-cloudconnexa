@@ -687,6 +687,7 @@ output "settings_summary" {
 
 ### Optional
 
+- `access_visibility_enabled` (Boolean)
 - `allow_trusted_devices` (Boolean)
 - `client_options` (List of String)
 - `connect_auth` (String)
@@ -696,6 +697,7 @@ output "settings_summary" {
 - `device_allowance_force_update` (Boolean)
 - `device_allowance_per_user` (Number)
 - `device_enforcement` (String)
+- `dns_log_enabled` (Boolean)
 - `dns_proxy_enabled` (Boolean)
 - `dns_servers` (Block List, Max: 1) (see [below for nested schema](#nestedblock--dns_servers))
 - `dns_zones` (Block List) (see [below for nested schema](#nestedblock--dns_zones))

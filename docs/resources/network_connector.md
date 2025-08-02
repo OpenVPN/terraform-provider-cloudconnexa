@@ -563,16 +563,50 @@ output "connector_summary" {
 ### Optional
 
 - `description` (String) The description for the UI. Defaults to `Managed by Terraform`.
-- `ipsec_enabled` (Boolean) Enable IPsec tunnel for this connector.
+- `ipsec_config` (Block List, Max: 1) (see [below for nested schema](#nestedblock--ipsec_config))
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
 - `ip_v4_address` (String) The IPV4 address of the connector.
 - `ip_v6_address` (String) The IPV6 address of the connector.
-- `ipsec_status` (String) Current IPsec tunnel status.
 - `profile` (String, Sensitive) OpenVPN profile of the connector.
 - `token` (String, Sensitive) Connector token.
+
+<a id="nestedblock--ipsec_config"></a>
+### Nested Schema for `ipsec_config`
+
+Required:
+
+- `authentication_type` (String)
+- `dead_peer_handling` (String)
+- `fuzz_percent` (Number)
+- `margin_time_sec` (Number)
+- `phase_1_diffie_hellman_groups` (List of String)
+- `phase_1_encryption_algorithms` (List of String)
+- `phase_1_integrity_algorithms` (List of String)
+- `phase_1_lifetime_sec` (Number)
+- `phase_2_diffie_hellman_groups` (List of String)
+- `phase_2_encryption_algorithms` (List of String)
+- `phase_2_integrity_algorithms` (List of String)
+- `phase_2_lifetime_sec` (Number)
+- `platform` (String)
+- `protocol_version` (String)
+- `remote_site_public_ip` (String)
+- `replay_window_size` (Number)
+- `startup_action` (String)
+- `timeout_sec` (Number)
+
+Optional:
+
+- `ca_certificate` (String, Sensitive)
+- `domain` (String)
+- `hostname` (String)
+- `peer_certificate` (String, Sensitive)
+- `peer_certificate_key_passphrase` (String, Sensitive)
+- `peer_certificate_private_key` (String, Sensitive)
+- `pre_shared_key` (String, Sensitive)
+- `remote_gateway_certificate` (String, Sensitive)
 
 ## Import
 

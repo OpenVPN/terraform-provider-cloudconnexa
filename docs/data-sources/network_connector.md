@@ -24,8 +24,41 @@ Use an `cloudconnexa_connector` data source to read an existing CloudConnexa con
 - `description` (String) The description of the connector.
 - `ip_v4_address` (String) The IPV4 address of the connector.
 - `ip_v6_address` (String) The IPV6 address of the connector.
+- `ipsec_config` (List of Object) (see [below for nested schema](#nestedatt--ipsec_config))
 - `name` (String) The name of the connector.
 - `network_id` (String) The id of the network with which the connector is associated.
 - `profile` (String, Sensitive) OpenVPN profile
 - `token` (String, Sensitive) Connector token
 - `vpn_region_id` (String) The id of the region where the connector is deployed.
+
+<a id="nestedatt--ipsec_config"></a>
+### Nested Schema for `ipsec_config`
+
+Read-Only:
+
+- `authentication_type` (String)
+- `ca_certificate` (String)
+- `dead_peer_handling` (String)
+- `domain` (String)
+- `fuzz_percent` (Number)
+- `hostname` (String)
+- `margin_time_sec` (Number)
+- `peer_certificate` (String)
+- `peer_certificate_key_passphrase` (String)
+- `peer_certificate_private_key` (String)
+- `phase_1_diffie_hellman_groups` (List of String)
+- `phase_1_encryption_algorithms` (List of String)
+- `phase_1_integrity_algorithms` (List of String)
+- `phase_1_lifetime_sec` (Number)
+- `phase_2_diffie_hellman_groups` (List of String)
+- `phase_2_encryption_algorithms` (List of String)
+- `phase_2_integrity_algorithms` (List of String)
+- `phase_2_lifetime_sec` (Number)
+- `platform` (String)
+- `pre_shared_key` (String)
+- `protocol_version` (String)
+- `remote_gateway_certificate` (String)
+- `remote_site_public_ip` (String)
+- `replay_window_size` (Number)
+- `startup_action` (String)
+- `timeout_sec` (Number)
