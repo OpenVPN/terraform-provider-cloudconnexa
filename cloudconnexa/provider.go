@@ -85,6 +85,7 @@ func Provider() *schema.Provider {
 			"cloudconnexa_user":                dataSourceUser(),
 			"cloudconnexa_user_group":          dataSourceUserGroup(),
 			"cloudconnexa_vpn_region":          dataSourceVpnRegion(),
+			"cloudconnexa_vpn_regions":         dataSourceVpnRegions(),
 			"cloudconnexa_network_routes":      dataSourceNetworkRoutes(),
 			"cloudconnexa_host":                dataSourceHost(),
 			"cloudconnexa_network_ip_service":  dataSourceNetworkIPService(),

@@ -88,8 +88,9 @@ func resourceSettings() *schema.Resource {
 				},
 			},
 			"default_region": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "ID of the default region. Actual list of available regions can be obtained from data_source_vpn_regions.",
 			},
 			"domain_routing_subnet": {
 				Type:     schema.TypeList,
