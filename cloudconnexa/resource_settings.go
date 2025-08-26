@@ -305,7 +305,7 @@ func resourceSettingsUpdate(ctx context.Context, d *schema.ResourceData, m inter
 	}
 
 	if d.HasChange("client_options") && len(d.Get("client_options").([]interface{})) > 0 {
-		_, err := c.Settings.SetClientOptions(d.Get("client_options").([]string))
+		_, err := c.Settings.SetClientOptions(toStrings(d.Get("client_options").([]interface{})))
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
