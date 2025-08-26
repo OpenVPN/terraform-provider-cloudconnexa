@@ -88,8 +88,9 @@ func resourceSettings() *schema.Resource {
 				},
 			},
 			"default_region": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "ID of the default region. Actual list of available regions can be obtained from data_source_vpn_regions.",
 			},
 			"domain_routing_subnet": {
 				Type:     schema.TypeList,
@@ -305,7 +306,7 @@ func resourceSettingsUpdate(ctx context.Context, d *schema.ResourceData, m inter
 	}
 
 	if d.HasChange("client_options") && len(d.Get("client_options").([]interface{})) > 0 {
-		_, err := c.Settings.SetClientOptions(d.Get("client_options").([]string))
+		_, err := c.Settings.SetClientOptions(toStrings(d.Get("client_options").([]interface{})))
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}

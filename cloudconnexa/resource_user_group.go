@@ -67,7 +67,7 @@ func resourceUserGroup() *schema.Resource {
 			"vpn_region_ids": {
 				Type:        schema.TypeList,
 				Optional:    true,
-				Description: "A list of regions that are accessible to the user group.",
+				Description: "A list of regions IDs that are accessible to the user group. Actual list of available regions can be obtained from data_source_vpn_regions.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
