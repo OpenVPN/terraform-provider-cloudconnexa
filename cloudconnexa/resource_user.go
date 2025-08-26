@@ -52,6 +52,14 @@ func resourceUser() *schema.Resource {
 				Description:  "The UUID of a user's group.",
 				ValidateFunc: validation.IsUUID,
 			},
+			"secondary_groups_ids": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "The UUIDs of secondary user's groups.",
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 			"role": {
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -104,6 +112,7 @@ func resourceUserCreate(ctx context.Context, d *schema.ResourceData, m interface
 	firstName := d.Get("first_name").(string)
 	lastName := d.Get("last_name").(string)
 	groupId := d.Get("group_id").(string)
+	secondaryGroupsIds := d.Get("secondary_groups_ids").([]interface{})
 	role := d.Get("role").(string)
 	configDevices := d.Get("devices").([]interface{})
 	var devices []cloudconnexa.Device
@@ -121,13 +130,14 @@ func resourceUserCreate(ctx context.Context, d *schema.ResourceData, m interface
 
 	}
 	u := cloudconnexa.User{
-		Username:  username,
-		Email:     email,
-		FirstName: firstName,
-		LastName:  lastName,
-		GroupID:   groupId,
-		Devices:   devices,
-		Role:      role,
+		Username:          username,
+		Email:             email,
+		FirstName:         firstName,
+		LastName:          lastName,
+		GroupID:           groupId,
+		SecondaryGroupIds: toStrings(secondaryGroupsIds),
+		Devices:           devices,
+		Role:              role,
 	}
 	user, err := c.Users.Create(u)
 	if err != nil {
@@ -155,6 +165,7 @@ func resourceUserRead(ctx context.Context, d *schema.ResourceData, m interface{}
 		d.Set("first_name", u.FirstName)
 		d.Set("last_name", u.LastName)
 		d.Set("group_id", u.GroupID)
+		d.Set("secondary_groups_ids", u.SecondaryGroupIds)
 		d.Set("devices", u.Devices)
 		d.Set("role", u.Role)
 	}
@@ -165,7 +176,7 @@ func resourceUserRead(ctx context.Context, d *schema.ResourceData, m interface{}
 func resourceUserUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	if !d.HasChanges("first_name", "last_name", "group_id", "email", "role") {
+	if !d.HasChanges("first_name", "last_name", "group_id", "email", "role", "secondary_groups_ids") {
 		return diags
 	}
 
@@ -179,16 +190,18 @@ func resourceUserUpdate(ctx context.Context, d *schema.ResourceData, m interface
 	_, lastName := d.GetChange("last_name")
 	_, role := d.GetChange("role")
 	_, groupId := d.GetChange("group_id")
+	_, secondaryGroupsIds := d.GetChange("secondary_groups_ids")
 	status := u.Status
 
 	err = c.Users.Update(cloudconnexa.User{
-		ID:        d.Id(),
-		Email:     email.(string),
-		FirstName: firstName.(string),
-		LastName:  lastName.(string),
-		GroupID:   groupId.(string),
-		Role:      role.(string),
-		Status:    status,
+		ID:                d.Id(),
+		Email:             email.(string),
+		FirstName:         firstName.(string),
+		LastName:          lastName.(string),
+		GroupID:           groupId.(string),
+		SecondaryGroupIds: toStrings(secondaryGroupsIds.([]interface{})),
+		Role:              role.(string),
+		Status:            status,
 	})
 
 	if err != nil {
