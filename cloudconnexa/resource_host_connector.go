@@ -38,7 +38,7 @@ func resourceHostConnector() *schema.Resource {
 			"vpn_region_id": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The id of the region where the connector will be deployed.",
+				Description: "The ID of the region where the connector will be deployed. Actual list of available regions can be obtained from data_source_vpn_regions.",
 			},
 			"host_id": {
 				Type:        schema.TypeString,
