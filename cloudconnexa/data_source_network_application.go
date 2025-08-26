@@ -16,13 +16,14 @@ func dataSourceNetworkApplication() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Description: "Application ID",
 			},
 			"name": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Application name",
+				Type:         schema.TypeString,
+				Optional:     true,
+				Description:  "Application name",
+				ExactlyOneOf: []string{"id", "name"},
 			},
 			"description": {
 				Type:     schema.TypeString,
@@ -58,15 +59,26 @@ func dataSourceNetworkApplication() *schema.Resource {
 func dataSourceNetworkApplicationRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
+	var id = data.Get("id").(string)
 	var application *cloudconnexa.ApplicationResponse
 	var err error
-	id := data.Get("id").(string)
-	application, err = c.NetworkApplications.Get(id)
-	if err != nil {
-		return append(diags, diag.Errorf("Failed to get network application with ID: %s, %s", id, err)...)
-	}
-	if application == nil {
-		return append(diags, diag.Errorf("Application with id %s was not found", id)...)
+	if id != "" {
+		application, err = c.NetworkApplications.Get(id)
+		if err != nil {
+			return append(diags, diag.Errorf("Failed to get network application with ID: %s, %s", id, err)...)
+		}
+		if application == nil {
+			return append(diags, diag.Errorf("Network application with id %s was not found", id)...)
+		}
+	} else {
+		var name = data.Get("name").(string)
+		application, err = c.NetworkApplications.GetByName(name)
+		if err != nil {
+			return append(diags, diag.Errorf("Failed to get network application with name: %s, %s", name, err)...)
+		}
+		if application == nil {
+			return append(diags, diag.Errorf("Network application with name %s was not found", name)...)
+		}
 	}
 	setNetworkApplicationData(data, application)
 	return nil

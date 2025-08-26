@@ -21,13 +21,14 @@ func dataSourceNetwork() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Description: "The network ID.",
 			},
 			"name": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The network name.",
+				Type:         schema.TypeString,
+				Optional:     true,
+				Description:  "The network name.",
+				ExactlyOneOf: []string{"id", "name"},
 			},
 			"description": {
 				Type:        schema.TypeString,
@@ -72,25 +73,36 @@ func dataSourceNetwork() *schema.Resource {
 //
 // Returns:
 //   - diag.Diagnostics: Diagnostics containing any errors that occurred during the operation
-func dataSourceNetworkRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func dataSourceNetworkRead(ctx context.Context, data *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
+	var id = data.Get("id").(string)
 	var network *cloudconnexa.Network
 	var err error
-	id := d.Get("id").(string)
-	network, err = c.Networks.Get(id)
-	if err != nil {
-		return append(diags, diag.Errorf("Failed to get network with ID: %s, %s", id, err)...)
+	if id != "" {
+		network, err = c.Networks.Get(id)
+		if err != nil {
+			return append(diags, diag.Errorf("Failed to get network with ID: %s, %s", id, err)...)
+		}
+		if network == nil {
+			return append(diags, diag.Errorf("Network with id %s was not found", id)...)
+		}
+	} else {
+		var name = data.Get("name").(string)
+		network, err = c.Networks.GetByName(name)
+		if err != nil {
+			return append(diags, diag.Errorf("Failed to get network with name: %s, %s", name, err)...)
+		}
+		if network == nil {
+			return append(diags, diag.Errorf("Network with name %s was not found", name)...)
+		}
 	}
-	if network == nil {
-		return append(diags, diag.Errorf("Network with id %s was not found", id)...)
-	}
-	d.SetId(network.ID)
-	d.Set("name", network.Name)
-	d.Set("description", network.Description)
-	d.Set("egress", network.Egress)
-	d.Set("internet_access", network.InternetAccess)
-	d.Set("system_subnets", network.SystemSubnets)
-	d.Set("tunneling_protocol", network.TunnelingProtocol)
+	data.SetId(network.ID)
+	data.Set("name", network.Name)
+	data.Set("description", network.Description)
+	data.Set("egress", network.Egress)
+	data.Set("internet_access", network.InternetAccess)
+	data.Set("system_subnets", network.SystemSubnets)
+	data.Set("tunneling_protocol", network.TunnelingProtocol)
 	return diags
 }

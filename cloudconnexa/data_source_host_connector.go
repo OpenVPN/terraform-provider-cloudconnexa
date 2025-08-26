@@ -17,13 +17,14 @@ func dataSourceHostConnector() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Description: "The ID of the connector.",
 			},
 			"name": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The name of the connector.",
+				Type:         schema.TypeString,
+				Optional:     true,
+				Description:  "The name of the connector.",
+				ExactlyOneOf: []string{"id", "name"},
 			},
 			"description": {
 				Type:        schema.TypeString,
@@ -77,38 +78,49 @@ func dataSourceHostConnector() *schema.Resource {
 //
 // Returns:
 //   - diag.Diagnostics: Diagnostics containing any errors that occurred during the operation
-func dataSourceHostConnectorRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func dataSourceHostConnectorRead(ctx context.Context, data *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
+	var id = data.Get("id").(string)
 	var connector *cloudconnexa.HostConnector
-	var err error
 	var token string
-	id := d.Get("id").(string)
-	connector, err = c.HostConnectors.GetByID(id)
-	if err != nil {
-		return append(diags, diag.Errorf("Failed to get host connector with ID: %s, %s", id, err)...)
-	}
-	if connector == nil {
-		return append(diags, diag.Errorf("Connector with id %s was not found", id)...)
+	var err error
+	if id != "" {
+		connector, err = c.HostConnectors.GetByID(id)
+		if err != nil {
+			return append(diags, diag.Errorf("Failed to get host connector with ID: %s, %s", id, err)...)
+		}
+		if connector == nil {
+			return append(diags, diag.Errorf("Host connector with id %s was not found", id)...)
+		}
+	} else {
+		var name = data.Get("name").(string)
+		connector, err = c.HostConnectors.GetByName(name)
+		if err != nil {
+			return append(diags, diag.Errorf("Failed to get host connector with name: %s, %s", name, err)...)
+		}
+		if connector == nil {
+			return append(diags, diag.Errorf("Host connector with name %s was not found", name)...)
+		}
 	}
 	token, err = c.HostConnectors.GetToken(connector.ID)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
 
-	d.SetId(connector.ID)
-	d.Set("name", connector.Name)
-	d.Set("description", connector.Description)
-	d.Set("host_id", connector.NetworkItemID)
-	d.Set("vpn_region_id", connector.VpnRegionID)
-	d.Set("ip_v4_address", connector.IPv4Address)
-	d.Set("ip_v6_address", connector.IPv6Address)
-	d.Set("token", token)
+	data.SetId(connector.ID)
+	data.Set("name", connector.Name)
+	data.Set("description", connector.Description)
+	data.Set("host_id", connector.NetworkItemID)
+	data.Set("vpn_region_id", connector.VpnRegionID)
+	data.Set("ip_v4_address", connector.IPv4Address)
+	data.Set("ip_v6_address", connector.IPv6Address)
+	data.Set("token", token)
 
 	profile, err := c.HostConnectors.GetProfile(connector.ID)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	d.Set("profile", profile)
+	data.Set("profile", profile)
 	return diags
 }

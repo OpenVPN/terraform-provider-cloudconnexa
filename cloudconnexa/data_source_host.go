@@ -18,13 +18,14 @@ func dataSourceHost() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Description: "The host ID.",
 			},
 			"name": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The name of the host.",
+				Type:         schema.TypeString,
+				Optional:     true,
+				Description:  "The name of the host.",
+				ExactlyOneOf: []string{"id", "name"},
 			},
 			"description": {
 				Type:        schema.TypeString,
@@ -64,23 +65,36 @@ func dataSourceHost() *schema.Resource {
 //
 // Returns:
 //   - diag.Diagnostics: Diagnostics containing any errors that occurred during the operation
-func dataSourceHostRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func dataSourceHostRead(ctx context.Context, data *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	id := d.Get("id").(string)
-	host, err := c.Hosts.Get(id)
-	if err != nil {
-		return append(diags, diag.Errorf("Failed to get host with ID: %s, %s", id, err)...)
-	}
-	if host == nil {
-		return append(diags, diag.Errorf("Host with id %s was not found", id)...)
+	var id = data.Get("id").(string)
+	var host *cloudconnexa.Host
+	var err error
+	if id != "" {
+		host, err = c.Hosts.Get(id)
+		if err != nil {
+			return append(diags, diag.Errorf("Failed to get host with ID: %s, %s", id, err)...)
+		}
+		if host == nil {
+			return append(diags, diag.Errorf("Host with id %s was not found", id)...)
+		}
+	} else {
+		var name = data.Get("name").(string)
+		host, err = c.Hosts.GetByName(name)
+		if err != nil {
+			return append(diags, diag.Errorf("Failed to get host with name: %s, %s", name, err)...)
+		}
+		if host == nil {
+			return append(diags, diag.Errorf("Host with name %s was not found", name)...)
+		}
 	}
 
-	d.SetId(host.ID)
-	d.Set("name", host.Name)
-	d.Set("description", host.Description)
-	d.Set("domain", host.Domain)
-	d.Set("internet_access", host.InternetAccess)
-	d.Set("system_subnets", host.SystemSubnets)
+	data.SetId(host.ID)
+	data.Set("name", host.Name)
+	data.Set("description", host.Description)
+	data.Set("domain", host.Domain)
+	data.Set("internet_access", host.InternetAccess)
+	data.Set("system_subnets", host.SystemSubnets)
 	return diags
 }

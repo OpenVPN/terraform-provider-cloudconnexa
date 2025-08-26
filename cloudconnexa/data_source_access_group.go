@@ -16,12 +16,13 @@ func dataSourceAccessGroup() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
 			"name": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The Access group name.",
+				Type:         schema.TypeString,
+				Optional:     true,
+				Description:  "The Access group name.",
+				ExactlyOneOf: []string{"id", "name"},
 			},
 			"description": {
 				Type:        schema.TypeString,
@@ -57,14 +58,26 @@ func dataSourceAccessGroupRead(ctx context.Context, data *schema.ResourceData, i
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
 	var id = data.Get("id").(string)
-	group, err := c.AccessGroups.Get(id)
-
-	if err != nil {
-		return append(diags, diag.Errorf("Failed to get access group with ID: %s, %s", id, err)...)
-	}
-	if group == nil {
-		return append(diags, diag.Errorf("Access Group with id %s was not found", id)...)
+	var group *cloudconnexa.AccessGroup
+	var err error
+	if id != "" {
+		group, err = c.AccessGroups.Get(id)
+		if err != nil {
+			return append(diags, diag.Errorf("Failed to get access group with ID: %s, %s", id, err)...)
+		}
+		if group == nil {
+			return append(diags, diag.Errorf("Access Group with id %s was not found", id)...)
+		}
+	} else {
+		var name = data.Get("name").(string)
+		group, err = c.AccessGroups.GetByName(name)
+		if err != nil {
+			return append(diags, diag.Errorf("Failed to get access group with name: %s, %s", name, err)...)
+		}
+		if group == nil {
+			return append(diags, diag.Errorf("Access Group with name %s was not found", name)...)
+		}
 	}
 	setAccessGroupData(data, group)
-	return nil
+	return diags
 }

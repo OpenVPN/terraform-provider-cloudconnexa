@@ -2,6 +2,7 @@ package cloudconnexa
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
@@ -15,11 +16,12 @@ func dataSourceHostIPService() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
 			"name": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ExactlyOneOf: []string{"id", "name"},
 			},
 			"description": {
 				Type:     schema.TypeString,
@@ -63,11 +65,26 @@ func dataSourceHostIPService() *schema.Resource {
 func dataSourceHostIPServiceRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	id := data.Get("id").(string)
-	service, err := c.HostIPServices.Get(id)
-
-	if err != nil {
-		return append(diags, diag.Errorf("Failed to get host IP service with ID: %s, %s", id, err)...)
+	var id = data.Get("id").(string)
+	var service *cloudconnexa.HostIPServiceResponse
+	var err error
+	if id != "" {
+		service, err = c.HostIPServices.Get(id)
+		if err != nil {
+			return append(diags, diag.Errorf("Failed to get host IP service with ID: %s, %s", id, err)...)
+		}
+		if service == nil {
+			return append(diags, diag.Errorf("Host IP service with id %s was not found", id)...)
+		}
+	} else {
+		var name = data.Get("name").(string)
+		service, err = c.HostIPServices.GetByName(name)
+		if err != nil {
+			return append(diags, diag.Errorf("Failed to get host IP service with name: %s, %s", name, err)...)
+		}
+		if service == nil {
+			return append(diags, diag.Errorf("Host IP service with name %s was not found", name)...)
+		}
 	}
 	setHostIpServiceResourceData(data, service)
 	return nil

@@ -16,11 +16,12 @@ func dataSourceNetworkIPService() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
 			"name": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ExactlyOneOf: []string{"id", "name"},
 			},
 			"description": {
 				Type:     schema.TypeString,
@@ -64,11 +65,26 @@ func dataSourceNetworkIPService() *schema.Resource {
 func dataSourceNetworkIPServiceRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	id := data.Get("id").(string)
-	service, err := c.NetworkIPServices.Get(id)
-
-	if err != nil {
-		return append(diags, diag.Errorf("Failed to get network IP service with ID: %s, %s", id, err)...)
+	var id = data.Get("id").(string)
+	var service *cloudconnexa.NetworkIPServiceResponse
+	var err error
+	if id != "" {
+		service, err = c.NetworkIPServices.Get(id)
+		if err != nil {
+			return append(diags, diag.Errorf("Failed to get network IP service with ID: %s, %s", id, err)...)
+		}
+		if service == nil {
+			return append(diags, diag.Errorf("Network IP service with id %s was not found", id)...)
+		}
+	} else {
+		var name = data.Get("name").(string)
+		service, err = c.NetworkIPServices.GetByName(name)
+		if err != nil {
+			return append(diags, diag.Errorf("Failed to get network IP service with name: %s, %s", name, err)...)
+		}
+		if service == nil {
+			return append(diags, diag.Errorf("Network IP service with name %s was not found", name)...)
+		}
 	}
 	setNetworkIpServiceResourceData(data, service)
 	return nil
