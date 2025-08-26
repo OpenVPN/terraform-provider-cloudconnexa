@@ -2,6 +2,7 @@ package cloudconnexa
 
 import (
 	"context"
+
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -20,13 +21,14 @@ func dataSourceUserGroup() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Description: "The user group ID.",
 			},
 			"name": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The user group name.",
+				Type:         schema.TypeString,
+				Optional:     true,
+				Description:  "The user group name.",
+				ExactlyOneOf: []string{"id", "name"},
 			},
 			"vpn_region_ids": {
 				Type:     schema.TypeList,
@@ -79,26 +81,37 @@ func dataSourceUserGroup() *schema.Resource {
 //
 // Returns:
 //   - diag.Diagnostics: Diagnostics containing any errors that occurred during the operation
-func dataSourceUserGroupRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func dataSourceUserGroupRead(ctx context.Context, data *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
+	var id = data.Get("id").(string)
 	var userGroup *cloudconnexa.UserGroup
 	var err error
-	id := d.Get("id").(string)
-	userGroup, err = c.UserGroups.Get(id)
-	if err != nil {
-		return diag.Errorf("Failed to get user group with ID: %s, %s", id, err)
+	if id != "" {
+		userGroup, err = c.UserGroups.GetByID(id)
+		if err != nil {
+			return append(diags, diag.Errorf("Failed to get user group with ID: %s, %s", id, err)...)
+		}
+		if userGroup == nil {
+			return append(diags, diag.Errorf("User group with id %s was not found", id)...)
+		}
+	} else {
+		var name = data.Get("name").(string)
+		userGroup, err = c.UserGroups.GetByName(name)
+		if err != nil {
+			return append(diags, diag.Errorf("Failed to get user group with name: %s, %s", name, err)...)
+		}
+		if userGroup == nil {
+			return append(diags, diag.Errorf("User group with name %s was not found", name)...)
+		}
 	}
-	if userGroup == nil {
-		return append(diags, diag.Errorf("User group with id %s was not found", id)...)
-	}
-	d.SetId(userGroup.ID)
-	d.Set("name", userGroup.Name)
-	d.Set("vpn_region_ids", userGroup.VpnRegionIDs)
-	d.Set("all_regions_included", userGroup.AllRegionsIncluded)
-	d.Set("internet_access", userGroup.InternetAccess)
-	d.Set("max_device", userGroup.MaxDevice)
-	d.Set("system_subnets", userGroup.SystemSubnets)
-	d.Set("connect_auth", userGroup.ConnectAuth)
+	data.SetId(userGroup.ID)
+	data.Set("name", userGroup.Name)
+	data.Set("vpn_region_ids", userGroup.VpnRegionIDs)
+	data.Set("all_regions_included", userGroup.AllRegionsIncluded)
+	data.Set("internet_access", userGroup.InternetAccess)
+	data.Set("max_device", userGroup.MaxDevice)
+	data.Set("system_subnets", userGroup.SystemSubnets)
+	data.Set("connect_auth", userGroup.ConnectAuth)
 	return diags
 }

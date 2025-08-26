@@ -17,13 +17,14 @@ func dataSourceNetworkConnector() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Description: "The ID of the connector.",
 			},
 			"name": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The name of the connector.",
+				Type:         schema.TypeString,
+				Optional:     true,
+				Description:  "The name of the connector.",
+				ExactlyOneOf: []string{"id", "name"},
 			},
 			"description": {
 				Type:        schema.TypeString,
@@ -82,32 +83,43 @@ func dataSourceNetworkConnector() *schema.Resource {
 //
 // Returns:
 //   - diag.Diagnostics: Diagnostics containing any errors that occurred during the operation
-func dataSourceNetworkConnectorRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func dataSourceNetworkConnectorRead(ctx context.Context, data *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
+	var id = data.Get("id").(string)
 	var connector *cloudconnexa.NetworkConnector
 	var err error
-	id := d.Get("id").(string)
-	connector, err = c.NetworkConnectors.GetByID(id)
-	if err != nil {
-		return append(diags, diag.Errorf("Failed to get network connector with ID: %s, %s", id, err)...)
-	}
-	if connector == nil {
-		return append(diags, diag.Errorf("Connector with id %s was not found", id)...)
+	if id != "" {
+		connector, err = c.NetworkConnectors.GetByID(id)
+		if err != nil {
+			return append(diags, diag.Errorf("Failed to get network connector with ID: %s, %s", id, err)...)
+		}
+		if connector == nil {
+			return append(diags, diag.Errorf("Network connector with id %s was not found", id)...)
+		}
+	} else {
+		var name = data.Get("name").(string)
+		connector, err = c.NetworkConnectors.GetByName(name)
+		if err != nil {
+			return append(diags, diag.Errorf("Failed to get network connector with name: %s, %s", name, err)...)
+		}
+		if connector == nil {
+			return append(diags, diag.Errorf("Network connector with name %s was not found", name)...)
+		}
 	}
 
-	setNetworkConnectorData(d, connector)
+	setNetworkConnectorData(data, connector)
 	if connector.TunnelingProtocol == "OPENVPN" {
 		token, err := c.NetworkConnectors.GetToken(connector.ID)
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
-		d.Set("token", token)
+		data.Set("token", token)
 		profile, err := c.NetworkConnectors.GetProfile(connector.ID)
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
-		d.Set("profile", profile)
+		data.Set("profile", profile)
 	}
 	return diags
 }

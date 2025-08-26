@@ -2,6 +2,7 @@ package cloudconnexa
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
@@ -15,13 +16,14 @@ func dataSourceHostApplication() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Description: "Application ID",
 			},
 			"name": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Application name",
+				Type:         schema.TypeString,
+				Optional:     true,
+				Description:  "Application name",
+				ExactlyOneOf: []string{"id", "name"},
 			},
 			"description": {
 				Type:     schema.TypeString,
@@ -59,15 +61,26 @@ func dataSourceHostApplication() *schema.Resource {
 func dataSourceHostApplicationRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
+	var id = data.Get("id").(string)
 	var application *cloudconnexa.ApplicationResponse
 	var err error
-	id := data.Get("id").(string)
-	application, err = c.HostApplications.Get(id)
-	if err != nil {
-		return append(diags, diag.Errorf("Failed to get host application with ID: %s, %s", id, err)...)
-	}
-	if application == nil {
-		return append(diags, diag.Errorf("Application with id %s was not found", id)...)
+	if id != "" {
+		application, err = c.HostApplications.Get(id)
+		if err != nil {
+			return append(diags, diag.Errorf("Failed to get application with ID: %s, %s", id, err)...)
+		}
+		if application == nil {
+			return append(diags, diag.Errorf("Application with id %s was not found", id)...)
+		}
+	} else {
+		var name = data.Get("name").(string)
+		application, err = c.HostApplications.GetByName(name)
+		if err != nil {
+			return append(diags, diag.Errorf("Failed to get application with name: %s, %s", name, err)...)
+		}
+		if application == nil {
+			return append(diags, diag.Errorf("Application with name %s was not found", name)...)
+		}
 	}
 	setApplicationData(data, application)
 	return nil

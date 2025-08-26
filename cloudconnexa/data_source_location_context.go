@@ -16,11 +16,12 @@ func dataSourceLocationContext() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
 			"name": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ExactlyOneOf: []string{"id", "name"},
 			},
 			"description": {
 				Type:     schema.TypeString,
@@ -67,13 +68,25 @@ func dataSourceLocationContextRead(ctx context.Context, data *schema.ResourceDat
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
 	var id = data.Get("id").(string)
-	context, err := c.LocationContexts.Get(id)
-
-	if err != nil {
-		return append(diags, diag.Errorf("Failed to get location context with ID: %s, %s", id, err)...)
-	}
-	if context == nil {
-		return append(diags, diag.Errorf("Location Context with ID %s was not found", id)...)
+	var context *cloudconnexa.LocationContext
+	var err error
+	if id != "" {
+		context, err = c.LocationContexts.Get(id)
+		if err != nil {
+			return append(diags, diag.Errorf("Failed to get location context with ID: %s, %s", id, err)...)
+		}
+		if context == nil {
+			return append(diags, diag.Errorf("Location context with id %s was not found", id)...)
+		}
+	} else {
+		var name = data.Get("name").(string)
+		context, err = c.LocationContexts.GetByName(name)
+		if err != nil {
+			return append(diags, diag.Errorf("Failed to get location context with name: %s, %s", name, err)...)
+		}
+		if context == nil {
+			return append(diags, diag.Errorf("Location context with name %s was not found", name)...)
+		}
 	}
 	setLocationContextData(data, context)
 	return nil
