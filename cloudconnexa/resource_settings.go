@@ -354,12 +354,12 @@ func resourceSettingsUpdate(ctx context.Context, d *schema.ResourceData, m inter
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
+	}
 
-		if d.HasChange("topology") && d.Get("topology") != "" {
-			_, err := c.Settings.SetTopology(d.Get("topology").(string))
-			if err != nil {
-				return append(diags, diag.FromErr(err)...)
-			}
+	if d.HasChange("topology") && d.Get("topology") != "" {
+		_, err := c.Settings.SetTopology(d.Get("topology").(string))
+		if err != nil {
+			return append(diags, diag.FromErr(err)...)
 		}
 	}
 
