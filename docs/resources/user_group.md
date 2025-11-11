@@ -471,7 +471,7 @@ output "regional_coverage" {
 - `internet_access` (String)
 - `max_device` (Number) The maximum number of devices that can be connected to the user group.
 - `system_subnets` (List of String) A list of subnets that are accessible to the user group.
-- `vpn_region_ids` (List of String) A list of regions that are accessible to the user group.
+- `vpn_region_ids` (List of String) A list of regions IDs that are accessible to the user group. Actual list of available regions can be obtained from data_source_vpn_regions.
 
 ### Read-Only
 
@@ -480,6 +480,8 @@ output "regional_coverage" {
 ## Import
 
 Import is supported using the following syntax:
+
+The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
 terraform import cloudconnexa_user_group.example <id>

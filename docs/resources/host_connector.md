@@ -405,7 +405,7 @@ output "connector_summary" {
 
 - `host_id` (String) The id of the network with which this connector is associated.
 - `name` (String) The connector display name.
-- `vpn_region_id` (String) The id of the region where the connector will be deployed.
+- `vpn_region_id` (String) The ID of the region where the connector will be deployed. Actual list of available regions can be obtained from data_source_vpn_regions.
 
 ### Optional
 
@@ -422,6 +422,8 @@ output "connector_summary" {
 ## Import
 
 Import is supported using the following syntax:
+
+The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
 terraform import cloudconnexa_host_connector.example <id>
