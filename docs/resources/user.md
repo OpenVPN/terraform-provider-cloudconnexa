@@ -169,6 +169,7 @@ output "team_member_ids" {
 - `first_name` (String) User's first name.
 - `last_name` (String) User's last name.
 - `role` (String) The type of user role. Valid values are `ADMIN`, `MEMBER`, or `OWNER`.
+- `secondary_groups_ids` (List of String) The UUIDs of secondary user's groups.
 
 ### Read-Only
 
@@ -190,6 +191,8 @@ Optional:
 ## Import
 
 Import is supported using the following syntax:
+
+The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
 terraform import cloudconnexa_user.example <username@cloud_id>

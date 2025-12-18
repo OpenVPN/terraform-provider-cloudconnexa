@@ -59,7 +59,7 @@ resource "cloudconnexa_settings" "production" {
 
   # Profile and connection settings
   profile_distribution = "MANUAL" # Manual distribution for production control
-  connection_timeout   = 1 # 1 hour for production
+  connection_timeout   = 1        # 1 hour for production
 
   # Production client options
   client_options = [
@@ -131,7 +131,7 @@ resource "cloudconnexa_settings" "staging" {
 
   # Profile and connection settings
   profile_distribution = "AUTOMATIC"
-  connection_timeout   = 8
+  connection_timeout   = 8        # 8 hours for staging
 
   # Staging client options
   client_options = [
@@ -199,7 +199,7 @@ resource "cloudconnexa_settings" "development" {
 
   # Profile and connection settings
   profile_distribution = "AUTOMATIC"
-  connection_timeout   = 3 # Shorter timeout for development
+  connection_timeout   = 3   # 3 hours for development
 
   # Development client options
   client_options = [
@@ -282,7 +282,7 @@ resource "cloudconnexa_settings" "enterprise" {
 
   # Enterprise profile and connection settings
   profile_distribution = "MANUAL"
-  connection_timeout   = 15 # 15 hours for enterprise
+  connection_timeout   = 15  # 15 hours for enterprise
 
   # Enterprise client options with security focus
   client_options = [
@@ -362,7 +362,7 @@ resource "cloudconnexa_settings" "remote_work" {
 
   # Remote work profile and connection settings
   profile_distribution = "AUTOMATIC"
-  connection_timeout   = 1 # 1 hour for long remote sessions
+  connection_timeout   = 1    # 1 hour for long remote sessions
 
   # Remote work client options
   client_options = [
@@ -428,7 +428,7 @@ resource "cloudconnexa_settings" "guest_network" {
 
   # Guest profile and connection settings
   profile_distribution = "AUTOMATIC"
-  connection_timeout   = 2 # Short timeout for guests
+  connection_timeout   = 2   # 2 hours for guests
 
   # Minimal client options for guests
   client_options = [
@@ -508,7 +508,7 @@ resource "cloudconnexa_settings" "high_availability" {
 
   # HA profile and connection settings
   profile_distribution = "MANUAL"
-  connection_timeout   = 60 # 1 hour for critical systems
+  connection_timeout   = 24   # 24 hours for critical systems
 
   # HA client options with maximum reliability
   client_options = [
@@ -693,7 +693,7 @@ output "settings_summary" {
 - `connect_auth` (String)
 - `connection_timeout` (Number)
 - `default_dns_suffix` (String)
-- `default_region` (String)
+- `default_region` (String) ID of the default region. Actual list of available regions can be obtained from data_source_vpn_regions.
 - `device_allowance_force_update` (Boolean)
 - `device_allowance_per_user` (Number)
 - `device_enforcement` (String)
@@ -759,6 +759,8 @@ Optional:
 ## Import
 
 Import is supported using the following syntax:
+
+The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
 # Settings is a singleton resource, so the import ID can be any value
