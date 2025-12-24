@@ -135,7 +135,7 @@ func resourceUserCreate(ctx context.Context, d *schema.ResourceData, m interface
 		FirstName:         firstName,
 		LastName:          lastName,
 		GroupID:           groupId,
-		SecondaryGroupIds: toStrings(secondaryGroupsIds),
+		SecondaryGroupIDs: toStrings(secondaryGroupsIds),
 		Devices:           devices,
 		Role:              role,
 	}
@@ -165,7 +165,7 @@ func resourceUserRead(ctx context.Context, d *schema.ResourceData, m interface{}
 		d.Set("first_name", u.FirstName)
 		d.Set("last_name", u.LastName)
 		d.Set("group_id", u.GroupID)
-		d.Set("secondary_groups_ids", u.SecondaryGroupIds)
+		d.Set("secondary_groups_ids", u.SecondaryGroupIDs)
 		d.Set("devices", u.Devices)
 		d.Set("role", u.Role)
 	}
@@ -199,7 +199,7 @@ func resourceUserUpdate(ctx context.Context, d *schema.ResourceData, m interface
 		FirstName:         firstName.(string),
 		LastName:          lastName.(string),
 		GroupID:           groupId.(string),
-		SecondaryGroupIds: toStrings(secondaryGroupsIds.([]interface{})),
+		SecondaryGroupIDs: toStrings(secondaryGroupsIds.([]interface{})),
 		Role:              role.(string),
 		Status:            status,
 	})
