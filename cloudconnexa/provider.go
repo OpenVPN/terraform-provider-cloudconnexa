@@ -3,6 +3,7 @@ package cloudconnexa
 import (
 	"context"
 	"fmt"
+	"regexp"
 
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 
@@ -15,6 +16,9 @@ const ClientIDEnvVar = "CLOUDCONNEXA_CLIENT_ID"
 
 // ClientSecretEnvVar is the environment variable name for the CloudConnexa client secret
 const ClientSecretEnvVar = "CLOUDCONNEXA_CLIENT_SECRET"
+
+// cloudIDPattern validates that cloud_id contains only alphanumeric characters and hyphens
+var cloudIDPattern = regexp.MustCompile(`^[a-zA-Z0-9-]+$`)
 
 // version represents the current version of the Terraform provider
 var version = "v1.1.2"
@@ -65,6 +69,7 @@ func Provider() *schema.Provider {
 			"cloudconnexa_network_connector":   resourceNetworkConnector(),
 			"cloudconnexa_host_connector":      resourceHostConnector(),
 			"cloudconnexa_route":               resourceRoute(),
+			"cloudconnexa_host_route":          resourceHostRoute(),
 			"cloudconnexa_dns_record":          resourceDnsRecord(),
 			"cloudconnexa_user":                resourceUser(),
 			"cloudconnexa_host":                resourceHost(),
@@ -76,6 +81,7 @@ func Provider() *schema.Provider {
 			"cloudconnexa_location_context":    resourceLocationContext(),
 			"cloudconnexa_access_group":        resourceAccessGroup(),
 			"cloudconnexa_settings":            resourceSettings(),
+			"cloudconnexa_device":              resourceDevice(),
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
@@ -87,6 +93,7 @@ func Provider() *schema.Provider {
 			"cloudconnexa_vpn_region":          dataSourceVpnRegion(),
 			"cloudconnexa_vpn_regions":         dataSourceVpnRegions(),
 			"cloudconnexa_network_routes":      dataSourceNetworkRoutes(),
+			"cloudconnexa_host_routes":         dataSourceHostRoutes(),
 			"cloudconnexa_host":                dataSourceHost(),
 			"cloudconnexa_network_ip_service":  dataSourceNetworkIPService(),
 			"cloudconnexa_host_ip_service":     dataSourceHostIPService(),
@@ -95,6 +102,9 @@ func Provider() *schema.Provider {
 			"cloudconnexa_location_context":    dataSourceLocationContext(),
 			"cloudconnexa_access_group":        dataSourceAccessGroup(),
 			"cloudconnexa_settings":            dataSourceSettings(),
+			"cloudconnexa_sessions":            dataSourceSessions(),
+			"cloudconnexa_devices":             dataSourceDevices(),
+			"cloudconnexa_device":              dataSourceDevice(),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}
@@ -116,7 +126,12 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	baseUrl := d.Get("base_url").(string)
 	if baseUrl == "" {
 		cloudId := d.Get("cloud_id").(string)
-		baseUrl = "https://" + cloudId + ".api.openvpn.com"
+		if cloudId != "" && !cloudIDPattern.MatchString(cloudId) {
+			return nil, diag.Errorf("Invalid cloud_id format: must contain only alphanumeric characters and hyphens")
+		}
+		if cloudId != "" {
+			baseUrl = "https://" + cloudId + ".api.openvpn.com"
+		}
 	}
 	cloudConnexaClient, err := cloudconnexa.NewClient(baseUrl, clientId, clientSecret)
 	var diags diag.Diagnostics

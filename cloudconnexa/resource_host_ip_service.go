@@ -61,12 +61,11 @@ func resourceHostIPService() *schema.Resource {
 func resourceHostIpServiceUpdate(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 
-	s, err := c.HostIPServices.Update(data.Id(), resourceDataToHostIpService(data))
+	_, err := c.HostIPServices.Update(data.Id(), resourceDataToHostIpService(data))
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	setHostIpServiceResourceData(data, s)
-	return nil
+	return resourceHostIpServiceRead(ctx, data, i)
 }
 
 // resourceHostIpServiceConfig returns the schema for host IP service configuration
@@ -198,8 +197,8 @@ func resourceHostIpServiceCreate(ctx context.Context, data *schema.ResourceData,
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	setHostIpServiceResourceData(data, createdService)
-	return nil
+	data.SetId(createdService.ID)
+	return resourceHostIpServiceRead(ctx, data, m)
 }
 
 // resourceDataToHostIpService converts Terraform resource data to a host IP service configuration

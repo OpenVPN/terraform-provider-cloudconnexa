@@ -67,6 +67,34 @@ resource "cloudconnexa_user" "contractor" {
   }
 }
 
+# Suspended user example - temporarily disable access
+resource "cloudconnexa_user" "suspended_user" {
+  username   = "suspended.user"
+  group_id   = cloudconnexa_user_group.contractors.id
+  role       = "MEMBER"
+  first_name = "Suspended"
+  last_name  = "User"
+  email      = "suspended@example.com"
+  status     = "SUSPENDED" # User cannot connect when suspended
+}
+
+# User that can be toggled between active and suspended
+variable "user_active" {
+  description = "Whether the temporary user should be active"
+  type        = bool
+  default     = true
+}
+
+resource "cloudconnexa_user" "toggleable_user" {
+  username   = "toggleable.user"
+  group_id   = cloudconnexa_user_group.contractors.id
+  role       = "MEMBER"
+  first_name = "Toggleable"
+  last_name  = "User"
+  email      = "toggleable@example.com"
+  status     = var.user_active ? "ACTIVE" : "SUSPENDED"
+}
+
 # Basic user without email (for testing)
 resource "cloudconnexa_user" "basic_user" {
   username = "test.user"

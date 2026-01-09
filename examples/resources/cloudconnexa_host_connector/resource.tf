@@ -94,6 +94,30 @@ resource "cloudconnexa_host_connector" "dr_site_connector" {
   vpn_region_id = "us-west-2"
 }
 
+# 4a. Suspended connector example - temporarily disable a connector
+resource "cloudconnexa_host_connector" "maintenance_connector" {
+  name          = "maintenance-connector"
+  description   = "Connector under maintenance - suspended"
+  host_id       = cloudconnexa_host.backup_site.id
+  vpn_region_id = "us-west-2"
+  status        = "SUSPENDED" # Connector is suspended during maintenance
+}
+
+# 4b. Connector that can be toggled between active and suspended
+variable "dr_connector_active" {
+  description = "Whether the DR connector should be active"
+  type        = bool
+  default     = false # DR connector is suspended by default until failover
+}
+
+resource "cloudconnexa_host_connector" "dr_failover_connector" {
+  name          = "dr-failover-connector"
+  description   = "DR connector - activated only during failover"
+  host_id       = cloudconnexa_host.backup_site.id
+  vpn_region_id = "us-west-2"
+  status        = var.dr_connector_active ? "ACTIVE" : "SUSPENDED"
+}
+
 # 5. Edge computing connectors
 resource "cloudconnexa_host_connector" "edge_us_connector" {
   name          = "edge-us-connector"

@@ -212,8 +212,8 @@ func resourceSettingsUpdate(ctx context.Context, d *schema.ResourceData, m inter
 			return append(diags, diag.FromErr(err)...)
 		}
 	}
-	if d.HasChange("two_factor_auth") && d.Get("two_factor_auth") != "" {
-		_, err := c.Settings.SetTwoFactorAuthEnabled(d.Get("allow_trusted_devices").(bool))
+	if d.HasChange("two_factor_auth") {
+		_, err := c.Settings.SetTwoFactorAuthEnabled(d.Get("two_factor_auth").(bool))
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
@@ -529,7 +529,7 @@ func resourceSettingsRead(ctx context.Context, d *schema.ResourceData, m interfa
 		subnetValue := make(map[string]interface{})
 		subnetValue["ip_v4_address"] = subnet.IPV4Address
 		subnetValue["ip_v6_address"] = subnet.IPV6Address
-		d.Set("subnet", subnetValue)
+		d.Set("subnet", []interface{}{subnetValue})
 	}
 
 	// Get and set topology if specified

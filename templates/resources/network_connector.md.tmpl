@@ -1,0 +1,29 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: ""
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+~> **WARNING: Status Field Limitation** The `status` field is **write-only**. The CloudConnexa API does not return the connector status in GET responses. This means:
+- Terraform can suspend/activate connectors via the `status` field
+- Terraform **cannot detect** external status changes (e.g., via CloudConnexa UI)
+- Default value is `ACTIVE`. If you need to suspend, explicitly set `status = "SUSPENDED"`
+
+## Example Usage
+
+{{ tffile (printf "examples/resources/%s/resource.tf" .Name)}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
+
+{{ codefile "shell" (printf "examples/resources/%s/import.sh" .Name)}}

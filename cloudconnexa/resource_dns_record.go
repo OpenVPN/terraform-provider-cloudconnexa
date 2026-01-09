@@ -112,7 +112,7 @@ func resourceDnsRecordRead(ctx context.Context, d *schema.ResourceData, m interf
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
 	id := d.Id()
-	r, err := c.DNSRecords.GetDNSRecord(id)
+	r, err := c.DNSRecords.GetByID(id)
 	if err != nil {
 		return append(diags, diag.Errorf("Failed to get DNS record with ID: %s, %s", id, err)...)
 	}

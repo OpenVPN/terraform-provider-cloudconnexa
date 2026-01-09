@@ -131,7 +131,7 @@ resource "cloudconnexa_settings" "staging" {
 
   # Profile and connection settings
   profile_distribution = "AUTOMATIC"
-  connection_timeout   = 8        # 8 hours for staging
+  connection_timeout   = 8 # 8 hours for staging
 
   # Staging client options
   client_options = [
@@ -199,7 +199,7 @@ resource "cloudconnexa_settings" "development" {
 
   # Profile and connection settings
   profile_distribution = "AUTOMATIC"
-  connection_timeout   = 3   # 3 hours for development
+  connection_timeout   = 3 # 3 hours for development
 
   # Development client options
   client_options = [
@@ -282,7 +282,7 @@ resource "cloudconnexa_settings" "enterprise" {
 
   # Enterprise profile and connection settings
   profile_distribution = "MANUAL"
-  connection_timeout   = 15  # 15 hours for enterprise
+  connection_timeout   = 15 # 15 hours for enterprise
 
   # Enterprise client options with security focus
   client_options = [
@@ -362,7 +362,7 @@ resource "cloudconnexa_settings" "remote_work" {
 
   # Remote work profile and connection settings
   profile_distribution = "AUTOMATIC"
-  connection_timeout   = 1    # 1 hour for long remote sessions
+  connection_timeout   = 1 # 1 hour for long remote sessions
 
   # Remote work client options
   client_options = [
@@ -428,7 +428,7 @@ resource "cloudconnexa_settings" "guest_network" {
 
   # Guest profile and connection settings
   profile_distribution = "AUTOMATIC"
-  connection_timeout   = 2   # 2 hours for guests
+  connection_timeout   = 2 # 2 hours for guests
 
   # Minimal client options for guests
   client_options = [
@@ -508,7 +508,7 @@ resource "cloudconnexa_settings" "high_availability" {
 
   # HA profile and connection settings
   profile_distribution = "MANUAL"
-  connection_timeout   = 24   # 24 hours for critical systems
+  connection_timeout   = 24 # 24 hours for critical systems
 
   # HA client options with maximum reliability
   client_options = [

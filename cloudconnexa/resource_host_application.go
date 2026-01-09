@@ -62,12 +62,11 @@ func resourceHostApplication() *schema.Resource {
 func resourceHostApplicationUpdate(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 
-	s, err := c.HostApplications.Update(data.Id(), resourceDataToHostApplication(data))
+	_, err := c.HostApplications.Update(data.Id(), resourceDataToHostApplication(data))
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	setApplicationData(data, s)
-	return nil
+	return resourceHostApplicationRead(ctx, data, i)
 }
 
 // resourceHostApplicationRoute returns the schema for host application routes
@@ -226,8 +225,8 @@ func resourceHostApplicationCreate(ctx context.Context, data *schema.ResourceDat
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	setApplicationData(data, createdApplication)
-	return nil
+	data.SetId(createdApplication.ID)
+	return resourceHostApplicationRead(ctx, data, m)
 }
 
 // resourceDataToHostApplication converts Terraform resource data to a host application.

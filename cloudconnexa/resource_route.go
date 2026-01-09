@@ -31,7 +31,7 @@ func resourceRoute() *schema.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice([]string{"IP_V4", "IP_V6"}, false),
-				Description:  "The type of route. Valid values are `IP_V4`, `IP_V6`, and `DOMAIN`.",
+				Description:  "The type of route. Valid values are `IP_V4` and `IP_V6`.",
 			},
 			"subnet": {
 				Type:        schema.TypeString,
