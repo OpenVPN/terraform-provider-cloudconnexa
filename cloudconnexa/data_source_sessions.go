@@ -138,12 +138,18 @@ func dataSourceSessionsRead(ctx context.Context, d *schema.ResourceData, m inter
 	}
 
 	if v, ok := d.GetOk("start_date"); ok {
-		t, _ := time.Parse(time.RFC3339, v.(string))
+		t, err := time.Parse(time.RFC3339, v.(string))
+		if err != nil {
+			return diag.Errorf("Invalid start_date format: %s", err)
+		}
 		options.StartDate = &t
 	}
 
 	if v, ok := d.GetOk("end_date"); ok {
-		t, _ := time.Parse(time.RFC3339, v.(string))
+		t, err := time.Parse(time.RFC3339, v.(string))
+		if err != nil {
+			return diag.Errorf("Invalid end_date format: %s", err)
+		}
 		options.EndDate = &t
 	}
 

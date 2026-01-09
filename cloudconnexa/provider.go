@@ -3,6 +3,7 @@ package cloudconnexa
 import (
 	"context"
 	"fmt"
+	"regexp"
 
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 
@@ -15,6 +16,9 @@ const ClientIDEnvVar = "CLOUDCONNEXA_CLIENT_ID"
 
 // ClientSecretEnvVar is the environment variable name for the CloudConnexa client secret
 const ClientSecretEnvVar = "CLOUDCONNEXA_CLIENT_SECRET"
+
+// cloudIDPattern validates that cloud_id contains only alphanumeric characters and hyphens
+var cloudIDPattern = regexp.MustCompile(`^[a-zA-Z0-9-]+$`)
 
 // version represents the current version of the Terraform provider
 var version = "v1.1.2"
@@ -121,6 +125,9 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	baseUrl := d.Get("base_url").(string)
 	if baseUrl == "" {
 		cloudId := d.Get("cloud_id").(string)
+		if !cloudIDPattern.MatchString(cloudId) {
+			return nil, diag.Errorf("Invalid cloud_id format: must contain only alphanumeric characters and hyphens")
+		}
 		baseUrl = "https://" + cloudId + ".api.openvpn.com"
 	}
 	cloudConnexaClient, err := cloudconnexa.NewClient(baseUrl, clientId, clientSecret)
