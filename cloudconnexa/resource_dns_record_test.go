@@ -55,7 +55,7 @@ func testAccCheckCloudConnexaDnsRecordDestroy(s *terraform.State) error {
 		}
 
 		recordId := rs.Primary.ID
-		r, err := client.DNSRecords.GetDNSRecord(recordId)
+		r, err := client.DNSRecords.GetByID(recordId)
 
 		if err != nil {
 			return err

@@ -564,9 +564,11 @@ output "connector_summary" {
 
 - `description` (String) The description for the UI. Defaults to `Managed by Terraform`.
 - `ipsec_config` (Block List, Max: 1) (see [below for nested schema](#nestedblock--ipsec_config))
+- `status` (String) The status of the connector. Valid values are `ACTIVE` or `SUSPENDED`. When set to `SUSPENDED`, the connector will be suspended. Note: This field is managed by Terraform and may not reflect external changes.
 
 ### Read-Only
 
+- `connection_status` (String) The connection status of the connector.
 - `id` (String) The ID of this resource.
 - `ip_v4_address` (String) The IPV4 address of the connector.
 - `ip_v6_address` (String) The IPV6 address of the connector.

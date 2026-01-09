@@ -68,26 +68,58 @@ func resourceHostConnector() *schema.Resource {
 				Sensitive:   true,
 				Description: "Connector token.",
 			},
+			"status": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "ACTIVE",
+				Description:  "The status of the connector. Valid values are `ACTIVE` or `SUSPENDED`. When set to `SUSPENDED`, the connector will be suspended. Note: This field is managed by Terraform and may not reflect external changes.",
+				ValidateFunc: validation.StringInSlice([]string{"ACTIVE", "SUSPENDED"}, false),
+			},
+			"connection_status": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The connection status of the connector.",
+			},
 		},
 	}
 }
 
 // resourceHostConnectorUpdate updates an existing CloudConnexa host connector with new configuration.
-// It handles updating the connector's name, description, and VPN region.
+// It handles updating the connector's name, description, VPN region, and status.
 func resourceHostConnectorUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	connector := cloudconnexa.HostConnector{
-		ID:          d.Id(),
-		Name:        d.Get("name").(string),
-		Description: d.Get("description").(string),
-		VpnRegionID: d.Get("vpn_region_id").(string),
+
+	// Handle status change (suspend/activate)
+	if d.HasChange("status") {
+		_, newStatus := d.GetChange("status")
+		switch newStatus.(string) {
+		case "SUSPENDED":
+			if err := c.HostConnectors.Suspend(d.Id()); err != nil {
+				return append(diags, diag.FromErr(err)...)
+			}
+		case "ACTIVE":
+			if err := c.HostConnectors.Activate(d.Id()); err != nil {
+				return append(diags, diag.FromErr(err)...)
+			}
+		}
 	}
-	_, err := c.HostConnectors.Update(connector)
-	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+
+	// Handle other field changes
+	if d.HasChanges("name", "description", "vpn_region_id") {
+		connector := cloudconnexa.HostConnector{
+			ID:          d.Id(),
+			Name:        d.Get("name").(string),
+			Description: d.Get("description").(string),
+			VpnRegionID: d.Get("vpn_region_id").(string),
+		}
+		_, err := c.HostConnectors.Update(connector)
+		if err != nil {
+			return append(diags, diag.FromErr(err)...)
+		}
 	}
-	return diags
+
+	return resourceHostConnectorRead(ctx, d, m)
 }
 
 // resourceHostConnectorCreate creates a new CloudConnexa host connector.
@@ -148,16 +180,20 @@ func resourceHostConnectorRead(ctx context.Context, d *schema.ResourceData, m in
 	} else {
 		d.SetId(connector.ID)
 		d.Set("name", connector.Name)
+		d.Set("description", connector.Description)
 		d.Set("vpn_region_id", connector.VpnRegionID)
 		d.Set("host_id", connector.NetworkItemID)
 		d.Set("ip_v4_address", connector.IPv4Address)
 		d.Set("ip_v6_address", connector.IPv6Address)
+		d.Set("connection_status", connector.ConnectionStatus)
 		d.Set("token", token)
 		profile, err := c.HostConnectors.GetProfile(connector.ID)
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
 		d.Set("profile", profile)
+		// Note: status is not read from API as SDK doesn't support it.
+		// Terraform manages status locally via suspend/activate operations.
 	}
 	return diags
 }

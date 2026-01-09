@@ -66,6 +66,23 @@ func resourceUser() *schema.Resource {
 				Default:     "MEMBER",
 				Description: "The type of user role. Valid values are `ADMIN`, `MEMBER`, or `OWNER`.",
 			},
+			"status": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				Description:  "The status of the user. Valid values are `ACTIVE` or `SUSPENDED`. When set to `SUSPENDED`, the user will be suspended and unable to connect.",
+				ValidateFunc: validation.StringInSlice([]string{"ACTIVE", "SUSPENDED"}, false),
+			},
+			"auth_type": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The authentication type of the user.",
+			},
+			"connection_status": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The connection status of the user.",
+			},
 			"devices": {
 				Type:        schema.TypeList,
 				Optional:    true,
@@ -144,7 +161,7 @@ func resourceUserCreate(ctx context.Context, d *schema.ResourceData, m interface
 		return append(diags, diag.FromErr(err)...)
 	}
 	d.SetId(user.ID)
-	return diags
+	return resourceUserRead(ctx, d, m)
 }
 
 // resourceUserRead retrieves information about an existing CloudConnexa user
@@ -166,8 +183,23 @@ func resourceUserRead(ctx context.Context, d *schema.ResourceData, m interface{}
 		d.Set("last_name", u.LastName)
 		d.Set("group_id", u.GroupID)
 		d.Set("secondary_groups_ids", u.SecondaryGroupIDs)
-		d.Set("devices", u.Devices)
 		d.Set("role", u.Role)
+		d.Set("status", u.Status)
+		d.Set("auth_type", u.AuthType)
+		d.Set("connection_status", u.ConnectionStatus)
+
+		// Convert devices from SDK struct to schema format
+		// SDK uses IPv4Address/IPv6Address, schema uses ipv4_address/ipv6_address
+		devices := make([]map[string]interface{}, len(u.Devices))
+		for i, device := range u.Devices {
+			devices[i] = map[string]interface{}{
+				"name":         device.Name,
+				"description":  device.Description,
+				"ipv4_address": device.IPv4Address,
+				"ipv6_address": device.IPv6Address,
+			}
+		}
+		d.Set("devices", devices)
 	}
 	return diags
 }
@@ -176,39 +208,53 @@ func resourceUserRead(ctx context.Context, d *schema.ResourceData, m interface{}
 func resourceUserUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	if !d.HasChanges("first_name", "last_name", "group_id", "email", "role", "secondary_groups_ids") {
-		return diags
+
+	// Handle status change (suspend/activate)
+	if d.HasChange("status") {
+		_, newStatus := d.GetChange("status")
+		if newStatus.(string) == "SUSPENDED" {
+			if err := c.Users.Suspend(d.Id()); err != nil {
+				return append(diags, diag.FromErr(err)...)
+			}
+		} else if newStatus.(string) == "ACTIVE" {
+			if err := c.Users.Activate(d.Id()); err != nil {
+				return append(diags, diag.FromErr(err)...)
+			}
+		}
 	}
 
-	u, err := c.Users.Get(d.Id())
-	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+	// Handle other field changes
+	if d.HasChanges("first_name", "last_name", "group_id", "email", "role", "secondary_groups_ids") {
+		u, err := c.Users.Get(d.Id())
+		if err != nil {
+			return append(diags, diag.FromErr(err)...)
+		}
+
+		_, email := d.GetChange("email")
+		_, firstName := d.GetChange("first_name")
+		_, lastName := d.GetChange("last_name")
+		_, role := d.GetChange("role")
+		_, groupId := d.GetChange("group_id")
+		_, secondaryGroupsIds := d.GetChange("secondary_groups_ids")
+		status := u.Status
+
+		err = c.Users.Update(cloudconnexa.User{
+			ID:                d.Id(),
+			Email:             email.(string),
+			FirstName:         firstName.(string),
+			LastName:          lastName.(string),
+			GroupID:           groupId.(string),
+			SecondaryGroupIDs: toStrings(secondaryGroupsIds.([]interface{})),
+			Role:              role.(string),
+			Status:            status,
+		})
+
+		if err != nil {
+			return append(diags, diag.FromErr(err)...)
+		}
 	}
 
-	_, email := d.GetChange("email")
-	_, firstName := d.GetChange("first_name")
-	_, lastName := d.GetChange("last_name")
-	_, role := d.GetChange("role")
-	_, groupId := d.GetChange("group_id")
-	_, secondaryGroupsIds := d.GetChange("secondary_groups_ids")
-	status := u.Status
-
-	err = c.Users.Update(cloudconnexa.User{
-		ID:                d.Id(),
-		Email:             email.(string),
-		FirstName:         firstName.(string),
-		LastName:          lastName.(string),
-		GroupID:           groupId.(string),
-		SecondaryGroupIDs: toStrings(secondaryGroupsIds.([]interface{})),
-		Role:              role.(string),
-		Status:            status,
-	})
-
-	if err != nil {
-		return append(diags, diag.FromErr(err)...)
-	}
-
-	return diags
+	return resourceUserRead(ctx, d, m)
 }
 
 // resourceUserDelete removes an existing CloudConnexa user

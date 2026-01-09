@@ -81,6 +81,7 @@ func Provider() *schema.Provider {
 			"cloudconnexa_location_context":    resourceLocationContext(),
 			"cloudconnexa_access_group":        resourceAccessGroup(),
 			"cloudconnexa_settings":            resourceSettings(),
+			"cloudconnexa_device":              resourceDevice(),
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
@@ -125,10 +126,12 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	baseUrl := d.Get("base_url").(string)
 	if baseUrl == "" {
 		cloudId := d.Get("cloud_id").(string)
-		if !cloudIDPattern.MatchString(cloudId) {
+		if cloudId != "" && !cloudIDPattern.MatchString(cloudId) {
 			return nil, diag.Errorf("Invalid cloud_id format: must contain only alphanumeric characters and hyphens")
 		}
-		baseUrl = "https://" + cloudId + ".api.openvpn.com"
+		if cloudId != "" {
+			baseUrl = "https://" + cloudId + ".api.openvpn.com"
+		}
 	}
 	cloudConnexaClient, err := cloudconnexa.NewClient(baseUrl, clientId, clientSecret)
 	var diags diag.Diagnostics
