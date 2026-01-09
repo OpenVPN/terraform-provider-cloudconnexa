@@ -151,7 +151,7 @@ func resourceAccessGroupCreate(ctx context.Context, d *schema.ResourceData, m in
 		return append(diags, diag.FromErr(err)...)
 	}
 	d.SetId(accessGroup.ID)
-	return diags
+	return resourceAccessGroupRead(ctx, d, m)
 }
 
 // resourceAccessGroupRead retrieves an access group from CloudConnexa

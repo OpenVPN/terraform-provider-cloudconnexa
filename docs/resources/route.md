@@ -318,7 +318,7 @@ output "special_purpose_routes" {
 
 - `network_item_id` (String) The id of the network on which to create the route.
 - `subnet` (String) The target value of the default route.
-- `type` (String) The type of route. Valid values are `IP_V4`, `IP_V6`, and `DOMAIN`.
+- `type` (String) The type of route. Valid values are `IP_V4` and `IP_V6`.
 
 ### Optional
 

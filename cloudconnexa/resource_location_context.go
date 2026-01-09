@@ -140,7 +140,7 @@ func resourceLocationContextCreate(ctx context.Context, d *schema.ResourceData, 
 		return append(diags, diag.FromErr(err)...)
 	}
 	d.SetId(response.ID)
-	return diags
+	return resourceLocationContextRead(ctx, d, m)
 }
 
 // resourceLocationContextRead retrieves a Location Context from CloudConnexa.
@@ -169,7 +169,7 @@ func resourceLocationContextUpdate(ctx context.Context, d *schema.ResourceData, 
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	return diags
+	return resourceLocationContextRead(ctx, d, m)
 }
 
 // resourceLocationContextDelete removes a Location Context from CloudConnexa.
