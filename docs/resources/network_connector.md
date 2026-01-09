@@ -12,10 +12,10 @@ Use `cloudconnexa_connector` to create an CloudConnexa connector.
 
 ~> NOTE: This only creates the CloudConnexa connector object. Additional manual steps are required to associate a host in your infrastructure with the connector. Go to https://openvpn.net/cloud-docs/connector/ for more information.
 
-~> **WARNING: Status Field Limitation** The `status` field is **write-only**. The CloudConnexa API does not return the connector's suspend/active status in responses. This means:
+~> **WARNING: Status Field Limitation** The `status` field is **write-only**. The CloudConnexa API does not return the connector status in GET responses. This means:
 - Terraform can suspend/activate connectors via the `status` field
-- However, Terraform **cannot detect** if the status was changed outside of Terraform (e.g., via the CloudConnexa UI)
-- If drift occurs, you may need to run `terraform apply` to re-sync the desired state
+- Terraform **cannot detect** external status changes (e.g., via CloudConnexa UI)
+- Default value is `ACTIVE`. If you need to suspend, explicitly set `status = "SUSPENDED"`
 
 ## Example Usage
 
@@ -568,7 +568,7 @@ output "connector_summary" {
 
 - `description` (String) The description for the UI. Defaults to `Managed by Terraform`.
 - `ipsec_config` (Block List, Max: 1) (see [below for nested schema](#nestedblock--ipsec_config))
-- `status` (String) The status of the connector. Valid values are `ACTIVE` or `SUSPENDED`. When set to `SUSPENDED`, the connector will be suspended. Note: This field is managed by Terraform and may not reflect external changes.
+- `status` (String) The status of the connector. Valid values are `ACTIVE` or `SUSPENDED`. When set to `SUSPENDED`, the connector will be suspended. Note: This is a write-only field - the API does not return connector status.
 
 ### Read-Only
 

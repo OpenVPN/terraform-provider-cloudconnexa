@@ -72,7 +72,7 @@ func resourceHostConnector() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Default:      "ACTIVE",
-				Description:  "The status of the connector. Valid values are `ACTIVE` or `SUSPENDED`. When set to `SUSPENDED`, the connector will be suspended. Note: This field is managed by Terraform and may not reflect external changes.",
+				Description:  "The status of the connector. Valid values are `ACTIVE` or `SUSPENDED`. When set to `SUSPENDED`, the connector will be suspended. Note: This is a write-only field - the API does not return connector status.",
 				ValidateFunc: validation.StringInSlice([]string{"ACTIVE", "SUSPENDED"}, false),
 			},
 			"connection_status": {
@@ -192,8 +192,6 @@ func resourceHostConnectorRead(ctx context.Context, d *schema.ResourceData, m in
 			return append(diags, diag.FromErr(err)...)
 		}
 		d.Set("profile", profile)
-		// Note: status is not read from API as SDK doesn't support it.
-		// Terraform manages status locally via suspend/activate operations.
 	}
 	return diags
 }

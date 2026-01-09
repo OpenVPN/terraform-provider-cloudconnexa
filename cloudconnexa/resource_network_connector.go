@@ -77,7 +77,7 @@ func resourceNetworkConnector() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Default:      "ACTIVE",
-				Description:  "The status of the connector. Valid values are `ACTIVE` or `SUSPENDED`. When set to `SUSPENDED`, the connector will be suspended. Note: This field is managed by Terraform and may not reflect external changes.",
+				Description:  "The status of the connector. Valid values are `ACTIVE` or `SUSPENDED`. When set to `SUSPENDED`, the connector will be suspended. Note: This is a write-only field - the API does not return connector status.",
 				ValidateFunc: validation.StringInSlice([]string{"ACTIVE", "SUSPENDED"}, false),
 			},
 			"connection_status": {

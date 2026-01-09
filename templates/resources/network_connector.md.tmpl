@@ -9,10 +9,10 @@ description: |-
 
 {{ .Description | trimspace }}
 
-~> **WARNING: Status Field Limitation** The `status` field is **write-only**. The CloudConnexa API does not return the connector's suspend/active status in responses. This means:
+~> **WARNING: Status Field Limitation** The `status` field is **write-only**. The CloudConnexa API does not return the connector status in GET responses. This means:
 - Terraform can suspend/activate connectors via the `status` field
-- However, Terraform **cannot detect** if the status was changed outside of Terraform (e.g., via the CloudConnexa UI)
-- If drift occurs, you may need to run `terraform apply` to re-sync the desired state
+- Terraform **cannot detect** external status changes (e.g., via CloudConnexa UI)
+- Default value is `ACTIVE`. If you need to suspend, explicitly set `status = "SUSPENDED"`
 
 ## Example Usage
 
