@@ -212,11 +212,12 @@ func resourceUserUpdate(ctx context.Context, d *schema.ResourceData, m interface
 	// Handle status change (suspend/activate)
 	if d.HasChange("status") {
 		_, newStatus := d.GetChange("status")
-		if newStatus.(string) == "SUSPENDED" {
+		switch newStatus.(string) {
+		case "SUSPENDED":
 			if err := c.Users.Suspend(d.Id()); err != nil {
 				return append(diags, diag.FromErr(err)...)
 			}
-		} else if newStatus.(string) == "ACTIVE" {
+		case "ACTIVE":
 			if err := c.Users.Activate(d.Id()); err != nil {
 				return append(diags, diag.FromErr(err)...)
 			}
