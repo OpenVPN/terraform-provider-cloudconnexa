@@ -62,12 +62,11 @@ func resourceNetworkApplication() *schema.Resource {
 func resourceNetworkApplicationUpdate(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 
-	s, err := c.NetworkApplications.Update(data.Id(), resourceDataToNetworkApplication(data))
+	_, err := c.NetworkApplications.Update(data.Id(), resourceDataToNetworkApplication(data))
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	setNetworkApplicationData(data, s)
-	return nil
+	return resourceNetworkApplicationRead(ctx, data, i)
 }
 
 // resourceNetworkApplicationRoute returns the schema for network application routes
@@ -154,8 +153,8 @@ func resourceNetworkApplicationCreate(ctx context.Context, data *schema.Resource
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	setNetworkApplicationData(data, createdApplication)
-	return nil
+	data.SetId(createdApplication.ID)
+	return resourceNetworkApplicationRead(ctx, data, m)
 }
 
 // resourceDataToNetworkApplication converts Terraform resource data to a CloudConnexa Application

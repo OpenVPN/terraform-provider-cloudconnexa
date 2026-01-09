@@ -116,8 +116,8 @@ func resourceUserCreate(ctx context.Context, d *schema.ResourceData, m interface
 	role := d.Get("role").(string)
 	configDevices := d.Get("devices").([]interface{})
 	var devices []cloudconnexa.Device
-	for _, d := range configDevices {
-		device := d.(map[string]interface{})
+	for _, configDevice := range configDevices {
+		device := configDevice.(map[string]interface{})
 		devices = append(
 			devices,
 			cloudconnexa.Device{

@@ -71,12 +71,11 @@ func resourceNetworkIPService() *schema.Resource {
 func resourceNetworkIpServiceUpdate(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	c := i.(*cloudconnexa.Client)
 
-	s, err := c.NetworkIPServices.Update(data.Id(), resourceDataToNetworkIpService(data))
+	_, err := c.NetworkIPServices.Update(data.Id(), resourceDataToNetworkIpService(data))
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	setNetworkIpServiceResourceData(data, s)
-	return nil
+	return resourceNetworkIpServiceRead(ctx, data, i)
 }
 
 // resourceNetworkIpServiceConfig returns the schema for network IP service configuration
@@ -220,8 +219,8 @@ func resourceNetworkIpServiceCreate(ctx context.Context, data *schema.ResourceDa
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	setNetworkIpServiceResourceData(data, createdService)
-	return nil
+	data.SetId(createdService.ID)
+	return resourceNetworkIpServiceRead(ctx, data, m)
 }
 
 // resourceDataToNetworkIpService converts Terraform resource data to a CloudConnexa network IP service configuration.
