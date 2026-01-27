@@ -28,7 +28,7 @@ The Terraform provider for [CloudConnexa](https://openvpn.net/cloud-vpn/?utm_sou
 This provider plugin is maintained by:
 
 - OpenVPN team at [CloudConnexa](https://openvpn.net/cloud-vpn/?utm_source=terraform&utm_medium=docs)
-- [@arslanbekov](https://github.com/arslanbekov) Head of SRE at [ANNA Money](https://anna.money/?utm_source=terraform&utm_medium=referral&utm_campaign=docs) / [GitHub ANNA Money](http://github.com/anna-money/)
+- [@arslanbekov](https://github.com/arslanbekov) SRE at [ANNA Money](https://anna.money/?utm_source=terraform&utm_medium=referral&utm_campaign=docs)
 - [@patoarvizu](https://github.com/patoarvizu)
 
 ## Requirements
@@ -65,7 +65,7 @@ $GOPATH/bin/terraform-provider-cloudconnexa
 ...
 ```
 
-In order to test the provider, you can simply run `make test`.
+To test the provider, run `make test`.
 
 ```sh
 make test
@@ -78,5 +78,3 @@ _Note:_ Acceptance tests create real resources, and often cost money to run.
 ```sh
 make testacc
 ```
-
-_**Please note:** This provider, like CloudConnexa API, is in beta status. Report any problems via issue in this repo._
