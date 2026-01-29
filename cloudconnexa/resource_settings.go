@@ -96,7 +96,7 @@ func resourceSettings() *schema.Resource {
 				Type:     schema.TypeList,
 				MaxItems: 1,
 				Optional: true,
-				Elem:     domainRoutingSubnet(),
+				Elem:     domainRoutingSubnetSchema(),
 			},
 			"snat": {
 				Type:     schema.TypeBool,
@@ -163,8 +163,8 @@ func dnsZoneSchema() *schema.Resource {
 	}
 }
 
-// domainRoutingSubnet returns a Terraform schema for domain routing subnet configuration
-func domainRoutingSubnet() *schema.Resource {
+// domainRoutingSubnetSchema returns a Terraform schema for domain routing subnet configuration
+func domainRoutingSubnetSchema() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"ip_v4_address": {

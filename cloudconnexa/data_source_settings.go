@@ -78,7 +78,7 @@ func dataSourceSettings() *schema.Resource {
 			"domain_routing_subnet": {
 				Type:     schema.TypeList,
 				Computed: true,
-				Elem:     domainRoutingSubnet(),
+				Elem:     domainRoutingSubnetSchema(),
 			},
 			"snat": {
 				Type:     schema.TypeBool,
