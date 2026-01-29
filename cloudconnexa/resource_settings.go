@@ -388,8 +388,6 @@ func resourceSettingsRead(ctx context.Context, d *schema.ResourceData, m interfa
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
 
-	// ============ AUTH SETTINGS ============
-
 	allowTrustedDevices, err := c.Settings.GetTrustedDevicesAllowed()
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
@@ -401,8 +399,6 @@ func resourceSettingsRead(ctx context.Context, d *schema.ResourceData, m interfa
 		return append(diags, diag.FromErr(err)...)
 	}
 	d.Set("two_factor_auth", twoFactorAuth)
-
-	// ============ DNS SETTINGS ============
 
 	dnsServers, err := c.Settings.GetDNSServers()
 	if err != nil {
@@ -442,8 +438,6 @@ func resourceSettingsRead(ctx context.Context, d *schema.ResourceData, m interfa
 		d.Set("dns_zones", zoneValues)
 	}
 
-	// ============ USER SETTINGS ============
-
 	connectAuth, err := c.Settings.GetDefaultConnectAuth()
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
@@ -479,8 +473,6 @@ func resourceSettingsRead(ctx context.Context, d *schema.ResourceData, m interfa
 		return append(diags, diag.FromErr(err)...)
 	}
 	d.Set("connection_timeout", connectionTimeout)
-
-	// ============ WPC SETTINGS ============
 
 	clientOptions, err := c.Settings.GetClientOptions()
 	if err != nil {
@@ -527,8 +519,6 @@ func resourceSettingsRead(ctx context.Context, d *schema.ResourceData, m interfa
 		return append(diags, diag.FromErr(err)...)
 	}
 	d.Set("topology", topology)
-
-	// ============ SEPARATE APIs ============
 
 	dnsLog, err := c.Settings.GetDNSLogEnabled()
 	if err != nil {
