@@ -78,7 +78,7 @@ func dataSourceSettings() *schema.Resource {
 			"domain_routing_subnet": {
 				Type:     schema.TypeList,
 				Computed: true,
-				Elem:     domainRoutingSubnet(),
+				Elem:     domainRoutingSubnetSchema(),
 			},
 			"snat": {
 				Type:     schema.TypeBool,
@@ -92,6 +92,16 @@ func dataSourceSettings() *schema.Resource {
 			"topology": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+			"dns_log_enabled": {
+				Type:        schema.TypeBool,
+				Computed:    true,
+				Description: "Whether DNS logging is enabled.",
+			},
+			"access_visibility_enabled": {
+				Type:        schema.TypeBool,
+				Computed:    true,
+				Description: "Whether access visibility is enabled.",
 			},
 		},
 	}
