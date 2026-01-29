@@ -383,9 +383,12 @@ func resourceSettingsUpdate(ctx context.Context, d *schema.ResourceData, m inter
 
 // resourceSettingsRead reads the settings resource from the CloudConnexa API
 // and updates the Terraform state with the current values.
+// All API calls are unconditional to ensure proper import functionality.
 func resourceSettingsRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
+
+	// ============ AUTH SETTINGS ============
 
 	allowTrustedDevices, err := c.Settings.GetTrustedDevicesAllowed()
 	if err != nil {
@@ -393,26 +396,30 @@ func resourceSettingsRead(ctx context.Context, d *schema.ResourceData, m interfa
 	}
 	d.Set("allow_trusted_devices", allowTrustedDevices)
 
-	if len(d.Get("dns_servers").([]interface{})) > 0 {
-		dnsServers, err := c.Settings.GetDNSServers()
-		if err != nil {
-			return append(diags, diag.FromErr(err)...)
-		}
-		if dnsServers != nil && (dnsServers.PrimaryIPV4 != "" || dnsServers.SecondaryIPV4 != "") {
-			value := make(map[string]interface{})
-			value["primary_ip_v4"] = dnsServers.PrimaryIPV4
-			value["secondary_ip_v4"] = dnsServers.SecondaryIPV4
-			d.Set("dns_servers", []interface{}{value})
-		}
+	twoFactorAuth, err := c.Settings.GetTwoFactorAuthEnabled()
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	d.Set("two_factor_auth", twoFactorAuth)
+
+	// ============ DNS SETTINGS ============
+
+	dnsServers, err := c.Settings.GetDNSServers()
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	if dnsServers != nil && (dnsServers.PrimaryIPV4 != "" || dnsServers.SecondaryIPV4 != "") {
+		value := make(map[string]interface{})
+		value["primary_ip_v4"] = dnsServers.PrimaryIPV4
+		value["secondary_ip_v4"] = dnsServers.SecondaryIPV4
+		d.Set("dns_servers", []interface{}{value})
 	}
 
-	if d.Get("default_dns_suffix") != "" {
-		defaultDNSSuffix, err := c.Settings.GetDefaultDNSSuffix()
-		if err != nil {
-			return append(diags, diag.FromErr(err)...)
-		}
-		d.Set("default_dns_suffix", defaultDNSSuffix)
+	defaultDNSSuffix, err := c.Settings.GetDefaultDNSSuffix()
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
 	}
+	d.Set("default_dns_suffix", defaultDNSSuffix)
 
 	dnsProxyEnabled, err := c.Settings.GetDNSProxyEnabled()
 	if err != nil {
@@ -420,11 +427,11 @@ func resourceSettingsRead(ctx context.Context, d *schema.ResourceData, m interfa
 	}
 	d.Set("dns_proxy_enabled", dnsProxyEnabled)
 
-	if len(d.Get("dns_zones").([]interface{})) > 0 {
-		dnsZones, err := c.Settings.GetDNSZones()
-		if err != nil {
-			return append(diags, diag.FromErr(err)...)
-		}
+	dnsZones, err := c.Settings.GetDNSZones()
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	if len(dnsZones) > 0 {
 		var zoneValues []interface{}
 		for _, zone := range dnsZones {
 			value := make(map[string]interface{})
@@ -435,21 +442,19 @@ func resourceSettingsRead(ctx context.Context, d *schema.ResourceData, m interfa
 		d.Set("dns_zones", zoneValues)
 	}
 
-	if d.Get("connect_auth") != "" {
-		connectAuth, err := c.Settings.GetDefaultConnectAuth()
-		if err != nil {
-			return append(diags, diag.FromErr(err)...)
-		}
-		d.Set("connect_auth", connectAuth)
-	}
+	// ============ USER SETTINGS ============
 
-	if d.Get("device_allowance_per_user") != 0 {
-		deviceAllowance, err := c.Settings.GetDefaultDeviceAllowancePerUser()
-		if err != nil {
-			return append(diags, diag.FromErr(err)...)
-		}
-		d.Set("device_allowance_per_user", deviceAllowance)
+	connectAuth, err := c.Settings.GetDefaultConnectAuth()
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
 	}
+	d.Set("connect_auth", connectAuth)
+
+	deviceAllowance, err := c.Settings.GetDefaultDeviceAllowancePerUser()
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	d.Set("device_allowance_per_user", deviceAllowance)
 
 	deviceAllowanceForceUpdate, err := c.Settings.GetForceUpdateDeviceAllowanceEnabled()
 	if err != nil {
@@ -457,98 +462,80 @@ func resourceSettingsRead(ctx context.Context, d *schema.ResourceData, m interfa
 	}
 	d.Set("device_allowance_force_update", deviceAllowanceForceUpdate)
 
-	if d.Get("device_enforcement") != "" {
-		deviceEnforcement, err := c.Settings.GetDeviceEnforcement()
-		if err != nil {
-			return append(diags, diag.FromErr(err)...)
-		}
-		d.Set("device_enforcement", deviceEnforcement)
+	deviceEnforcement, err := c.Settings.GetDeviceEnforcement()
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	d.Set("device_enforcement", deviceEnforcement)
+
+	profileDistribution, err := c.Settings.GetProfileDistribution()
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	d.Set("profile_distribution", profileDistribution)
+
+	connectionTimeout, err := c.Settings.GetConnectionTimeout()
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	d.Set("connection_timeout", connectionTimeout)
+
+	// ============ WPC SETTINGS ============
+
+	clientOptions, err := c.Settings.GetClientOptions()
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	d.Set("client_options", clientOptions)
+
+	defaultRegion, err := c.Settings.GetDefaultRegion()
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	d.Set("default_region", defaultRegion)
+
+	domainRoutingSubnet, err := c.Settings.GetDomainRoutingSubnet()
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	if domainRoutingSubnet != nil && (domainRoutingSubnet.IPV4Address != "" || domainRoutingSubnet.IPV6Address != "") {
+		value := make(map[string]interface{})
+		value["ip_v4_address"] = domainRoutingSubnet.IPV4Address
+		value["ip_v6_address"] = domainRoutingSubnet.IPV6Address
+		d.Set("domain_routing_subnet", []interface{}{value})
 	}
 
-	if d.Get("profile_distribution") != "" {
-		profileDistribution, err := c.Settings.GetProfileDistribution()
-		if err != nil {
-			return append(diags, diag.FromErr(err)...)
-		}
-		d.Set("profile_distribution", profileDistribution)
-	}
-
-	if d.Get("connection_timeout") != 0 {
-		connectionTimeout, err := c.Settings.GetConnectionTimeout()
-		if err != nil {
-			return append(diags, diag.FromErr(err)...)
-		}
-		d.Set("connection_timeout", connectionTimeout)
-	}
-
-	// Get and set client options if they exist
-	if len(d.Get("client_options").([]interface{})) > 0 {
-		clientOptions, err := c.Settings.GetClientOptions()
-		if err != nil {
-			return append(diags, diag.FromErr(err)...)
-		}
-		d.Set("client_options", clientOptions)
-	}
-
-	// Get and set default region if specified
-	if d.Get("default_region") != "" {
-		defaultRegion, err := c.Settings.GetDefaultRegion()
-		if err != nil {
-			return append(diags, diag.FromErr(err)...)
-		}
-		d.Set("default_region", defaultRegion)
-	}
-
-	// Get and set domain routing subnet if specified
-	if len(d.Get("domain_routing_subnet").([]interface{})) > 0 {
-		domainRoutingSubnet, err := c.Settings.GetDomainRoutingSubnet()
-		if err != nil {
-			return append(diags, diag.FromErr(err)...)
-		}
-		if domainRoutingSubnet.IPV4Address != "" || domainRoutingSubnet.IPV6Address != "" {
-			value := make(map[string]interface{})
-			value["ip_v4_address"] = domainRoutingSubnet.IPV4Address
-			value["ip_v6_address"] = domainRoutingSubnet.IPV6Address
-			d.Set("domain_routing_subnet", []interface{}{value})
-		}
-	}
-
-	// Get and set SNAT enabled status
 	snat, err := c.Settings.GetSnatEnabled()
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
 	d.Set("snat", snat)
 
-	// Get and set subnet configuration if specified
-	if len(d.Get("subnet").([]interface{})) > 0 {
-		subnet, err := c.Settings.GetSubnet()
-		if err != nil {
-			return append(diags, diag.FromErr(err)...)
-		}
+	subnet, err := c.Settings.GetSubnet()
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	if subnet != nil && (len(subnet.IPV4Address) > 0 || len(subnet.IPV6Address) > 0) {
 		subnetValue := make(map[string]interface{})
 		subnetValue["ip_v4_address"] = subnet.IPV4Address
 		subnetValue["ip_v6_address"] = subnet.IPV6Address
 		d.Set("subnet", []interface{}{subnetValue})
 	}
 
-	// Get and set topology if specified
-	if d.Get("topology") != "" {
-		topology, err := c.Settings.GetTopology()
-		if err != nil {
-			return append(diags, diag.FromErr(err)...)
-		}
-		d.Set("topology", topology)
+	topology, err := c.Settings.GetTopology()
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
 	}
+	d.Set("topology", topology)
 
-	// Get and set DNS Log enabled status
+	// ============ SEPARATE APIs ============
+
 	dnsLog, err := c.Settings.GetDNSLogEnabled()
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
 	d.Set("dns_log_enabled", dnsLog)
 
-	// Get and set Access Visibility enabled status
 	accessVisibility, err := c.Settings.GetAccessVisibilityEnabled()
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)

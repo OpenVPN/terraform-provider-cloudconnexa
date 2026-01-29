@@ -93,6 +93,16 @@ func dataSourceSettings() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"dns_log_enabled": {
+				Type:        schema.TypeBool,
+				Computed:    true,
+				Description: "Whether DNS logging is enabled.",
+			},
+			"access_visibility_enabled": {
+				Type:        schema.TypeBool,
+				Computed:    true,
+				Description: "Whether access visibility is enabled.",
+			},
 		},
 	}
 }
