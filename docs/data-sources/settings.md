@@ -49,6 +49,7 @@ output "network_topology" {
 
 ### Read-Only
 
+- `access_visibility_enabled` (Boolean) Whether access visibility is enabled.
 - `allow_trusted_devices` (Boolean)
 - `client_options` (List of String)
 - `connect_auth` (String)
@@ -58,6 +59,7 @@ output "network_topology" {
 - `device_allowance_force_update` (Boolean)
 - `device_allowance_per_user` (Number)
 - `device_enforcement` (String)
+- `dns_log_enabled` (Boolean) Whether DNS logging is enabled.
 - `dns_proxy_enabled` (Boolean)
 - `dns_servers` (List of Object) (see [below for nested schema](#nestedatt--dns_servers))
 - `dns_zones` (List of Object) (see [below for nested schema](#nestedatt--dns_zones))
