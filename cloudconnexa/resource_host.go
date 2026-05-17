@@ -110,10 +110,6 @@ func resourceHostRead(ctx context.Context, d *schema.ResourceData, m interface{}
 	if err != nil {
 		return append(diags, diag.Errorf("Failed to get host with ID: %s, %s", id, err)...)
 	}
-	if host == nil {
-		d.SetId("")
-		return diags
-	}
 	d.Set("name", host.Name)
 	d.Set("description", host.Description)
 	d.Set("domain", host.Domain)
