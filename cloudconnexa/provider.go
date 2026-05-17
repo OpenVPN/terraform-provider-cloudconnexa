@@ -21,7 +21,7 @@ const ClientSecretEnvVar = "CLOUDCONNEXA_CLIENT_SECRET"
 var cloudIDPattern = regexp.MustCompile(`^[a-zA-Z0-9-]+$`)
 
 // version represents the current version of the Terraform provider
-var version = "v1.2.0"
+var version = "v1.2.1"
 
 // Token represents the authentication token structure returned by the CloudConnexa API
 type Token struct {
