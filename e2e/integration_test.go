@@ -1,6 +1,7 @@
 package e2e
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"testing"
@@ -26,6 +27,8 @@ const (
 func TestCreationDeletion(t *testing.T) {
 	validateEnvVars(t)
 
+	ctx := context.Background()
+
 	terraformOptions := &terraform.Options{
 		NoColor: os.Getenv("NO_COLOR") == "1",
 
@@ -38,15 +41,15 @@ func TestCreationDeletion(t *testing.T) {
 
 	// At the end of the test, run `terraform destroy` to clean up any resources that were created
 	t.Cleanup(func() {
-		terraform.Destroy(t, terraformOptions)
+		terraform.DestroyContext(t, ctx, terraformOptions)
 	})
 
 	// This will run `terraform init` and `terraform apply` and fail the test if there are any errors
-	terraform.InitAndApply(t, terraformOptions)
+	terraform.InitAndApplyContext(t, ctx, terraformOptions)
 
 	// Run `terraform output` to get the value of an output variable
-	hostID := terraform.Output(t, terraformOptions, "host_id")
-	connectorID := terraform.Output(t, terraformOptions, "connector_id")
+	hostID := terraform.OutputContext(t, ctx, terraformOptions, "host_id")
+	connectorID := terraform.OutputContext(t, ctx, terraformOptions, "connector_id")
 
 	assert.NotEmpty(t, hostID)
 	assert.NotEmpty(t, connectorID)
