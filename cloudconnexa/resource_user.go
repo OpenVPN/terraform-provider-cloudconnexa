@@ -84,11 +84,10 @@ func resourceUser() *schema.Resource {
 				Description: "The connection status of the user.",
 			},
 			"devices": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				ForceNew:    true,
-				MaxItems:    1,
-				Description: "When a user signs in, the device that they use will be added to their account. You can read more at [CloudConnexa Device](https://openvpn.net/cloud-docs/device/).",
+				Type:       schema.TypeList,
+				Optional:   true,
+				Computed:   true,
+				Deprecated: "Use the `cloudconnexa_device` resource instead. Managing devices inline on `cloudconnexa_user` will be removed in a future major release.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
