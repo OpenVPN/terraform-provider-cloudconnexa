@@ -115,6 +115,11 @@ func dataSourceDevice() *schema.Resource {
 				Required:    true,
 				Description: "The device ID.",
 			},
+			"user_id": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The user ID that owns the device. Required by the CloudConnexa API.",
+			},
 			"id": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -140,11 +145,6 @@ func dataSourceDevice() *schema.Resource {
 				Computed:    true,
 				Description: "The device status.",
 			},
-			"user_id": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The user ID associated with this device.",
-			},
 		},
 	}
 }
@@ -155,7 +155,8 @@ func dataSourceDeviceRead(ctx context.Context, d *schema.ResourceData, m interfa
 	var diags diag.Diagnostics
 
 	deviceID := d.Get("device_id").(string)
-	device, err := c.Devices.GetByID(deviceID)
+	userID := d.Get("user_id").(string)
+	device, err := c.Devices.GetByID(userID, deviceID)
 	if err != nil {
 		return diag.Errorf("Failed to get device with ID %s: %s", deviceID, err)
 	}

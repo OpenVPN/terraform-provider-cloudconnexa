@@ -6,7 +6,7 @@ require (
 	github.com/gruntwork-io/terratest v1.0.0
 	github.com/hashicorp/go-cty v1.5.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.40.1
-	github.com/openvpn/cloudconnexa-go-client/v2 v2.5.0
+	github.com/openvpn/cloudconnexa-go-client/v2 v2.5.1
 	github.com/stretchr/testify v1.11.1
 )
 

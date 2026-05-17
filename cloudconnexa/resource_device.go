@@ -2,6 +2,8 @@ package cloudconnexa
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -9,26 +11,25 @@ import (
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 )
 
-// resourceDevice returns a Terraform resource schema for managing CloudConnexa devices.
-// Note: Devices are created automatically when users connect. This resource allows
-// managing existing devices (updating name, description).
+// resourceDevice returns a Terraform resource schema for managing CloudConnexa
+// devices as a standalone child of a user. Devices created via this resource
+// are owned by Terraform: they are provisioned in Create and removed in Delete.
 func resourceDevice() *schema.Resource {
 	return &schema.Resource{
-		Description:   "Use `cloudconnexa_device` to manage an existing CloudConnexa device. Devices are created automatically when users connect to the VPN. This resource allows you to update device properties like name and description.",
+		Description:   "Use `cloudconnexa_device` to manage a CloudConnexa device attached to a user. The resource creates the device in CloudConnexa and removes it on destroy.",
 		CreateContext: resourceDeviceCreate,
 		ReadContext:   resourceDeviceRead,
 		UpdateContext: resourceDeviceUpdate,
 		DeleteContext: resourceDeviceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: schema.ImportStatePassthroughContext,
+			StateContext: resourceDeviceImport,
 		},
 		Schema: map[string]*schema.Schema{
-			"device_id": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				Description:  "The ID of the device to manage. Use the `cloudconnexa_devices` data source to find device IDs.",
-				ValidateFunc: validation.IsUUID,
+			"user_id": {
+				Type:        schema.TypeString,
+				Required:    true,
+				ForceNew:    true,
+				Description: "The ID of the user that owns the device. Changing this recreates the device.",
 			},
 			"name": {
 				Type:         schema.TypeString,
@@ -42,116 +43,123 @@ func resourceDevice() *schema.Resource {
 				Description:  "The description of the device.",
 				ValidateFunc: validation.StringLenBetween(0, 120),
 			},
+			"client_uuid": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+				Description: "The client UUID of the device. Set by the OpenVPN client when the device first connects; you can also pre-assign it here.",
+			},
+			"device_id": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The CloudConnexa-assigned device ID.",
+			},
 			"platform": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The platform of the device (e.g., Windows, macOS, iOS, Android).",
 			},
-			"status": {
+			"ipv4_address": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The status of the device (ACTIVE, INACTIVE, BLOCKED, PENDING).",
+				Description: "The IPv4 address assigned to the device.",
 			},
-			"user_id": {
+			"ipv6_address": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The ID of the user who owns the device.",
+				Description: "The IPv6 address assigned to the device.",
+			},
+			"connection_status": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The current connection status of the device.",
 			},
 		},
 	}
 }
 
-// resourceDeviceCreate "creates" a device resource by adopting an existing device.
-// Since devices are created automatically when users connect, this function
-// simply reads and validates the device exists.
+// resourceDeviceCreate provisions a new device for the given user.
 func resourceDeviceCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
-	var diags diag.Diagnostics
 
-	deviceID := d.Get("device_id").(string)
+	userID := d.Get("user_id").(string)
+	req := cloudconnexa.DeviceCreateRequest{
+		Name:        d.Get("name").(string),
+		Description: d.Get("description").(string),
+		ClientUUID:  d.Get("client_uuid").(string),
+	}
 
-	// Verify the device exists
-	device, err := c.Devices.GetByID(deviceID)
+	device, err := c.Devices.Create(userID, req)
 	if err != nil {
-		return diag.Errorf("Failed to get device with ID %s: %s", deviceID, err)
-	}
-	if device == nil {
-		return diag.Errorf("Device with ID %s not found", deviceID)
+		return diag.FromErr(err)
 	}
 
-	d.SetId(deviceID)
-
-	// Update the device with the provided name and description
-	name := d.Get("name").(string)
-	description := d.Get("description").(string)
-
-	updateRequest := cloudconnexa.DeviceUpdateRequest{
-		Name:        name,
-		Description: description,
-	}
-
-	_, err = c.Devices.Update(deviceID, updateRequest)
-	if err != nil {
-		return append(diags, diag.FromErr(err)...)
-	}
-
+	d.SetId(device.ID)
 	return resourceDeviceRead(ctx, d, m)
 }
 
-// resourceDeviceRead retrieves the current state of a device.
+// resourceDeviceRead refreshes Terraform state from the CloudConnexa API.
 func resourceDeviceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
-	var diags diag.Diagnostics
 
-	id := d.Id()
-	device, err := c.Devices.GetByID(id)
+	userID := d.Get("user_id").(string)
+	device, err := c.Devices.GetByID(userID, d.Id())
 	if err != nil {
-		return append(diags, diag.Errorf("Failed to get device with ID %s: %s", id, err)...)
-	}
-
-	if device == nil {
-		d.SetId("")
-		return diags
+		return diag.Errorf("Failed to get device with ID %s: %s", d.Id(), err)
 	}
 
 	d.Set("device_id", device.ID)
 	d.Set("name", device.Name)
 	d.Set("description", device.Description)
-	d.Set("platform", device.Platform)
 	d.Set("user_id", device.UserID)
+	d.Set("client_uuid", device.ClientUUID)
+	d.Set("platform", device.Platform)
+	d.Set("ipv4_address", device.IPV4Address)
+	d.Set("ipv6_address", device.IPV6Address)
+	d.Set("connection_status", device.ConnectionStatus)
 
-	return diags
+	return nil
 }
 
-// resourceDeviceUpdate updates an existing device's name and/or description.
+// resourceDeviceUpdate pushes name/description changes back to CloudConnexa.
 func resourceDeviceUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
-	var diags diag.Diagnostics
 
 	if d.HasChanges("name", "description") {
-		// Always send both fields to ensure we don't lose data.
-		// The SDK uses omitempty, so we need to send both even if only one changed.
-		updateRequest := cloudconnexa.DeviceUpdateRequest{
+		// Both fields are always sent so omitempty on the SDK struct doesn't blank a value the user kept.
+		req := cloudconnexa.DeviceUpdateRequest{
 			Name:        d.Get("name").(string),
 			Description: d.Get("description").(string),
 		}
-
-		_, err := c.Devices.Update(d.Id(), updateRequest)
-		if err != nil {
-			return append(diags, diag.FromErr(err)...)
+		userID := d.Get("user_id").(string)
+		if _, err := c.Devices.Update(userID, d.Id(), req); err != nil {
+			return diag.FromErr(err)
 		}
 	}
 
 	return resourceDeviceRead(ctx, d, m)
 }
 
-// resourceDeviceDelete "deletes" the device resource.
-// Note: This does not actually delete the device from CloudConnexa,
-// it only removes it from Terraform state. Devices are tied to user accounts
-// and should be managed through user lifecycle.
+// resourceDeviceDelete removes the device from CloudConnexa.
 func resourceDeviceDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	// We don't actually delete the device - we just remove it from Terraform state
-	// Devices are created when users connect and should be managed through user lifecycle
+	c := m.(*cloudconnexa.Client)
+
+	userID := d.Get("user_id").(string)
+	if err := c.Devices.Delete(userID, d.Id()); err != nil {
+		return diag.FromErr(err)
+	}
 	d.SetId("")
 	return nil
+}
+
+// resourceDeviceImport parses the import ID of the form "user_id/device_id" and
+// populates both attributes so the subsequent Read can call the API.
+func resourceDeviceImport(ctx context.Context, d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+	parts := strings.SplitN(d.Id(), "/", 2)
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		return nil, fmt.Errorf("expected import ID in the form \"user_id/device_id\", got %q", d.Id())
+	}
+	d.Set("user_id", parts[0])
+	d.SetId(parts[1])
+	return []*schema.ResourceData{d}, nil
 }
