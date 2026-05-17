@@ -116,18 +116,10 @@ func testAccCloudConnexaRouteImportStateIdFunc(n string) resource.ImportStateIdF
 func testAccCloudConnexaRouteConfig(r cloudconnexa.Route, networkRandStr string) string {
 	return fmt.Sprintf(`
 provider "cloudconnexa" {
-	base_url = "https://%[1]s.api.openvpn.com"
+	base_url = "%[1]s"
 }
 resource "cloudconnexa_network" "test" {
 	name = "%[5]s"
-	default_connector {
-	  name          = "%[5]s"
-	  vpn_region_id = "fi-hel"
-	}
-	default_route {
-	  subnet = "10.1.2.0/24"
-	  type  = "IP_V4"
-	}
 }
 resource "cloudconnexa_route" "test" {
 	network_item_id = cloudconnexa_network.test.id
@@ -135,5 +127,5 @@ resource "cloudconnexa_route" "test" {
 	subnet          = "%[3]s"
 	type            = "%[4]s"
 }
-`, testCloudID, r.Description, r.Subnet, r.Type, networkRandStr)
+`, testBaseURL, r.Description, r.Subnet, r.Type, networkRandStr)
 }

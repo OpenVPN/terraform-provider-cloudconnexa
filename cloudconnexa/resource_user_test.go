@@ -145,11 +145,11 @@ func testAccCloudConnexaUserImportStateIdFunc(n string) resource.ImportStateIdFu
 func testAccCloudConnexaUserConfig(user cloudconnexa.User) string {
 	return fmt.Sprintf(`
 provider "cloudconnexa" {
-	base_url = "https://%s.api.openvpn.com"
+	base_url = "%s"
 }
 resource "cloudconnexa_user_group" "userGroup1" {
   name           = "test-group"
-  vpn_region_ids = ["eu-central-1"]
+  vpn_region_ids = ["us-east-1"]
   connect_auth   = "ON_PRIOR_AUTH"
 }
 
@@ -160,5 +160,5 @@ resource "cloudconnexa_user" "test" {
 	last_name  = "%s"
 	group_id   = cloudconnexa_user_group.userGroup1.id
 }
-`, testCloudID, user.Username, user.Email, user.FirstName, user.LastName)
+`, testBaseURL, user.Username, user.Email, user.FirstName, user.LastName)
 }

@@ -17,8 +17,12 @@ import (
 // alphabet is a constant string containing all lowercase letters of the English alphabet
 const alphabet = "abcdefghigklmnopqrstuvwxyz"
 
-// testCloudID stores the CloudConnexa test organization ID from environment variables
-var testCloudID = os.Getenv("CLOUDCONNEXA_TEST_ORGANIZATION")
+// BaseURLEnvVar is the environment variable holding the full CloudConnexa API base URL
+// (e.g. https://example.api.openvpn.com) used by the acceptance test provider config.
+const BaseURLEnvVar = "CLOUDCONNEXA_BASE_URL"
+
+// testBaseURL stores the full CloudConnexa base URL used by the acceptance tests.
+var testBaseURL = os.Getenv(BaseURLEnvVar)
 
 // testAccProvider holds the Terraform provider instance for testing
 var testAccProvider *schema.Provider
@@ -67,5 +71,8 @@ func testAccPreCheck(t *testing.T) {
 	}
 	if v := os.Getenv(ClientSecretEnvVar); v == "" {
 		t.Fatalf("%s must be set for acceptance tests", ClientSecretEnvVar)
+	}
+	if testBaseURL == "" {
+		t.Fatalf("%s must be set for acceptance tests (full URL, e.g. https://example.api.openvpn.com)", BaseURLEnvVar)
 	}
 }

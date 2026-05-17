@@ -2,8 +2,10 @@ package cloudconnexa
 
 import (
 	"fmt"
-	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
+	"strings"
 	"testing"
+
+	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -17,7 +19,7 @@ import (
 //   - t: The testing context
 func TestAccCloudConnexaConnector_basic(t *testing.T) {
 	rName := acctest.RandomWithPrefix("test-connector")
-	resourceName := "cloudconnexa_connector.test"
+	resourceName := "cloudconnexa_host_connector.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -30,10 +32,7 @@ func TestAccCloudConnexaConnector_basic(t *testing.T) {
 					testAccCheckCloudConnexaConnectorExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceName, "vpn_region_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "network_item_type"),
-					resource.TestCheckResourceAttrSet(resourceName, "network_item_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "ip_v4_address"),
-					resource.TestCheckResourceAttrSet(resourceName, "ip_v6_address"),
+					resource.TestCheckResourceAttrSet(resourceName, "host_id"),
 				),
 			},
 		},
@@ -72,14 +71,16 @@ func testAccCheckCloudConnexaConnectorDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*cloudconnexa.Client)
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "cloudconnexa_connector" {
+		if rs.Type != "cloudconnexa_host_connector" {
 			continue
 		}
 
 		connectorId := rs.Primary.ID
 		connector, err := client.HostConnectors.GetByID(connectorId)
-
 		if err != nil {
+			if strings.Contains(err.Error(), "not found") {
+				continue
+			}
 			return err
 		}
 
@@ -101,14 +102,18 @@ func testAccCheckCloudConnexaConnectorDestroy(s *terraform.State) error {
 func testAccCloudConnexaConnectorConfigBasic(rName string) string {
 	return fmt.Sprintf(`
 provider "cloudconnexa" {
-  base_url = "https://%[1]s.api.openvpn.com"
+  base_url = "%[1]s"
 }
 
-resource "cloudconnexa_connector" "test" {
-  name              = "%s"
-  vpn_region_id     = "us-west-1"
-  network_item_type = "HOST"
-  network_item_id   = "example_network_item_id"
+resource "cloudconnexa_host" "test" {
+  name        = "%[2]s-host"
+  description = "test"
 }
-`, testCloudID, rName)
+
+resource "cloudconnexa_host_connector" "test" {
+  name          = "%[2]s"
+  vpn_region_id = "us-east-1"
+  host_id       = cloudconnexa_host.test.id
+}
+`, testBaseURL, rName)
 }

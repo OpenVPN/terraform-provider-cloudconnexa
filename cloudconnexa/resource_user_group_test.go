@@ -126,12 +126,12 @@ func testAccCloudConnexaUserGroupConfig(userGroup cloudconnexa.UserGroup) string
 
 	return fmt.Sprintf(`
 provider "cloudconnexa" {
-	base_url = "https://%s.api.openvpn.com"
+	base_url = "%s"
 }
 resource "cloudconnexa_user_group" "test" {
   name           = "%s"
   vpn_region_ids = %s
   connect_auth   = "ON_PRIOR_AUTH"
 }
-`, testCloudID, userGroup.Name, idsStr)
+`, testBaseURL, userGroup.Name, idsStr)
 }

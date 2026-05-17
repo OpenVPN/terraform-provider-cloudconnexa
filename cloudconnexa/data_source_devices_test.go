@@ -26,7 +26,7 @@ func TestAccCloudConnexaDataSourceDevices_basic(t *testing.T) {
 func testAccCloudConnexaDataSourceDevicesConfig() string {
 	return `
 provider "cloudconnexa" {
-	base_url = "https://` + testCloudID + `.api.openvpn.com"
+	base_url = "` + testBaseURL + `"
 }
 
 data "cloudconnexa_devices" "test" {

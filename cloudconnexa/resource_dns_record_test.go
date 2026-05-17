@@ -56,8 +56,10 @@ func testAccCheckCloudConnexaDnsRecordDestroy(s *terraform.State) error {
 
 		recordId := rs.Primary.ID
 		r, err := client.DNSRecords.GetByID(recordId)
-
 		if err != nil {
+			if isDNSRecordNotFoundErr(err) {
+				continue
+			}
 			return err
 		}
 
@@ -80,7 +82,7 @@ func testAccCheckCloudConnexaDnsRecordDestroy(s *terraform.State) error {
 func testAccCloudConnexaDnsRecordConfig(domainName string) string {
 	return fmt.Sprintf(`
 provider "cloudconnexa" {
-  base_url = "https://%[1]s.api.openvpn.com"
+  base_url = "%[1]s"
 }
 
 resource "cloudconnexa_dns_record" "test" {
@@ -89,5 +91,5 @@ resource "cloudconnexa_dns_record" "test" {
   ip_v4_addresses = ["192.168.1.1", "192.168.1.2"]
   ip_v6_addresses = ["2001:db8:85a3:0:0:8a2e:370:7334", "2001:db8:85a3:0:0:8a2e:370:7335"]
 }
-`, testCloudID, domainName)
+`, testBaseURL, domainName)
 }
