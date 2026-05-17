@@ -58,6 +58,14 @@ func dataSourceNetwork() *schema.Resource {
 				},
 				Description: "The IPV4 and IPV6 subnets automatically assigned to this network.",
 			},
+			"gateways_ids": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+				Description: "The list of gateway IDs associated with this network.",
+			},
 		},
 	}
 }
@@ -104,5 +112,6 @@ func dataSourceNetworkRead(ctx context.Context, data *schema.ResourceData, m int
 	data.Set("internet_access", network.InternetAccess)
 	data.Set("system_subnets", network.SystemSubnets)
 	data.Set("tunneling_protocol", network.TunnelingProtocol)
+	data.Set("gateways_ids", network.GatewaysIDs)
 	return diags
 }

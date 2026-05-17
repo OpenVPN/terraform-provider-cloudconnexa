@@ -84,6 +84,14 @@ func resourceUserGroup() *schema.Resource {
 				Description: "Destinations that bypass the CloudConnexa tunnel and are routed through the local internet or network connection instead.",
 				Elem:        tunnelBypassSchema(),
 			},
+			"gateways_ids": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+				Description: "The list of gateway IDs associated with this user group.",
+			},
 		},
 	}
 }
@@ -166,6 +174,7 @@ func resourceDataToUserGroup(data *schema.ResourceData) *cloudconnexa.UserGroup 
 		VpnRegionIDs:       vpnRegionIds,
 		InternetAccess:     internetAccess,
 		AllRegionsIncluded: allRegionsIncluded,
+		GatewaysIDs:        gatewaysIdsFromResource(data),
 		TunnelBypass:       resourceDataToTunnelBypass(data.Get("tunnel_bypass").([]interface{})),
 	}
 	return ug
@@ -218,6 +227,7 @@ func updateUserGroupData(data *schema.ResourceData, userGroup *cloudconnexa.User
 	}
 	_ = data.Set("all_regions_included", userGroup.AllRegionsIncluded)
 	_ = data.Set("tunnel_bypass", flattenTunnelBypass(userGroup.TunnelBypass))
+	_ = data.Set("gateways_ids", userGroup.GatewaysIDs)
 }
 
 // resourceUserGroupDelete deletes a CloudConnexa user group.

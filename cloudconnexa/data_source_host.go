@@ -50,6 +50,14 @@ func dataSourceHost() *schema.Resource {
 				},
 				Description: "The IPV4 and IPV6 subnets automatically assigned to this host.",
 			},
+			"gateways_ids": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+				Description: "The list of gateway IDs associated with this host.",
+			},
 		},
 	}
 }
@@ -96,5 +104,6 @@ func dataSourceHostRead(ctx context.Context, data *schema.ResourceData, m interf
 	data.Set("domain", host.Domain)
 	data.Set("internet_access", host.InternetAccess)
 	data.Set("system_subnets", host.SystemSubnets)
+	data.Set("gateways_ids", host.GatewaysIDs)
 	return diags
 }
