@@ -42,7 +42,7 @@ func TestAccCloudConnexaDataSourceSessions_withStatus(t *testing.T) {
 func testAccCloudConnexaDataSourceSessionsConfig() string {
 	return `
 provider "cloudconnexa" {
-	base_url = "https://` + testCloudID + `.api.openvpn.com"
+	base_url = "` + testBaseURL + `"
 }
 
 data "cloudconnexa_sessions" "test" {
@@ -54,7 +54,7 @@ data "cloudconnexa_sessions" "test" {
 func testAccCloudConnexaDataSourceSessionsConfigWithStatus(status string) string {
 	return `
 provider "cloudconnexa" {
-	base_url = "https://` + testCloudID + `.api.openvpn.com"
+	base_url = "` + testBaseURL + `"
 }
 
 data "cloudconnexa_sessions" "test" {

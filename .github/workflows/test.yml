@@ -49,7 +49,7 @@ jobs:
   test:
     permissions:
       contents: read
-    if: github.event.pull_request.head.repo.name == github.repository
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     environment: TestingEnv
     name: Matrix Test
     needs: build
@@ -80,7 +80,7 @@ jobs:
         timeout-minutes: 10
         env:
           OVPN_HOST: ${{ vars.OVPN_HOST }}
-          CLOUDCONNEXA_TEST_ORGANIZATION: ${{ secrets.CLOUDCONNEXA_TEST_ORGANIZATION }}
+          CLOUDCONNEXA_BASE_URL: ${{ vars.CLOUDCONNEXA_BASE_URL }}
           CLOUDCONNEXA_CLIENT_ID: ${{ secrets.CLOUDCONNEXA_CLIENT_ID }}
           CLOUDCONNEXA_CLIENT_SECRET: ${{ secrets.CLOUDCONNEXA_CLIENT_SECRET }}
           TF_ACC: "1"

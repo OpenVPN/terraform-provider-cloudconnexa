@@ -67,10 +67,10 @@ func TestAccCloudConnexaSettings_basic(t *testing.T) {
 func testAccCloudConnexaSettingsConfig() string {
 	return fmt.Sprintf(`
 provider "cloudconnexa" {
-	base_url = "https://%s.api.openvpn.com"
+	base_url = "%s"
 }
 
 resource "cloudconnexa_settings" "test" {
 }
-`, testCloudID)
+`, testBaseURL)
 }

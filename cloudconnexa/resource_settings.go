@@ -25,64 +25,73 @@ func resourceSettings() *schema.Resource {
 			"allow_trusted_devices": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  false,
+				Computed: true,
 			},
 			"two_factor_auth": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  false,
+				Computed: true,
 			},
 			"dns_servers": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem:     dnsServersSchema(),
 			},
 			"default_dns_suffix": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 			"dns_proxy_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  true,
+				Computed: true,
 			},
 			"dns_zones": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				Elem:     dnsZoneSchema(),
 			},
 			"connect_auth": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validation.StringInSlice([]string{"NO_AUTH", "ON_PRIOR_AUTH", "EVERY_TIME"}, false),
 			},
 			"device_allowance_per_user": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"device_allowance_force_update": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  false,
+				Computed: true,
 			},
 			"device_enforcement": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validation.StringInSlice([]string{"OFF", "LEARN_AND_ENFORCE", "ENFORCE"}, false),
 			},
 			"profile_distribution": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validation.StringInSlice([]string{"AUTOMATIC", "MANUAL"}, false),
 			},
 			"connection_timeout": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"client_options": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -90,48 +99,53 @@ func resourceSettings() *schema.Resource {
 			"default_region": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Computed:    true,
 				Description: "ID of the default region. Actual list of available regions can be obtained from data_source_vpn_regions.",
 			},
 			"domain_routing_subnet": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
 				Optional: true,
+				Computed: true,
 				Elem:     domainRoutingSubnetSchema(),
 			},
 			"snat": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  false,
+				Computed: true,
 			},
 			"subnet": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
 				Optional: true,
+				Computed: true,
 				Elem:     subnetSchema(),
 			},
 			"topology": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validation.StringInSlice([]string{"FULL_MESH", "CUSTOM"}, false),
 			},
 			"dns_log_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  false,
+				Computed: true,
 			},
 			"access_visibility_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  false,
+				Computed: true,
 			},
 			"routes_advanced_configuration_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  false,
+				Computed: true,
 			},
 			"ip_allocation_mode": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validation.StringInSlice([]string{"BOTH", "IP_V4_ONLY"}, false),
 			},
 		},
@@ -402,7 +416,7 @@ func resourceSettingsUpdate(ctx context.Context, d *schema.ResourceData, m inter
 	}
 
 	d.SetId("settings")
-	return diags
+	return resourceSettingsRead(ctx, d, m)
 }
 
 // resourceSettingsRead reads the settings resource from the CloudConnexa API

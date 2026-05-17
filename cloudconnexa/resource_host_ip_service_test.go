@@ -17,8 +17,8 @@ import (
 // Parameters:
 //   - t: The testing context
 func TestAccCloudConnexaService_basic(t *testing.T) {
-	rn := "cloudconnexa_service.test"
-	networkName := acctest.RandStringFromCharSet(10, alphabet)
+	rn := "cloudconnexa_host_ip_service.test"
+	hostName := acctest.RandStringFromCharSet(10, alphabet)
 	service := cloudconnexa.IPService{
 		Name: acctest.RandStringFromCharSet(10, alphabet),
 	}
@@ -27,7 +27,7 @@ func TestAccCloudConnexaService_basic(t *testing.T) {
 
 	check := func(service cloudconnexa.IPService) resource.TestCheckFunc {
 		return resource.ComposeTestCheckFunc(
-			testAccCheckCloudConnexaServiceExists(rn, networkName),
+			testAccCheckCloudConnexaServiceExists(rn, hostName),
 			resource.TestCheckResourceAttr(rn, "name", service.Name),
 		)
 	}
@@ -38,11 +38,11 @@ func TestAccCloudConnexaService_basic(t *testing.T) {
 		CheckDestroy:      testAccCheckCloudConnexaServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCloudConnexaServiceConfig(service, networkName),
+				Config: testAccCloudConnexaServiceConfig(service, hostName),
 				Check:  check(service),
 			},
 			{
-				Config: testAccCloudConnexaServiceConfig(serviceChanged, networkName),
+				Config: testAccCloudConnexaServiceConfig(serviceChanged, hostName),
 				Check:  check(serviceChanged),
 			},
 		},
@@ -57,7 +57,7 @@ func TestAccCloudConnexaService_basic(t *testing.T) {
 //
 // Returns:
 //   - resource.TestCheckFunc: A function that performs the existence check
-func testAccCheckCloudConnexaServiceExists(rn, networkId string) resource.TestCheckFunc {
+func testAccCheckCloudConnexaServiceExists(rn, _ string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[rn]
 		if !ok {
@@ -88,7 +88,7 @@ func testAccCheckCloudConnexaServiceExists(rn, networkId string) resource.TestCh
 func testAccCheckCloudConnexaServiceDestroy(state *terraform.State) error {
 	c := testAccProvider.Meta().(*cloudconnexa.Client)
 	for _, rs := range state.RootModule().Resources {
-		if rs.Type != "cloudconnexa_service" {
+		if rs.Type != "cloudconnexa_host_ip_service" {
 			continue
 		}
 		id := rs.Primary.Attributes["id"]
@@ -108,36 +108,24 @@ func testAccCheckCloudConnexaServiceDestroy(state *terraform.State) error {
 //
 // Returns:
 //   - string: The generated Terraform configuration
-func testAccCloudConnexaServiceConfig(service cloudconnexa.IPService, networkName string) string {
+func testAccCloudConnexaServiceConfig(service cloudconnexa.IPService, hostName string) string {
 	return fmt.Sprintf(`
 provider "cloudconnexa" {
-	base_url = "https://%s.api.openvpn.com"
+	base_url = "%s"
 }
 
-resource "cloudconnexa_network" "test" {
+resource "cloudconnexa_host" "test" {
 	name = "%s"
 	description = "test"
-
-	default_connector {
-	  name          = "%s"
-	  vpn_region_id = "fi-hel"
-	}
-	default_route {
-	  subnet = "10.1.2.0/24"
-	  type  = "IP_V4"
-	}
 }
 
-resource "cloudconnexa_ip_service" "test" {
+resource "cloudconnexa_host_ip_service" "test" {
 	name = "%s"
-	type = "SERVICE_DESTINATION"
 	description = "test"
-	network_item_type = "NETWORK"
-	network_item_id = cloudconnexa_network.test.id
-	routes = ["test.ua" ]
+	host_id = cloudconnexa_host.test.id
 	config {
 		service_types = ["ANY"]
 	}
 }
-`, testCloudID, networkName, fmt.Sprintf("connector_%s", networkName), service.Name)
+`, testBaseURL, hostName, service.Name)
 }

@@ -2,7 +2,10 @@ package cloudconnexa
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strings"
+
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -114,6 +117,10 @@ func resourceDnsRecordRead(ctx context.Context, d *schema.ResourceData, m interf
 	id := d.Id()
 	r, err := c.DNSRecords.GetByID(id)
 	if err != nil {
+		if isDNSRecordNotFoundErr(err) {
+			d.SetId("")
+			return diags
+		}
 		return append(diags, diag.Errorf("Failed to get DNS record with ID: %s, %s", id, err)...)
 	}
 	if r == nil {
@@ -171,12 +178,25 @@ func resourceDnsRecordUpdate(ctx context.Context, d *schema.ResourceData, m inte
 func resourceDnsRecordDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
-	routeId := d.Id()
-	err := c.DNSRecords.Delete(routeId)
-	if err != nil {
+	recordId := d.Id()
+	err := c.DNSRecords.Delete(recordId)
+	if err != nil && !isDNSRecordNotFoundErr(err) {
 		return append(diags, diag.FromErr(err)...)
 	}
 	return diags
+}
+
+// isDNSRecordNotFoundErr reports whether the given error indicates that the DNS
+// record no longer exists. The API returns 400 with a "not found" message rather
+// than 404, so we match on the error string.
+func isDNSRecordNotFoundErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	if errors.Is(err, cloudconnexa.ErrDNSRecordNotFound) {
+		return true
+	}
+	return strings.Contains(err.Error(), "not found")
 }
 
 // getAddressesSlice converts a slice of interface{} to a slice of strings.
