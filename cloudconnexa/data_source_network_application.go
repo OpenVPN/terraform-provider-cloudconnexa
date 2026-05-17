@@ -60,7 +60,7 @@ func dataSourceNetworkApplicationRead(ctx context.Context, data *schema.Resource
 	c := i.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
 	var id = data.Get("id").(string)
-	var application *cloudconnexa.ApplicationResponse
+	var application *cloudconnexa.NetworkApplicationResponse
 	var err error
 	if id != "" {
 		application, err = c.NetworkApplications.Get(id)
