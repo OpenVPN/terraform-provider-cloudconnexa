@@ -124,6 +124,16 @@ func resourceSettings() *schema.Resource {
 				Optional: true,
 				Default:  false,
 			},
+			"routes_advanced_configuration_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+			"ip_allocation_mode": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice([]string{"BOTH", "IP_V4_ONLY"}, false),
+			},
 		},
 	}
 }
@@ -377,6 +387,20 @@ func resourceSettingsUpdate(ctx context.Context, d *schema.ResourceData, m inter
 		}
 	}
 
+	if d.HasChange("routes_advanced_configuration_enabled") {
+		_, err := c.Settings.SetRoutesAdvancedConfigurationEnabled(d.Get("routes_advanced_configuration_enabled").(bool))
+		if err != nil {
+			return append(diags, diag.FromErr(err)...)
+		}
+	}
+
+	if d.HasChange("ip_allocation_mode") {
+		_, err := c.Settings.SetIPAllocationMode(d.Get("ip_allocation_mode").(string))
+		if err != nil {
+			return append(diags, diag.FromErr(err)...)
+		}
+	}
+
 	d.SetId("settings")
 	return diags
 }
@@ -531,6 +555,18 @@ func resourceSettingsRead(ctx context.Context, d *schema.ResourceData, m interfa
 		return append(diags, diag.FromErr(err)...)
 	}
 	d.Set("access_visibility_enabled", accessVisibility)
+
+	routesAdvancedConfigurationEnabled, err := c.Settings.GetRoutesAdvancedConfigurationEnabled()
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	d.Set("routes_advanced_configuration_enabled", routesAdvancedConfigurationEnabled)
+
+	ipAllocationMode, err := c.Settings.GetIPAllocationMode()
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	d.Set("ip_allocation_mode", ipAllocationMode)
 
 	d.SetId("settings")
 	return diags
