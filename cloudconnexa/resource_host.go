@@ -55,8 +55,30 @@ func resourceHost() *schema.Resource {
 				},
 				Description: "The IPV4 and IPV6 subnets automatically assigned to this host.",
 			},
+			"gateways_ids": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+				Description: "The list of gateway IDs associated with this host.",
+			},
 		},
 	}
+}
+
+// gatewaysIdsFromResource extracts the gateways_ids list from Terraform resource data
+// and converts it to a []string suitable for the CloudConnexa client.
+func gatewaysIdsFromResource(d *schema.ResourceData) []string {
+	raw := d.Get("gateways_ids").([]interface{})
+	if len(raw) == 0 {
+		return nil
+	}
+	ids := make([]string, 0, len(raw))
+	for _, v := range raw {
+		ids = append(ids, v.(string))
+	}
+	return ids
 }
 
 // resourceHostCreate creates a new CloudConnexa host
@@ -68,6 +90,7 @@ func resourceHostCreate(ctx context.Context, d *schema.ResourceData, m interface
 		Domain:         d.Get("domain").(string),
 		Description:    d.Get("description").(string),
 		InternetAccess: d.Get("internet_access").(string),
+		GatewaysIDs:    gatewaysIdsFromResource(d),
 	}
 	host, err := c.Hosts.Create(h)
 	if err != nil {
@@ -96,6 +119,7 @@ func resourceHostRead(ctx context.Context, d *schema.ResourceData, m interface{}
 	d.Set("domain", host.Domain)
 	d.Set("internet_access", host.InternetAccess)
 	d.Set("system_subnets", host.SystemSubnets)
+	d.Set("gateways_ids", host.GatewaysIDs)
 
 	return diags
 }
@@ -114,6 +138,7 @@ func resourceHostUpdate(ctx context.Context, d *schema.ResourceData, m interface
 		Description:    newDescription.(string),
 		Domain:         newDomain.(string),
 		InternetAccess: newAccess.(string),
+		GatewaysIDs:    gatewaysIdsFromResource(d),
 	})
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)

@@ -83,6 +83,14 @@ func dataSourceUserGroup() *schema.Resource {
 					},
 				},
 			},
+			"gateways_ids": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+				Description: "The list of gateway IDs associated with this user group.",
+			},
 		},
 	}
 }
@@ -131,5 +139,6 @@ func dataSourceUserGroupRead(ctx context.Context, data *schema.ResourceData, m i
 	data.Set("system_subnets", userGroup.SystemSubnets)
 	data.Set("connect_auth", userGroup.ConnectAuth)
 	data.Set("tunnel_bypass", flattenTunnelBypass(userGroup.TunnelBypass))
+	data.Set("gateways_ids", userGroup.GatewaysIDs)
 	return diags
 }

@@ -62,6 +62,14 @@ func resourceNetwork() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{"OPENVPN", "IPSEC"}, false),
 				Description:  "The tunneling protocol used for this network.",
 			},
+			"gateways_ids": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+				Description: "The list of gateway IDs associated with this network.",
+			},
 		},
 	}
 }
@@ -76,6 +84,7 @@ func resourceNetworkCreate(ctx context.Context, d *schema.ResourceData, m interf
 		Egress:            d.Get("egress").(bool),
 		InternetAccess:    d.Get("internet_access").(string),
 		TunnelingProtocol: d.Get("tunneling_protocol").(string),
+		GatewaysIDs:       gatewaysIdsFromResource(d),
 	}
 	network, err := c.Networks.Create(n)
 	if err != nil {
@@ -104,6 +113,7 @@ func resourceNetworkRead(ctx context.Context, d *schema.ResourceData, m interfac
 	d.Set("internet_access", network.InternetAccess)
 	d.Set("system_subnets", network.SystemSubnets)
 	d.Set("tunneling_protocol", network.TunnelingProtocol)
+	d.Set("gateways_ids", network.GatewaysIDs)
 	return diags
 }
 
@@ -124,6 +134,7 @@ func resourceNetworkUpdate(ctx context.Context, d *schema.ResourceData, m interf
 		Egress:            newEgress.(bool),
 		InternetAccess:    newAccess.(string),
 		TunnelingProtocol: tunnelingProtocol.(string),
+		GatewaysIDs:       gatewaysIdsFromResource(d),
 	})
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
