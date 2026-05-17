@@ -66,6 +66,23 @@ func dataSourceUserGroup() *schema.Resource {
 				Computed:    true,
 				Description: "The type of connection authentication. Valid values are `NO_AUTH`, `ON_PRIOR_AUTH`, or `EVERY_TIME`.",
 			},
+			"tunnel_bypass": {
+				Type:        schema.TypeList,
+				Computed:    true,
+				Description: "Destinations that bypass the CloudConnexa tunnel and are routed through the local internet or network connection instead.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"ipv4_subnets": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+							Description: "IPv4 subnets that bypass the CloudConnexa tunnel.",
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -113,5 +130,6 @@ func dataSourceUserGroupRead(ctx context.Context, data *schema.ResourceData, m i
 	data.Set("max_device", userGroup.MaxDevice)
 	data.Set("system_subnets", userGroup.SystemSubnets)
 	data.Set("connect_auth", userGroup.ConnectAuth)
+	data.Set("tunnel_bypass", flattenTunnelBypass(userGroup.TunnelBypass))
 	return diags
 }

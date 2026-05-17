@@ -78,6 +78,28 @@ func resourceUserGroup() *schema.Resource {
 				ExactlyOneOf: []string{"vpn_region_ids", "all_regions_included"},
 				Description:  "If true all regions will be available for this user group.",
 			},
+			"tunnel_bypass": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "Destinations that bypass the CloudConnexa tunnel and are routed through the local internet or network connection instead.",
+				Elem:        tunnelBypassSchema(),
+			},
+		},
+	}
+}
+
+// tunnelBypassSchema returns a Terraform schema for tunnel bypass configuration.
+func tunnelBypassSchema() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"ipv4_subnets": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "IPv4 subnets that bypass the CloudConnexa tunnel.",
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -144,8 +166,38 @@ func resourceDataToUserGroup(data *schema.ResourceData) *cloudconnexa.UserGroup 
 		VpnRegionIDs:       vpnRegionIds,
 		InternetAccess:     internetAccess,
 		AllRegionsIncluded: allRegionsIncluded,
+		TunnelBypass:       resourceDataToTunnelBypass(data.Get("tunnel_bypass").([]interface{})),
 	}
 	return ug
+}
+
+// resourceDataToTunnelBypass converts the nested tunnel_bypass list from
+// Terraform state into a CloudConnexa TunnelBypass struct. Returns nil when
+// the block is unset so the field is omitted from API requests.
+func resourceDataToTunnelBypass(raw []interface{}) *cloudconnexa.TunnelBypass {
+	if len(raw) == 0 || raw[0] == nil {
+		return nil
+	}
+	block := raw[0].(map[string]interface{})
+	configSubnets, _ := block["ipv4_subnets"].([]interface{})
+	var ipv4Subnets []string
+	for _, s := range configSubnets {
+		ipv4Subnets = append(ipv4Subnets, s.(string))
+	}
+	return &cloudconnexa.TunnelBypass{IPv4Subnets: ipv4Subnets}
+}
+
+// flattenTunnelBypass converts a CloudConnexa TunnelBypass struct into the
+// nested list shape expected by the Terraform schema.
+func flattenTunnelBypass(tb *cloudconnexa.TunnelBypass) []interface{} {
+	if tb == nil {
+		return nil
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"ipv4_subnets": tb.IPv4Subnets,
+		},
+	}
 }
 
 // updateUserGroupData updates the Terraform resource data with values from a CloudConnexa UserGroup.
@@ -165,6 +217,7 @@ func updateUserGroupData(data *schema.ResourceData, userGroup *cloudconnexa.User
 		_ = data.Set("vpn_region_ids", userGroup.VpnRegionIDs)
 	}
 	_ = data.Set("all_regions_included", userGroup.AllRegionsIncluded)
+	_ = data.Set("tunnel_bypass", flattenTunnelBypass(userGroup.TunnelBypass))
 }
 
 // resourceUserGroupDelete deletes a CloudConnexa user group.
