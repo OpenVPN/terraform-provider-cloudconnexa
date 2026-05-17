@@ -103,6 +103,14 @@ func dataSourceSettings() *schema.Resource {
 				Computed:    true,
 				Description: "Whether access visibility is enabled.",
 			},
+			"routes_advanced_configuration_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"ip_allocation_mode": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
