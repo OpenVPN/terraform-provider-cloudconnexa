@@ -600,6 +600,7 @@ Required:
 Optional:
 
 - `allow_embedded_ip` (Boolean)
+- `exact_match` (Boolean)
 
 
 <a id="nestedblock--config"></a>

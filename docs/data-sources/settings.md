@@ -65,7 +65,9 @@ output "network_topology" {
 - `dns_zones` (List of Object) (see [below for nested schema](#nestedatt--dns_zones))
 - `domain_routing_subnet` (List of Object) (see [below for nested schema](#nestedatt--domain_routing_subnet))
 - `id` (String) The ID of this resource.
+- `ip_allocation_mode` (String)
 - `profile_distribution` (String)
+- `routes_advanced_configuration_enabled` (Boolean)
 - `snat` (Boolean)
 - `subnet` (List of Object) (see [below for nested schema](#nestedatt--subnet))
 - `topology` (String)

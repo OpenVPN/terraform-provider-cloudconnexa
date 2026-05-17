@@ -53,3 +53,4 @@ Read-Only:
 
 - `allow_embedded_ip` (Boolean)
 - `domain` (String)
+- `exact_match` (Boolean)

@@ -468,14 +468,23 @@ output "regional_coverage" {
 
 - `all_regions_included` (Boolean) If true all regions will be available for this user group.
 - `connect_auth` (String)
+- `gateways_ids` (List of String) The list of gateway IDs associated with this user group.
 - `internet_access` (String)
 - `max_device` (Number) The maximum number of devices that can be connected to the user group.
 - `system_subnets` (List of String) A list of subnets that are accessible to the user group.
+- `tunnel_bypass` (Block List) Destinations that bypass the CloudConnexa tunnel and are routed through the local internet or network connection instead. (see [below for nested schema](#nestedblock--tunnel_bypass))
 - `vpn_region_ids` (List of String) A list of regions IDs that are accessible to the user group. Actual list of available regions can be obtained from data_source_vpn_regions.
 
 ### Read-Only
 
 - `id` (String) The ID of the user group.
+
+<a id="nestedblock--tunnel_bypass"></a>
+### Nested Schema for `tunnel_bypass`
+
+Optional:
+
+- `ipv4_subnets` (List of String) IPv4 subnets that bypass the CloudConnexa tunnel.
 
 ## Import
 

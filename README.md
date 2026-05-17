@@ -1,7 +1,7 @@
 # Terraform Provider CloudConnexa
 
 <a href="https://www.terraform.io/" target="_blank">
-  <img align="right" src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Terraform_Logo.svg/2560px-Terraform_Logo.svg.png" alt="Terraform" width="120px">
+  <img align="right" src="https://upload.wikimedia.org/wikipedia/commons/0/04/Terraform_Logo.svg" alt="Terraform" width="120px">
 </a>
 
 <a href="https://anna.money/?utm_source=terraform&utm_medium=referral&utm_campaign=docs" target="_blank">
@@ -9,7 +9,7 @@
 </a>
 
 <a href="https://openvpn.net/cloud-vpn/?utm_source=terraform&utm_medium=docs" target="_blank">
-  <img align="right" src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/OpenVPN_logo.svg/2560px-OpenVPN_logo.svg.png" alt="OpenVPN" width="150px">
+  <img align="right" src="https://upload.wikimedia.org/wikipedia/commons/f/f5/OpenVPN_logo.svg" alt="OpenVPN" width="150px">
 </a>
 
 - [Website CloudConnexa](https://openvpn.net/cloud-vpn/?utm_source=terraform&utm_medium=docs)
