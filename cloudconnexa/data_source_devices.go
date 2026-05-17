@@ -97,7 +97,6 @@ func flattenDevices(devices []cloudconnexa.DeviceDetail) []interface{} {
 			"name":        dev.Name,
 			"description": dev.Description,
 			"platform":    dev.Platform,
-			"status":      dev.Status,
 			"user_id":     dev.UserID,
 		}
 		result[i] = device
@@ -165,7 +164,6 @@ func dataSourceDeviceRead(ctx context.Context, d *schema.ResourceData, m interfa
 	d.Set("name", device.Name)
 	d.Set("description", device.Description)
 	d.Set("platform", device.Platform)
-	d.Set("status", device.Status)
 	d.Set("user_id", device.UserID)
 
 	return diags

@@ -81,6 +81,10 @@ func resourceNetworkApplicationRoute() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
+			"exact_match": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -158,16 +162,17 @@ func resourceNetworkApplicationCreate(ctx context.Context, data *schema.Resource
 }
 
 // resourceDataToNetworkApplication converts Terraform resource data to a CloudConnexa Application
-func resourceDataToNetworkApplication(data *schema.ResourceData) *cloudconnexa.Application {
+func resourceDataToNetworkApplication(data *schema.ResourceData) *cloudconnexa.NetworkApplication {
 	routes := data.Get("routes").([]interface{})
-	var configRoutes []*cloudconnexa.ApplicationRoute
+	var configRoutes []*cloudconnexa.NetworkApplicationRoute
 	for _, r := range routes {
 		var route = r.(map[string]interface{})
 		configRoutes = append(
 			configRoutes,
-			&cloudconnexa.ApplicationRoute{
+			&cloudconnexa.NetworkApplicationRoute{
 				Value:           route["domain"].(string),
 				AllowEmbeddedIP: route["allow_embedded_ip"].(bool),
+				ExactMatch:      route["exact_match"].(bool),
 			},
 		)
 	}
@@ -226,7 +231,7 @@ func resourceDataToNetworkApplication(data *schema.ResourceData) *cloudconnexa.A
 		}
 	}
 
-	s := &cloudconnexa.Application{
+	s := &cloudconnexa.NetworkApplication{
 		Name:            data.Get("name").(string),
 		Description:     data.Get("description").(string),
 		NetworkItemID:   data.Get("network_id").(string),
@@ -238,11 +243,24 @@ func resourceDataToNetworkApplication(data *schema.ResourceData) *cloudconnexa.A
 }
 
 // setNetworkApplicationData sets the Terraform state data from a network application response
-func setNetworkApplicationData(data *schema.ResourceData, application *cloudconnexa.ApplicationResponse) {
+func setNetworkApplicationData(data *schema.ResourceData, application *cloudconnexa.NetworkApplicationResponse) {
 	data.SetId(application.ID)
 	_ = data.Set("name", application.Name)
 	_ = data.Set("description", application.Description)
-	_ = data.Set("routes", flattenApplicationRoutes(application.Routes))
+	_ = data.Set("routes", flattenNetworkApplicationRoutes(application.Routes))
 	_ = data.Set("config", flattenApplicationConfig(application.Config))
 	_ = data.Set("network_id", application.NetworkItemID)
+}
+
+// flattenNetworkApplicationRoutes converts network application routes to Terraform state format
+func flattenNetworkApplicationRoutes(routes []*cloudconnexa.NetworkApplicationDomainRoute) []map[string]interface{} {
+	var data []map[string]interface{}
+	for _, route := range routes {
+		data = append(data, map[string]interface{}{
+			"domain":            route.Domain,
+			"allow_embedded_ip": route.AllowEmbeddedIP,
+			"exact_match":       route.ExactMatch,
+		})
+	}
+	return data
 }

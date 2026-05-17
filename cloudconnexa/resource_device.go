@@ -118,7 +118,6 @@ func resourceDeviceRead(ctx context.Context, d *schema.ResourceData, m interface
 	d.Set("name", device.Name)
 	d.Set("description", device.Description)
 	d.Set("platform", device.Platform)
-	d.Set("status", device.Status)
 	d.Set("user_id", device.UserID)
 
 	return diags
