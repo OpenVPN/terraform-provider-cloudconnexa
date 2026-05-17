@@ -24,7 +24,16 @@ Use an `cloudconnexa_user_group` data source to read an CloudConnexa user group.
 
 - `all_regions_included` (Boolean) If true all regions will be available for this user group.
 - `connect_auth` (String) The type of connection authentication. Valid values are `NO_AUTH`, `ON_PRIOR_AUTH`, or `EVERY_TIME`.
+- `gateways_ids` (List of String) The list of gateway IDs associated with this user group.
 - `internet_access` (String) The type of internet access provided. Valid values are `SPLIT_TUNNEL_ON`, `SPLIT_TUNNEL_OFF`, or `RESTRICTED_INTERNET`. Defaults to `SPLIT_TUNNEL_ON`.
 - `max_device` (Number) The maximum number of devices per user.
 - `system_subnets` (List of String) The IPV4 and IPV6 addresses of the subnets associated with this user group.
+- `tunnel_bypass` (List of Object) Destinations that bypass the CloudConnexa tunnel and are routed through the local internet or network connection instead. (see [below for nested schema](#nestedatt--tunnel_bypass))
 - `vpn_region_ids` (List of String) The list of region IDs this user group is associated with.
+
+<a id="nestedatt--tunnel_bypass"></a>
+### Nested Schema for `tunnel_bypass`
+
+Read-Only:
+
+- `ipv4_subnets` (List of String)

@@ -24,5 +24,6 @@ Use an `cloudconnexa_host` data source to read an existing CloudConnexa connecto
 
 - `description` (String) The description of the host.
 - `domain` (String) The host domain.
+- `gateways_ids` (List of String) The list of gateway IDs associated with this host.
 - `internet_access` (String) The type of internet access provided.
 - `system_subnets` (List of String) The IPV4 and IPV6 subnets automatically assigned to this host.

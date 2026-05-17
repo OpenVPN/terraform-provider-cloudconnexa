@@ -91,6 +91,7 @@ output "network_system_subnets" {
 
 - `description` (String) The display description for this resource. Defaults to `Managed by Terraform`.
 - `egress` (Boolean) Boolean to control whether this network provides an egress or not.
+- `gateways_ids` (List of String) The list of gateway IDs associated with this network.
 - `internet_access` (String) The type of internet access provided. Valid values are `SPLIT_TUNNEL_ON`, `SPLIT_TUNNEL_OFF`, or `RESTRICTED_INTERNET`. Defaults to `SPLIT_TUNNEL_ON`.
 - `tunneling_protocol` (String) The tunneling protocol used for this network.
 

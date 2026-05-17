@@ -269,6 +269,7 @@ output "host_ip_services" {
 
 - `description` (String) The description for the UI. Defaults to `Managed by Terraform`.
 - `domain` (String) The domain of the host.
+- `gateways_ids` (List of String) The list of gateway IDs associated with this host.
 - `internet_access` (String) The type of internet access provided. Valid values are `SPLIT_TUNNEL_ON`, `SPLIT_TUNNEL_OFF`, or `RESTRICTED_INTERNET`. Defaults to `SPLIT_TUNNEL_ON`.
 
 ### Read-Only

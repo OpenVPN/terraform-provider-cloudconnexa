@@ -24,6 +24,7 @@ Use a `cloudconnexa_network` data source to read an CloudConnexa network.
 
 - `description` (String) The description of the network.
 - `egress` (Boolean) Boolean to indicate whether this network provides an egress or not.
+- `gateways_ids` (List of String) The list of gateway IDs associated with this network.
 - `internet_access` (String) The type of internet access provided. Valid values are `SPLIT_TUNNEL_ON`, `SPLIT_TUNNEL_OFF`, or `RESTRICTED_INTERNET`. Defaults to `SPLIT_TUNNEL_ON`.
 - `system_subnets` (List of String) The IPV4 and IPV6 subnets automatically assigned to this network.
 - `tunneling_protocol` (String) The tunneling protocol of the network.
