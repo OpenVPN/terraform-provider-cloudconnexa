@@ -204,6 +204,17 @@ func getAddressesSlice(addresses []interface{}) []string {
 // Returns:
 //   - error: An error if both IP address lists are empty
 func validateAtLeastOneNonEmptyList(c context.Context, diff *schema.ResourceDiff, i interface{}) error {
+	// Skip when either list contains values that aren't known until apply
+	// (e.g. an element referencing another resource's computed attribute).
+	// IsWhollyKnown catches unknowns nested inside the list, not just the list itself.
+	rawConfig := diff.GetRawConfig()
+	if !rawConfig.IsNull() && rawConfig.IsKnown() {
+		v4 := rawConfig.GetAttr("ip_v4_addresses")
+		v6 := rawConfig.GetAttr("ip_v6_addresses")
+		if !v4.IsWhollyKnown() || !v6.IsWhollyKnown() {
+			return nil
+		}
+	}
 	listA := diff.Get("ip_v4_addresses").([]interface{})
 	listB := diff.Get("ip_v6_addresses").([]interface{})
 	if len(listA) == 0 && len(listB) == 0 {
