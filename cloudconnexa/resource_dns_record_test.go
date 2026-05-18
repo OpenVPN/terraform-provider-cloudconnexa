@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -47,7 +45,7 @@ func TestAccCloudConnexaDnsRecord_basic(t *testing.T) {
 // Returns:
 //   - error: An error if the DNS record still exists or if there was an error checking its existence
 func testAccCheckCloudConnexaDnsRecordDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*cloudconnexa.Client)
+	client := testAccProvider.Meta().(*providerMeta).Client
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "cloudconnexa_dns_record" {

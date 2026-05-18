@@ -79,14 +79,17 @@ func dataSourceHostConnector() *schema.Resource {
 // Returns:
 //   - diag.Diagnostics: Diagnostics containing any errors that occurred during the operation
 func dataSourceHostConnectorRead(ctx context.Context, data *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	var id = data.Get("id").(string)
 	var connector *cloudconnexa.HostConnector
 	var token string
 	var err error
 	if id != "" {
-		connector, err = c.HostConnectors.GetByID(id)
+		connector, err = withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.HostConnector, error) {
+			return c.HostConnectors.GetByID(id)
+		})
 		if err != nil {
 			return append(diags, diag.Errorf("Failed to get host connector with ID: %s, %s", id, err)...)
 		}
@@ -95,7 +98,9 @@ func dataSourceHostConnectorRead(ctx context.Context, data *schema.ResourceData,
 		}
 	} else {
 		var name = data.Get("name").(string)
-		connector, err = c.HostConnectors.GetByName(name)
+		connector, err = withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.HostConnector, error) {
+			return c.HostConnectors.GetByName(name)
+		})
 		if err != nil {
 			return append(diags, diag.Errorf("Failed to get host connector with name: %s, %s", name, err)...)
 		}
@@ -103,7 +108,9 @@ func dataSourceHostConnectorRead(ctx context.Context, data *schema.ResourceData,
 			return append(diags, diag.Errorf("Host connector with name %s was not found", name)...)
 		}
 	}
-	token, err = c.HostConnectors.GetToken(connector.ID)
+	token, err = withRetry(ctx, meta.RetryConfig, func() (string, error) {
+		return c.HostConnectors.GetToken(connector.ID)
+	})
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -117,7 +124,9 @@ func dataSourceHostConnectorRead(ctx context.Context, data *schema.ResourceData,
 	data.Set("ip_v6_address", connector.IPv6Address)
 	data.Set("token", token)
 
-	profile, err := c.HostConnectors.GetProfile(connector.ID)
+	profile, err := withRetry(ctx, meta.RetryConfig, func() (string, error) {
+		return c.HostConnectors.GetProfile(connector.ID)
+	})
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}

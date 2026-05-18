@@ -80,7 +80,8 @@ func resourceDevice() *schema.Resource {
 
 // resourceDeviceCreate provisions a new device for the given user.
 func resourceDeviceCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 
 	userID := d.Get("user_id").(string)
 	req := cloudconnexa.DeviceCreateRequest{
@@ -89,7 +90,9 @@ func resourceDeviceCreate(ctx context.Context, d *schema.ResourceData, m interfa
 		ClientUUID:  d.Get("client_uuid").(string),
 	}
 
-	device, err := c.Devices.Create(userID, req)
+	device, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.DeviceDetail, error) {
+		return c.Devices.Create(userID, req)
+	})
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -100,10 +103,13 @@ func resourceDeviceCreate(ctx context.Context, d *schema.ResourceData, m interfa
 
 // resourceDeviceRead refreshes Terraform state from the CloudConnexa API.
 func resourceDeviceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 
 	userID := d.Get("user_id").(string)
-	device, err := c.Devices.GetByID(userID, d.Id())
+	device, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.DeviceDetail, error) {
+		return c.Devices.GetByID(userID, d.Id())
+	})
 	if err != nil {
 		return diag.Errorf("Failed to get device with ID %s: %s", d.Id(), err)
 	}
@@ -123,7 +129,8 @@ func resourceDeviceRead(ctx context.Context, d *schema.ResourceData, m interface
 
 // resourceDeviceUpdate pushes name/description changes back to CloudConnexa.
 func resourceDeviceUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 
 	if d.HasChanges("name", "description") {
 		// Both fields are always sent so omitempty on the SDK struct doesn't blank a value the user kept.
@@ -132,7 +139,9 @@ func resourceDeviceUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 			Description: d.Get("description").(string),
 		}
 		userID := d.Get("user_id").(string)
-		if _, err := c.Devices.Update(userID, d.Id(), req); err != nil {
+		if _, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.DeviceDetail, error) {
+			return c.Devices.Update(userID, d.Id(), req)
+		}); err != nil {
 			return diag.FromErr(err)
 		}
 	}
@@ -142,10 +151,13 @@ func resourceDeviceUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 
 // resourceDeviceDelete removes the device from CloudConnexa.
 func resourceDeviceDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 
 	userID := d.Get("user_id").(string)
-	if err := c.Devices.Delete(userID, d.Id()); err != nil {
+	if err := withRetryNoBody(ctx, meta.RetryConfig, func() error {
+		return c.Devices.Delete(userID, d.Id())
+	}); err != nil {
 		return diag.FromErr(err)
 	}
 	d.SetId("")

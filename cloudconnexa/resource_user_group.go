@@ -123,11 +123,14 @@ func tunnelBypassSchema() *schema.Resource {
 // Returns:
 //   - diag.Diagnostics: Diagnostics containing any errors that occurred
 func resourceUserGroupUpdate(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-	c := i.(*cloudconnexa.Client)
+	meta := i.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	ug := resourceDataToUserGroup(data)
 
-	userGroup, err := c.UserGroups.Update(data.Id(), ug)
+	userGroup, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.UserGroup, error) {
+		return c.UserGroups.Update(data.Id(), ug)
+	})
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -241,9 +244,12 @@ func updateUserGroupData(data *schema.ResourceData, userGroup *cloudconnexa.User
 // Returns:
 //   - diag.Diagnostics: Diagnostics containing any errors that occurred
 func resourceUserGroupDelete(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-	c := i.(*cloudconnexa.Client)
+	meta := i.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
-	err := c.UserGroups.Delete(data.Id())
+	err := withRetryNoBody(ctx, meta.RetryConfig, func() error {
+		return c.UserGroups.Delete(data.Id())
+	})
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -262,10 +268,13 @@ func resourceUserGroupDelete(ctx context.Context, data *schema.ResourceData, i i
 // Returns:
 //   - diag.Diagnostics: Diagnostics containing any errors that occurred
 func resourceUserGroupRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-	c := i.(*cloudconnexa.Client)
+	meta := i.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	id := data.Id()
-	userGroup, err := c.UserGroups.Get(id)
+	userGroup, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.UserGroup, error) {
+		return c.UserGroups.Get(id)
+	})
 	if err != nil {
 		return append(diags, diag.Errorf("Failed to get user group with ID: %s, %s", id, err)...)
 	}
@@ -289,11 +298,14 @@ func resourceUserGroupRead(ctx context.Context, data *schema.ResourceData, i int
 // Returns:
 //   - diag.Diagnostics: Diagnostics containing any errors that occurred
 func resourceUserGroupCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	ug := resourceDataToUserGroup(d)
 
-	userGroup, err := c.UserGroups.Create(ug)
+	userGroup, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.UserGroup, error) {
+		return c.UserGroups.Create(ug)
+	})
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}

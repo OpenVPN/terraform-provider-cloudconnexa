@@ -59,28 +59,27 @@ func dataSourceHostApplication() *schema.Resource {
 // Returns:
 //   - diag.Diagnostics: Diagnostics containing any errors that occurred during the operation
 func dataSourceHostApplicationRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-	c := i.(*cloudconnexa.Client)
+	meta := i.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	var id = data.Get("id").(string)
 	var application *cloudconnexa.ApplicationResponse
 	var err error
 	if id != "" {
-		application, err = c.HostApplications.Get(id)
-		if err != nil {
-			return append(diags, diag.Errorf("Failed to get application with ID: %s, %s", id, err)...)
-		}
-		if application == nil {
-			return append(diags, diag.Errorf("Application with id %s was not found", id)...)
-		}
+		application, err = withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.ApplicationResponse, error) {
+			return c.HostApplications.Get(id)
+		})
 	} else {
 		var name = data.Get("name").(string)
-		application, err = c.HostApplications.GetByName(name)
-		if err != nil {
-			return append(diags, diag.Errorf("Failed to get application with name: %s, %s", name, err)...)
-		}
-		if application == nil {
-			return append(diags, diag.Errorf("Application with name %s was not found", name)...)
-		}
+		application, err = withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.ApplicationResponse, error) {
+			return c.HostApplications.GetByName(name)
+		})
+	}
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	if application == nil {
+		return append(diags, diag.Errorf("Application was not found")...)
 	}
 	setApplicationData(data, application)
 	return nil

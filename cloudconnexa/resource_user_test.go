@@ -71,7 +71,7 @@ func TestAccCloudConnexaUser_basic(t *testing.T) {
 // Returns:
 //   - error: An error if the user still exists or if there was an error checking its existence
 func testAccCheckCloudConnexaUserDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*cloudconnexa.Client)
+	client := testAccProvider.Meta().(*providerMeta).Client
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "cloudconnexa_user" {
 			continue
@@ -107,7 +107,7 @@ func testAccCheckCloudConnexaUserExists(n string, teamID *string) resource.TestC
 			return errors.New("no ID is set")
 		}
 
-		client := testAccProvider.Meta().(*cloudconnexa.Client)
+		client := testAccProvider.Meta().(*providerMeta).Client
 		_, err := client.Users.Get(rs.Primary.ID)
 		if err != nil {
 			return err

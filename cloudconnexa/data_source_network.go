@@ -82,13 +82,16 @@ func dataSourceNetwork() *schema.Resource {
 // Returns:
 //   - diag.Diagnostics: Diagnostics containing any errors that occurred during the operation
 func dataSourceNetworkRead(ctx context.Context, data *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	var id = data.Get("id").(string)
 	var network *cloudconnexa.Network
 	var err error
 	if id != "" {
-		network, err = c.Networks.Get(id)
+		network, err = withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.Network, error) {
+			return c.Networks.Get(id)
+		})
 		if err != nil {
 			return append(diags, diag.Errorf("Failed to get network with ID: %s, %s", id, err)...)
 		}
@@ -97,7 +100,9 @@ func dataSourceNetworkRead(ctx context.Context, data *schema.ResourceData, m int
 		}
 	} else {
 		var name = data.Get("name").(string)
-		network, err = c.Networks.GetByName(name)
+		network, err = withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.Network, error) {
+			return c.Networks.GetByName(name)
+		})
 		if err != nil {
 			return append(diags, diag.Errorf("Failed to get network with name: %s, %s", name, err)...)
 		}

@@ -68,7 +68,7 @@ func testAccCheckCloudConnexaServiceExists(rn, _ string) resource.TestCheckFunc 
 			return errors.New("no ID is set")
 		}
 
-		c := testAccProvider.Meta().(*cloudconnexa.Client)
+		c := testAccProvider.Meta().(*providerMeta).Client
 		_, err := c.HostIPServices.Get(rs.Primary.ID)
 		if err != nil {
 			return err
@@ -86,7 +86,7 @@ func testAccCheckCloudConnexaServiceExists(rn, _ string) resource.TestCheckFunc 
 // Returns:
 //   - error: An error if the service still exists or if there was an error checking its existence
 func testAccCheckCloudConnexaServiceDestroy(state *terraform.State) error {
-	c := testAccProvider.Meta().(*cloudconnexa.Client)
+	c := testAccProvider.Meta().(*providerMeta).Client
 	for _, rs := range state.RootModule().Resources {
 		if rs.Type != "cloudconnexa_host_ip_service" {
 			continue

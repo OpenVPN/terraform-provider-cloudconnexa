@@ -107,13 +107,16 @@ func dataSourceUserGroup() *schema.Resource {
 // Returns:
 //   - diag.Diagnostics: Diagnostics containing any errors that occurred during the operation
 func dataSourceUserGroupRead(ctx context.Context, data *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	var id = data.Get("id").(string)
 	var userGroup *cloudconnexa.UserGroup
 	var err error
 	if id != "" {
-		userGroup, err = c.UserGroups.GetByID(id)
+		userGroup, err = withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.UserGroup, error) {
+			return c.UserGroups.GetByID(id)
+		})
 		if err != nil {
 			return append(diags, diag.Errorf("Failed to get user group with ID: %s, %s", id, err)...)
 		}
@@ -122,7 +125,9 @@ func dataSourceUserGroupRead(ctx context.Context, data *schema.ResourceData, m i
 		}
 	} else {
 		var name = data.Get("name").(string)
-		userGroup, err = c.UserGroups.GetByName(name)
+		userGroup, err = withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.UserGroup, error) {
+			return c.UserGroups.GetByName(name)
+		})
 		if err != nil {
 			return append(diags, diag.Errorf("Failed to get user group with name: %s, %s", name, err)...)
 		}

@@ -87,7 +87,8 @@ func resourceHostConnector() *schema.Resource {
 // resourceHostConnectorUpdate updates an existing CloudConnexa host connector with new configuration.
 // It handles updating the connector's name, description, VPN region, and status.
 func resourceHostConnectorUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 
 	// Handle status change (suspend/activate)
@@ -95,11 +96,11 @@ func resourceHostConnectorUpdate(ctx context.Context, d *schema.ResourceData, m 
 		_, newStatus := d.GetChange("status")
 		switch newStatus.(string) {
 		case "SUSPENDED":
-			if err := c.HostConnectors.Suspend(d.Id()); err != nil {
+			if err := withRetryNoBody(ctx, meta.RetryConfig, func() error { return c.HostConnectors.Suspend(d.Id()) }); err != nil {
 				return append(diags, diag.FromErr(err)...)
 			}
 		case "ACTIVE":
-			if err := c.HostConnectors.Activate(d.Id()); err != nil {
+			if err := withRetryNoBody(ctx, meta.RetryConfig, func() error { return c.HostConnectors.Activate(d.Id()) }); err != nil {
 				return append(diags, diag.FromErr(err)...)
 			}
 		}
@@ -113,7 +114,9 @@ func resourceHostConnectorUpdate(ctx context.Context, d *schema.ResourceData, m 
 			Description: d.Get("description").(string),
 			VpnRegionID: d.Get("vpn_region_id").(string),
 		}
-		_, err := c.HostConnectors.Update(connector)
+		_, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.HostConnector, error) {
+			return c.HostConnectors.Update(connector)
+		})
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
@@ -125,7 +128,8 @@ func resourceHostConnectorUpdate(ctx context.Context, d *schema.ResourceData, m 
 // resourceHostConnectorCreate creates a new CloudConnexa host connector.
 // It initializes the connector with the specified configuration and returns a warning about manual setup requirements.
 func resourceHostConnectorCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	name := d.Get("name").(string)
 	description := d.Get("description").(string)
@@ -138,17 +142,23 @@ func resourceHostConnectorCreate(ctx context.Context, d *schema.ResourceData, m 
 		VpnRegionID:     vpnRegionId,
 		Description:     description,
 	}
-	conn, err := c.HostConnectors.Create(connector, networkItemId)
+	conn, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.HostConnector, error) {
+		return c.HostConnectors.Create(connector, networkItemId)
+	})
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	d.SetId(conn.ID)
-	profile, err := c.HostConnectors.GetProfile(conn.ID)
+	profile, err := withRetry(ctx, meta.RetryConfig, func() (string, error) {
+		return c.HostConnectors.GetProfile(conn.ID)
+	})
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
 	d.Set("profile", profile)
-	token, err := c.HostConnectors.GetToken(conn.ID)
+	token, err := withRetry(ctx, meta.RetryConfig, func() (string, error) {
+		return c.HostConnectors.GetToken(conn.ID)
+	})
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -163,14 +173,19 @@ func resourceHostConnectorCreate(ctx context.Context, d *schema.ResourceData, m 
 // resourceHostConnectorRead retrieves the current state of a CloudConnexa host connector.
 // It fetches the connector's configuration, profile, and token information.
 func resourceHostConnectorRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	id := d.Id()
-	connector, err := c.HostConnectors.GetByID(id)
+	connector, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.HostConnector, error) {
+		return c.HostConnectors.GetByID(id)
+	})
 	if err != nil {
 		return append(diags, diag.Errorf("Failed to get host connector with ID: %s, %s", id, err)...)
 	}
-	token, err := c.HostConnectors.GetToken(d.Id())
+	token, err := withRetry(ctx, meta.RetryConfig, func() (string, error) {
+		return c.HostConnectors.GetToken(d.Id())
+	})
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -187,7 +202,9 @@ func resourceHostConnectorRead(ctx context.Context, d *schema.ResourceData, m in
 		d.Set("ip_v6_address", connector.IPv6Address)
 		d.Set("connection_status", connector.ConnectionStatus)
 		d.Set("token", token)
-		profile, err := c.HostConnectors.GetProfile(connector.ID)
+		profile, err := withRetry(ctx, meta.RetryConfig, func() (string, error) {
+			return c.HostConnectors.GetProfile(connector.ID)
+		})
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
@@ -199,9 +216,12 @@ func resourceHostConnectorRead(ctx context.Context, d *schema.ResourceData, m in
 // resourceHostConnectorDelete removes a CloudConnexa host connector.
 // It deletes the connector and its associated host configuration.
 func resourceHostConnectorDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
-	err := c.HostConnectors.Delete(d.Id(), d.Get("host_id").(string))
+	err := withRetryNoBody(ctx, meta.RetryConfig, func() error {
+		return c.HostConnectors.Delete(d.Id(), d.Get("host_id").(string))
+	})
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}

@@ -5,8 +5,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -68,7 +66,7 @@ func testAccCheckCloudConnexaConnectorExists(n string) resource.TestCheckFunc {
 // Returns:
 //   - error: An error if the connector still exists or if there was an error checking its existence
 func testAccCheckCloudConnexaConnectorDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*cloudconnexa.Client)
+	client := testAccProvider.Meta().(*providerMeta).Client
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "cloudconnexa_host_connector" {

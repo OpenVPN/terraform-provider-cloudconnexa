@@ -59,9 +59,12 @@ func resourceHostIPService() *schema.Resource {
 
 // resourceHostIpServiceUpdate updates an existing host IP service
 func resourceHostIpServiceUpdate(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-	c := i.(*cloudconnexa.Client)
+	meta := i.(*providerMeta)
+	c := meta.Client
 
-	_, err := c.HostIPServices.Update(data.Id(), resourceDataToHostIpService(data))
+	_, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.HostIPServiceResponse, error) {
+		return c.HostIPServices.Update(data.Id(), resourceDataToHostIpService(data))
+	})
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -120,10 +123,13 @@ func customHostServiceTypesConfig() map[string]*schema.Schema {
 
 // resourceHostIpServiceRead reads the state of a host IP service
 func resourceHostIpServiceRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-	c := i.(*cloudconnexa.Client)
+	meta := i.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	id := data.Id()
-	service, err := c.HostIPServices.Get(id)
+	service, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.HostIPServiceResponse, error) {
+		return c.HostIPServices.Get(id)
+	})
 	if err != nil {
 		return append(diags, diag.Errorf("Failed to get host IP service with ID: %s, %s", id, err)...)
 	}
@@ -148,9 +154,12 @@ func setHostIpServiceResourceData(data *schema.ResourceData, service *cloudconne
 
 // resourceHostIpServiceDelete deletes a host IP service
 func resourceHostIpServiceDelete(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-	c := i.(*cloudconnexa.Client)
+	meta := i.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
-	err := c.HostIPServices.Delete(data.Id())
+	err := withRetryNoBody(ctx, meta.RetryConfig, func() error {
+		return c.HostIPServices.Delete(data.Id())
+	})
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -190,10 +199,13 @@ func flattenCustomHostServiceTypes(types []*cloudconnexa.CustomIPServiceType) in
 
 // resourceHostIpServiceCreate creates a new host IP service
 func resourceHostIpServiceCreate(ctx context.Context, data *schema.ResourceData, m interface{}) diag.Diagnostics {
-	client := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	client := meta.Client
 
 	service := resourceDataToHostIpService(data)
-	createdService, err := client.HostIPServices.Create(service)
+	createdService, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.HostIPServiceResponse, error) {
+		return client.HostIPServices.Create(service)
+	})
 	if err != nil {
 		return diag.FromErr(err)
 	}

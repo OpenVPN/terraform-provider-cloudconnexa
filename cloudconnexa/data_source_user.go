@@ -119,10 +119,13 @@ func dataSourceUser() *schema.Resource {
 // Returns:
 //   - diag.Diagnostics: Diagnostics containing any errors that occurred during the operation
 func dataSourceUserRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	userName := d.Get("username").(string)
-	user, err := c.Users.GetByUsername(userName)
+	user, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.User, error) {
+		return c.Users.GetByUsername(userName)
+	})
 	if err != nil {
 		return diag.Errorf("Failed to get user with username: %s, %s", userName, err)
 	}

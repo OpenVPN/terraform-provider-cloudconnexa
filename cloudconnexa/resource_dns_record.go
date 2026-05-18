@@ -74,7 +74,8 @@ func resourceDnsRecord() *schema.Resource {
 // Returns:
 //   - diag.Diagnostics: Diagnostics containing any errors that occurred
 func resourceDnsRecordCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	domain := d.Get("domain").(string)
 	description := d.Get("description").(string)
@@ -94,7 +95,9 @@ func resourceDnsRecordCreate(ctx context.Context, d *schema.ResourceData, m inte
 		IPV4Addresses: ipV4AddressesSlice,
 		IPV6Addresses: ipV6AddressesSlice,
 	}
-	dnsRecord, err := c.DNSRecords.Create(dr)
+	dnsRecord, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.DNSRecord, error) {
+		return c.DNSRecords.Create(dr)
+	})
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -112,10 +115,13 @@ func resourceDnsRecordCreate(ctx context.Context, d *schema.ResourceData, m inte
 // Returns:
 //   - diag.Diagnostics: Diagnostics containing any errors that occurred
 func resourceDnsRecordRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	id := d.Id()
-	r, err := c.DNSRecords.GetByID(id)
+	r, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.DNSRecord, error) {
+		return c.DNSRecords.GetByID(id)
+	})
 	if err != nil {
 		if isDNSRecordNotFoundErr(err) {
 			d.SetId("")
@@ -144,7 +150,8 @@ func resourceDnsRecordRead(ctx context.Context, d *schema.ResourceData, m interf
 // Returns:
 //   - diag.Diagnostics: Diagnostics containing any errors that occurred
 func resourceDnsRecordUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	_, domain := d.GetChange("domain")
 	_, description := d.GetChange("description")
@@ -159,7 +166,9 @@ func resourceDnsRecordUpdate(ctx context.Context, d *schema.ResourceData, m inte
 		IPV4Addresses: ipV4AddressesSlice,
 		IPV6Addresses: ipV6AddressesSlice,
 	}
-	err := c.DNSRecords.Update(dr)
+	err := withRetryNoBody(ctx, meta.RetryConfig, func() error {
+		return c.DNSRecords.Update(dr)
+	})
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -176,10 +185,13 @@ func resourceDnsRecordUpdate(ctx context.Context, d *schema.ResourceData, m inte
 // Returns:
 //   - diag.Diagnostics: Diagnostics containing any errors that occurred
 func resourceDnsRecordDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	recordId := d.Id()
-	err := c.DNSRecords.Delete(recordId)
+	err := withRetryNoBody(ctx, meta.RetryConfig, func() error {
+		return c.DNSRecords.Delete(recordId)
+	})
 	if err != nil && !isDNSRecordNotFoundErr(err) {
 		return append(diags, diag.FromErr(err)...)
 	}

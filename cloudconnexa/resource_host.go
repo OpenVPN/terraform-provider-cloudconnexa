@@ -83,7 +83,8 @@ func gatewaysIdsFromResource(d *schema.ResourceData) []string {
 
 // resourceHostCreate creates a new CloudConnexa host
 func resourceHostCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	h := cloudconnexa.Host{
 		Name:           d.Get("name").(string),
@@ -92,7 +93,9 @@ func resourceHostCreate(ctx context.Context, d *schema.ResourceData, m interface
 		InternetAccess: d.Get("internet_access").(string),
 		GatewaysIDs:    gatewaysIdsFromResource(d),
 	}
-	host, err := c.Hosts.Create(h)
+	host, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.Host, error) {
+		return c.Hosts.Create(h)
+	})
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -103,10 +106,13 @@ func resourceHostCreate(ctx context.Context, d *schema.ResourceData, m interface
 
 // resourceHostRead retrieves information about an existing CloudConnexa host
 func resourceHostRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	id := d.Id()
-	host, err := c.Hosts.Get(id)
+	host, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.Host, error) {
+		return c.Hosts.Get(id)
+	})
 	if err != nil {
 		return append(diags, diag.Errorf("Failed to get host with ID: %s, %s", id, err)...)
 	}
@@ -122,19 +128,22 @@ func resourceHostRead(ctx context.Context, d *schema.ResourceData, m interface{}
 
 // resourceHostUpdate updates an existing CloudConnexa host
 func resourceHostUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	_, newName := d.GetChange("name")
 	_, newDescription := d.GetChange("description")
 	_, newDomain := d.GetChange("domain")
 	_, newAccess := d.GetChange("internet_access")
-	err := c.Hosts.Update(cloudconnexa.Host{
-		ID:             d.Id(),
-		Name:           newName.(string),
-		Description:    newDescription.(string),
-		Domain:         newDomain.(string),
-		InternetAccess: newAccess.(string),
-		GatewaysIDs:    gatewaysIdsFromResource(d),
+	err := withRetryNoBody(ctx, meta.RetryConfig, func() error {
+		return c.Hosts.Update(cloudconnexa.Host{
+			ID:             d.Id(),
+			Name:           newName.(string),
+			Description:    newDescription.(string),
+			Domain:         newDomain.(string),
+			InternetAccess: newAccess.(string),
+			GatewaysIDs:    gatewaysIdsFromResource(d),
+		})
 	})
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
@@ -144,10 +153,13 @@ func resourceHostUpdate(ctx context.Context, d *schema.ResourceData, m interface
 
 // resourceHostDelete removes an existing CloudConnexa host
 func resourceHostDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	hostId := d.Id()
-	err := c.Hosts.Delete(hostId)
+	err := withRetryNoBody(ctx, meta.RetryConfig, func() error {
+		return c.Hosts.Delete(hostId)
+	})
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}

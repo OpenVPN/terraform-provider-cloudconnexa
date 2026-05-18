@@ -126,7 +126,8 @@ func dataSourceSessions() *schema.Resource {
 
 // dataSourceSessionsRead handles the read operation for the sessions data source.
 func dataSourceSessionsRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 
 	options := cloudconnexa.SessionsListOptions{
@@ -153,7 +154,9 @@ func dataSourceSessionsRead(ctx context.Context, d *schema.ResourceData, m inter
 		options.EndDate = &t
 	}
 
-	sessions, err := c.Sessions.ListAll(options)
+	sessions, err := withRetry(ctx, meta.RetryConfig, func() ([]cloudconnexa.Session, error) {
+		return c.Sessions.ListAll(options)
+	})
 	if err != nil {
 		return diag.Errorf("Failed to get sessions: %s", err)
 	}

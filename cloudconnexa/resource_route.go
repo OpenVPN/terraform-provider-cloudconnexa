@@ -65,7 +65,8 @@ func resourceRoute() *schema.Resource {
 // Returns:
 //   - diag.Diagnostics: Diagnostics containing any errors that occurred during the operation
 func resourceRouteCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	networkItemId := d.Get("network_item_id").(string)
 	routeType := d.Get("type").(string)
@@ -76,7 +77,9 @@ func resourceRouteCreate(ctx context.Context, d *schema.ResourceData, m interfac
 		Subnet:      routeSubnet,
 		Description: descriptionValue,
 	}
-	route, err := c.Routes.Create(networkItemId, r)
+	route, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.Route, error) {
+		return c.Routes.Create(networkItemId, r)
+	})
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -98,10 +101,13 @@ func resourceRouteCreate(ctx context.Context, d *schema.ResourceData, m interfac
 // Returns:
 //   - diag.Diagnostics: Diagnostics containing any errors that occurred during the operation
 func resourceRouteRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	id := d.Id()
-	r, err := c.Routes.Get(id)
+	r, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.Route, error) {
+		return c.Routes.Get(id)
+	})
 	if err != nil {
 		return append(diags, diag.Errorf("Failed to get route with ID: %s, %s", id, err)...)
 	}
@@ -129,7 +135,8 @@ func resourceRouteRead(ctx context.Context, d *schema.ResourceData, m interface{
 // Returns:
 //   - diag.Diagnostics: Diagnostics containing any errors that occurred during the operation
 func resourceRouteUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	if !d.HasChanges("description", "subnet") {
 		return diags
@@ -143,7 +150,9 @@ func resourceRouteUpdate(ctx context.Context, d *schema.ResourceData, m interfac
 		Subnet:      subnet.(string),
 	}
 
-	err := c.Routes.Update(r)
+	err := withRetryNoBody(ctx, meta.RetryConfig, func() error {
+		return c.Routes.Update(r)
+	})
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -161,10 +170,13 @@ func resourceRouteUpdate(ctx context.Context, d *schema.ResourceData, m interfac
 // Returns:
 //   - diag.Diagnostics: Diagnostics containing any errors that occurred during the operation
 func resourceRouteDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	routeId := d.Id()
-	err := c.Routes.Delete(routeId)
+	err := withRetryNoBody(ctx, meta.RetryConfig, func() error {
+		return c.Routes.Delete(routeId)
+	})
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}

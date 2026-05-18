@@ -132,10 +132,13 @@ func defaultCheckConfig() *schema.Resource {
 
 // resourceLocationContextCreate creates a new Location Context in CloudConnexa.
 func resourceLocationContextCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	dr := resourceDataToLocationContext(d)
-	response, err := c.LocationContexts.Create(dr)
+	response, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.LocationContext, error) {
+		return c.LocationContexts.Create(dr)
+	})
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -145,10 +148,13 @@ func resourceLocationContextCreate(ctx context.Context, d *schema.ResourceData, 
 
 // resourceLocationContextRead retrieves a Location Context from CloudConnexa.
 func resourceLocationContextRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	id := d.Id()
-	lc, err := c.LocationContexts.Get(id)
+	lc, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.LocationContext, error) {
+		return c.LocationContexts.Get(id)
+	})
 	if err != nil {
 		return append(diags, diag.Errorf("Failed to get location context with ID: %s, %s", id, err)...)
 	}
@@ -162,10 +168,13 @@ func resourceLocationContextRead(ctx context.Context, d *schema.ResourceData, m 
 
 // resourceLocationContextUpdate updates an existing Location Context in CloudConnexa.
 func resourceLocationContextUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	lc := resourceDataToLocationContext(d)
-	_, err := c.LocationContexts.Update(d.Id(), lc)
+	_, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.LocationContext, error) {
+		return c.LocationContexts.Update(d.Id(), lc)
+	})
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -174,10 +183,13 @@ func resourceLocationContextUpdate(ctx context.Context, d *schema.ResourceData, 
 
 // resourceLocationContextDelete removes a Location Context from CloudConnexa.
 func resourceLocationContextDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	routeId := d.Id()
-	err := c.LocationContexts.Delete(routeId)
+	err := withRetryNoBody(ctx, meta.RetryConfig, func() error {
+		return c.LocationContexts.Delete(routeId)
+	})
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}

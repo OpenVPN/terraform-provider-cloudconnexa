@@ -143,10 +143,13 @@ func resourceDestination() *schema.Resource {
 
 // resourceAccessGroupCreate creates a new access group in CloudConnexa
 func resourceAccessGroupCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	request := resourceDataToAccessGroup(d)
-	accessGroup, err := c.AccessGroups.Create(request)
+	accessGroup, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.AccessGroup, error) {
+		return c.AccessGroups.Create(request)
+	})
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -156,10 +159,13 @@ func resourceAccessGroupCreate(ctx context.Context, d *schema.ResourceData, m in
 
 // resourceAccessGroupRead retrieves an access group from CloudConnexa
 func resourceAccessGroupRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	id := d.Id()
-	ag, err := c.AccessGroups.Get(id)
+	ag, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.AccessGroup, error) {
+		return c.AccessGroups.Get(id)
+	})
 	if err != nil {
 		return append(diags, diag.Errorf("Failed to get access group with ID: %s, %s", id, err)...)
 	}
@@ -173,10 +179,13 @@ func resourceAccessGroupRead(ctx context.Context, d *schema.ResourceData, m inte
 
 // resourceAccessGroupUpdate updates an existing access group in CloudConnexa
 func resourceAccessGroupUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	ag := resourceDataToAccessGroup(d)
-	savedAccessGroup, err := c.AccessGroups.Update(d.Id(), ag)
+	savedAccessGroup, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.AccessGroup, error) {
+		return c.AccessGroups.Update(d.Id(), ag)
+	})
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -186,10 +195,13 @@ func resourceAccessGroupUpdate(ctx context.Context, d *schema.ResourceData, m in
 
 // resourceAccessGroupDelete removes an access group from CloudConnexa
 func resourceAccessGroupDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	id := d.Id()
-	err := c.AccessGroups.Delete(id)
+	err := withRetryNoBody(ctx, meta.RetryConfig, func() error {
+		return c.AccessGroups.Delete(id)
+	})
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}

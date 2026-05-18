@@ -55,28 +55,27 @@ func dataSourceAccessGroup() *schema.Resource {
 // Returns:
 //   - diag.Diagnostics: Diagnostics containing any errors that occurred during the operation
 func dataSourceAccessGroupRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-	c := i.(*cloudconnexa.Client)
+	meta := i.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	var id = data.Get("id").(string)
 	var group *cloudconnexa.AccessGroup
 	var err error
 	if id != "" {
-		group, err = c.AccessGroups.Get(id)
-		if err != nil {
-			return append(diags, diag.Errorf("Failed to get access group with ID: %s, %s", id, err)...)
-		}
-		if group == nil {
-			return append(diags, diag.Errorf("Access Group with id %s was not found", id)...)
-		}
+		group, err = withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.AccessGroup, error) {
+			return c.AccessGroups.Get(id)
+		})
 	} else {
 		var name = data.Get("name").(string)
-		group, err = c.AccessGroups.GetByName(name)
-		if err != nil {
-			return append(diags, diag.Errorf("Failed to get access group with name: %s, %s", name, err)...)
-		}
-		if group == nil {
-			return append(diags, diag.Errorf("Access Group with name %s was not found", name)...)
-		}
+		group, err = withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.AccessGroup, error) {
+			return c.AccessGroups.GetByName(name)
+		})
+	}
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	if group == nil {
+		return append(diags, diag.Errorf("Access Group was not found")...)
 	}
 	setAccessGroupData(data, group)
 	return diags

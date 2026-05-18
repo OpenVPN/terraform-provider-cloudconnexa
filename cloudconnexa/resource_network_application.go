@@ -60,9 +60,12 @@ func resourceNetworkApplication() *schema.Resource {
 
 // resourceNetworkApplicationUpdate handles updates to an existing network application
 func resourceNetworkApplicationUpdate(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-	c := i.(*cloudconnexa.Client)
+	meta := i.(*providerMeta)
+	c := meta.Client
 
-	_, err := c.NetworkApplications.Update(data.Id(), resourceDataToNetworkApplication(data))
+	_, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.NetworkApplicationResponse, error) {
+		return c.NetworkApplications.Update(data.Id(), resourceDataToNetworkApplication(data))
+	})
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -122,10 +125,13 @@ func resourceNetworkApplicationConfig() *schema.Resource {
 
 // resourceNetworkApplicationRead retrieves and sets the state of a network application
 func resourceNetworkApplicationRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-	c := i.(*cloudconnexa.Client)
+	meta := i.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	id := data.Id()
-	application, err := c.NetworkApplications.Get(id)
+	application, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.NetworkApplicationResponse, error) {
+		return c.NetworkApplications.Get(id)
+	})
 	if err != nil {
 		return append(diags, diag.Errorf("Failed to get network application with ID: %s, %s", id, err)...)
 	}
@@ -139,9 +145,12 @@ func resourceNetworkApplicationRead(ctx context.Context, data *schema.ResourceDa
 
 // resourceNetworkApplicationDelete handles the deletion of a network application
 func resourceNetworkApplicationDelete(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-	c := i.(*cloudconnexa.Client)
+	meta := i.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
-	err := c.NetworkApplications.Delete(data.Id())
+	err := withRetryNoBody(ctx, meta.RetryConfig, func() error {
+		return c.NetworkApplications.Delete(data.Id())
+	})
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -150,10 +159,13 @@ func resourceNetworkApplicationDelete(ctx context.Context, data *schema.Resource
 
 // resourceNetworkApplicationCreate handles the creation of a new network application
 func resourceNetworkApplicationCreate(ctx context.Context, data *schema.ResourceData, m interface{}) diag.Diagnostics {
-	client := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	client := meta.Client
 
 	application := resourceDataToNetworkApplication(data)
-	createdApplication, err := client.NetworkApplications.Create(application)
+	createdApplication, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.NetworkApplicationResponse, error) {
+		return client.NetworkApplications.Create(application)
+	})
 	if err != nil {
 		return diag.FromErr(err)
 	}

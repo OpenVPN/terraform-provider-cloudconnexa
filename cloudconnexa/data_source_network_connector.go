@@ -84,13 +84,16 @@ func dataSourceNetworkConnector() *schema.Resource {
 // Returns:
 //   - diag.Diagnostics: Diagnostics containing any errors that occurred during the operation
 func dataSourceNetworkConnectorRead(ctx context.Context, data *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	var id = data.Get("id").(string)
 	var connector *cloudconnexa.NetworkConnector
 	var err error
 	if id != "" {
-		connector, err = c.NetworkConnectors.GetByID(id)
+		connector, err = withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.NetworkConnector, error) {
+			return c.NetworkConnectors.GetByID(id)
+		})
 		if err != nil {
 			return append(diags, diag.Errorf("Failed to get network connector with ID: %s, %s", id, err)...)
 		}
@@ -99,7 +102,9 @@ func dataSourceNetworkConnectorRead(ctx context.Context, data *schema.ResourceDa
 		}
 	} else {
 		var name = data.Get("name").(string)
-		connector, err = c.NetworkConnectors.GetByName(name)
+		connector, err = withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.NetworkConnector, error) {
+			return c.NetworkConnectors.GetByName(name)
+		})
 		if err != nil {
 			return append(diags, diag.Errorf("Failed to get network connector with name: %s, %s", name, err)...)
 		}
@@ -110,12 +115,16 @@ func dataSourceNetworkConnectorRead(ctx context.Context, data *schema.ResourceDa
 
 	setNetworkConnectorData(data, connector)
 	if connector.TunnelingProtocol == "OPENVPN" {
-		token, err := c.NetworkConnectors.GetToken(connector.ID)
+		token, err := withRetry(ctx, meta.RetryConfig, func() (string, error) {
+			return c.NetworkConnectors.GetToken(connector.ID)
+		})
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
 		data.Set("token", token)
-		profile, err := c.NetworkConnectors.GetProfile(connector.ID)
+		profile, err := withRetry(ctx, meta.RetryConfig, func() (string, error) {
+			return c.NetworkConnectors.GetProfile(connector.ID)
+		})
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}

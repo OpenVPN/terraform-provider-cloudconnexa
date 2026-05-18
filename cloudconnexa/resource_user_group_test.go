@@ -69,7 +69,7 @@ func TestAccCloudConnexaUserGroup_basic(t *testing.T) {
 // Returns:
 //   - error: An error if the user group still exists or if there was an error checking its existence
 func testAccCheckCloudConnexaUserGroupDestroy(s *terraform.State) error {
-	c := testAccProvider.Meta().(*cloudconnexa.Client)
+	c := testAccProvider.Meta().(*providerMeta).Client
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "cloudconnexa_user_group" {
 			continue
@@ -104,7 +104,7 @@ func testAccCheckCloudConnexaUserGroupExists(rn string) resource.TestCheckFunc {
 			return errors.New("no ID is set")
 		}
 
-		c := testAccProvider.Meta().(*cloudconnexa.Client)
+		c := testAccProvider.Meta().(*providerMeta).Client
 		_, err := c.UserGroups.Get(rs.Primary.ID)
 		if err != nil {
 			return err

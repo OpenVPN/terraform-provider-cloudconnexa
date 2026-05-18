@@ -121,7 +121,8 @@ func resourceUser() *schema.Resource {
 
 // resourceUserCreate creates a new CloudConnexa user
 func resourceUserCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	username := d.Get("username").(string)
 	email := d.Get("email").(string)
@@ -155,7 +156,9 @@ func resourceUserCreate(ctx context.Context, d *schema.ResourceData, m interface
 		Devices:           devices,
 		Role:              role,
 	}
-	user, err := c.Users.Create(u)
+	user, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.User, error) {
+		return c.Users.Create(u)
+	})
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -165,10 +168,13 @@ func resourceUserCreate(ctx context.Context, d *schema.ResourceData, m interface
 
 // resourceUserRead retrieves information about an existing CloudConnexa user
 func resourceUserRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	id := d.Id()
-	u, err := c.Users.Get(id)
+	u, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.User, error) {
+		return c.Users.Get(id)
+	})
 
 	if err != nil {
 		return append(diags, diag.Errorf("Failed to get user with ID: %s, %s", id, err)...)
@@ -205,7 +211,8 @@ func resourceUserRead(ctx context.Context, d *schema.ResourceData, m interface{}
 
 // resourceUserUpdate updates an existing CloudConnexa user's information
 func resourceUserUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 
 	// Handle status change (suspend/activate)
@@ -213,11 +220,11 @@ func resourceUserUpdate(ctx context.Context, d *schema.ResourceData, m interface
 		_, newStatus := d.GetChange("status")
 		switch newStatus.(string) {
 		case "SUSPENDED":
-			if err := c.Users.Suspend(d.Id()); err != nil {
+			if err := withRetryNoBody(ctx, meta.RetryConfig, func() error { return c.Users.Suspend(d.Id()) }); err != nil {
 				return append(diags, diag.FromErr(err)...)
 			}
 		case "ACTIVE":
-			if err := c.Users.Activate(d.Id()); err != nil {
+			if err := withRetryNoBody(ctx, meta.RetryConfig, func() error { return c.Users.Activate(d.Id()) }); err != nil {
 				return append(diags, diag.FromErr(err)...)
 			}
 		}
@@ -225,7 +232,9 @@ func resourceUserUpdate(ctx context.Context, d *schema.ResourceData, m interface
 
 	// Handle other field changes
 	if d.HasChanges("first_name", "last_name", "group_id", "email", "role", "secondary_groups_ids") {
-		u, err := c.Users.Get(d.Id())
+		u, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.User, error) {
+			return c.Users.Get(d.Id())
+		})
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
@@ -238,15 +247,17 @@ func resourceUserUpdate(ctx context.Context, d *schema.ResourceData, m interface
 		_, secondaryGroupsIds := d.GetChange("secondary_groups_ids")
 		status := u.Status
 
-		err = c.Users.Update(cloudconnexa.User{
-			ID:                d.Id(),
-			Email:             email.(string),
-			FirstName:         firstName.(string),
-			LastName:          lastName.(string),
-			GroupID:           groupId.(string),
-			SecondaryGroupIDs: toStrings(secondaryGroupsIds.([]interface{})),
-			Role:              role.(string),
-			Status:            status,
+		err = withRetryNoBody(ctx, meta.RetryConfig, func() error {
+			return c.Users.Update(cloudconnexa.User{
+				ID:                d.Id(),
+				Email:             email.(string),
+				FirstName:         firstName.(string),
+				LastName:          lastName.(string),
+				GroupID:           groupId.(string),
+				SecondaryGroupIDs: toStrings(secondaryGroupsIds.([]interface{})),
+				Role:              role.(string),
+				Status:            status,
+			})
 		})
 
 		if err != nil {
@@ -259,10 +270,13 @@ func resourceUserUpdate(ctx context.Context, d *schema.ResourceData, m interface
 
 // resourceUserDelete removes an existing CloudConnexa user
 func resourceUserDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	userId := d.Id()
-	err := c.Users.Delete(userId)
+	err := withRetryNoBody(ctx, meta.RetryConfig, func() error {
+		return c.Users.Delete(userId)
+	})
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}

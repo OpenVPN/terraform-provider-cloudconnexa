@@ -76,7 +76,8 @@ func resourceNetwork() *schema.Resource {
 
 // resourceNetworkCreate creates a new network
 func resourceNetworkCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	n := cloudconnexa.Network{
 		Name:              d.Get("name").(string),
@@ -86,7 +87,9 @@ func resourceNetworkCreate(ctx context.Context, d *schema.ResourceData, m interf
 		TunnelingProtocol: d.Get("tunneling_protocol").(string),
 		GatewaysIDs:       gatewaysIdsFromResource(d),
 	}
-	network, err := c.Networks.Create(n)
+	network, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.Network, error) {
+		return c.Networks.Create(n)
+	})
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -96,10 +99,13 @@ func resourceNetworkCreate(ctx context.Context, d *schema.ResourceData, m interf
 
 // resourceNetworkRead reads the state of a network
 func resourceNetworkRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	id := d.Id()
-	network, err := c.Networks.Get(id)
+	network, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.Network, error) {
+		return c.Networks.Get(id)
+	})
 	if err != nil {
 		return append(diags, diag.Errorf("Failed to get network with ID: %s, %s", id, err)...)
 	}
@@ -119,7 +125,8 @@ func resourceNetworkRead(ctx context.Context, d *schema.ResourceData, m interfac
 
 // resourceNetworkUpdate updates an existing network
 func resourceNetworkUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 
 	_, newName := d.GetChange("name")
@@ -127,14 +134,16 @@ func resourceNetworkUpdate(ctx context.Context, d *schema.ResourceData, m interf
 	_, newEgress := d.GetChange("egress")
 	_, newAccess := d.GetChange("internet_access")
 	_, tunnelingProtocol := d.GetChange("tunneling_protocol")
-	err := c.Networks.Update(cloudconnexa.Network{
-		ID:                d.Id(),
-		Name:              newName.(string),
-		Description:       newDescription.(string),
-		Egress:            newEgress.(bool),
-		InternetAccess:    newAccess.(string),
-		TunnelingProtocol: tunnelingProtocol.(string),
-		GatewaysIDs:       gatewaysIdsFromResource(d),
+	err := withRetryNoBody(ctx, meta.RetryConfig, func() error {
+		return c.Networks.Update(cloudconnexa.Network{
+			ID:                d.Id(),
+			Name:              newName.(string),
+			Description:       newDescription.(string),
+			Egress:            newEgress.(bool),
+			InternetAccess:    newAccess.(string),
+			TunnelingProtocol: tunnelingProtocol.(string),
+			GatewaysIDs:       gatewaysIdsFromResource(d),
+		})
 	})
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
@@ -144,10 +153,13 @@ func resourceNetworkUpdate(ctx context.Context, d *schema.ResourceData, m interf
 
 // resourceNetworkDelete deletes a network
 func resourceNetworkDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	networkId := d.Id()
-	err := c.Networks.Delete(networkId)
+	err := withRetryNoBody(ctx, meta.RetryConfig, func() error {
+		return c.Networks.Delete(networkId)
+	})
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}

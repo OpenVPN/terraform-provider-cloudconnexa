@@ -57,28 +57,27 @@ func dataSourceNetworkApplication() *schema.Resource {
 // Returns:
 //   - diag.Diagnostics: Diagnostics containing any errors or warnings
 func dataSourceNetworkApplicationRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-	c := i.(*cloudconnexa.Client)
+	meta := i.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	var id = data.Get("id").(string)
 	var application *cloudconnexa.NetworkApplicationResponse
 	var err error
 	if id != "" {
-		application, err = c.NetworkApplications.Get(id)
-		if err != nil {
-			return append(diags, diag.Errorf("Failed to get network application with ID: %s, %s", id, err)...)
-		}
-		if application == nil {
-			return append(diags, diag.Errorf("Network application with id %s was not found", id)...)
-		}
+		application, err = withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.NetworkApplicationResponse, error) {
+			return c.NetworkApplications.Get(id)
+		})
 	} else {
 		var name = data.Get("name").(string)
-		application, err = c.NetworkApplications.GetByName(name)
-		if err != nil {
-			return append(diags, diag.Errorf("Failed to get network application with name: %s, %s", name, err)...)
-		}
-		if application == nil {
-			return append(diags, diag.Errorf("Network application with name %s was not found", name)...)
-		}
+		application, err = withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.NetworkApplicationResponse, error) {
+			return c.NetworkApplications.GetByName(name)
+		})
+	}
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	if application == nil {
+		return append(diags, diag.Errorf("Network application was not found")...)
 	}
 	setNetworkApplicationData(data, application)
 	return nil

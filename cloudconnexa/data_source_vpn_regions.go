@@ -69,10 +69,13 @@ func dataSourceVpnRegions() *schema.Resource {
 // Returns:
 //   - diag.Diagnostics: Diagnostics containing any errors that occurred during the operation
 func dataSourceVpnRegionsRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 
-	regions, err := c.VPNRegions.List()
+	regions, err := withRetry(ctx, meta.RetryConfig, func() ([]cloudconnexa.VpnRegion, error) {
+		return c.VPNRegions.List()
+	})
 	if err != nil {
 		return diag.Errorf("Failed to get vpn regions: %s", err)
 	}

@@ -60,9 +60,12 @@ func resourceHostApplication() *schema.Resource {
 
 // resourceHostApplicationUpdate updates an existing host application
 func resourceHostApplicationUpdate(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-	c := i.(*cloudconnexa.Client)
+	meta := i.(*providerMeta)
+	c := meta.Client
 
-	_, err := c.HostApplications.Update(data.Id(), resourceDataToHostApplication(data))
+	_, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.ApplicationResponse, error) {
+		return c.HostApplications.Update(data.Id(), resourceDataToHostApplication(data))
+	})
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -137,10 +140,13 @@ func customApplicationTypesConfig() map[string]*schema.Schema {
 
 // resourceHostApplicationRead reads the state of a host application
 func resourceHostApplicationRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-	c := i.(*cloudconnexa.Client)
+	meta := i.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	id := data.Id()
-	application, err := c.HostApplications.Get(id)
+	application, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.ApplicationResponse, error) {
+		return c.HostApplications.Get(id)
+	})
 	if err != nil {
 		return append(diags, diag.Errorf("Failed to get host application with ID: %s, %s", id, err)...)
 	}
@@ -164,9 +170,12 @@ func setApplicationData(data *schema.ResourceData, application *cloudconnexa.App
 
 // resourceHostApplicationDelete deletes a host application
 func resourceHostApplicationDelete(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-	c := i.(*cloudconnexa.Client)
+	meta := i.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
-	err := c.HostApplications.Delete(data.Id())
+	err := withRetryNoBody(ctx, meta.RetryConfig, func() error {
+		return c.HostApplications.Delete(data.Id())
+	})
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -218,10 +227,13 @@ func flattenApplicationRoutes(routes []*cloudconnexa.Route) []map[string]interfa
 
 // resourceHostApplicationCreate creates a new host application
 func resourceHostApplicationCreate(ctx context.Context, data *schema.ResourceData, m interface{}) diag.Diagnostics {
-	client := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	client := meta.Client
 
 	application := resourceDataToHostApplication(data)
-	createdApplication, err := client.HostApplications.Create(application)
+	createdApplication, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.ApplicationResponse, error) {
+		return client.HostApplications.Create(application)
+	})
 	if err != nil {
 		return diag.FromErr(err)
 	}

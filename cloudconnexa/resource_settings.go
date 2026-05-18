@@ -227,7 +227,8 @@ func subnetSchema() *schema.Resource {
 
 // resourceSettingsUpdate handles the creation and update of CloudConnexa settings
 func resourceSettingsUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 
 	if d.HasChange("allow_trusted_devices") {
@@ -423,7 +424,8 @@ func resourceSettingsUpdate(ctx context.Context, d *schema.ResourceData, m inter
 // and updates the Terraform state with the current values.
 // All API calls are unconditional to ensure proper import functionality.
 func resourceSettingsRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 
 	allowTrustedDevices, err := c.Settings.GetTrustedDevicesAllowed()

@@ -69,9 +69,12 @@ func resourceNetworkIPService() *schema.Resource {
 
 // resourceNetworkIpServiceUpdate updates an existing network IP service
 func resourceNetworkIpServiceUpdate(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-	c := i.(*cloudconnexa.Client)
+	meta := i.(*providerMeta)
+	c := meta.Client
 
-	_, err := c.NetworkIPServices.Update(data.Id(), resourceDataToNetworkIpService(data))
+	_, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.NetworkIPServiceResponse, error) {
+		return c.NetworkIPServices.Update(data.Id(), resourceDataToNetworkIpService(data))
+	})
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -130,10 +133,13 @@ func customNetworkIpServiceTypesConfig() map[string]*schema.Schema {
 
 // resourceNetworkIpServiceRead retrieves a network IP service by ID
 func resourceNetworkIpServiceRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-	c := i.(*cloudconnexa.Client)
+	meta := i.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	id := data.Id()
-	service, err := c.NetworkIPServices.Get(id)
+	service, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.NetworkIPServiceResponse, error) {
+		return c.NetworkIPServices.Get(id)
+	})
 	if err != nil {
 		return append(diags, diag.Errorf("Failed to get network IP service with ID: %s, %s", id, err)...)
 	}
@@ -158,9 +164,12 @@ func setNetworkIpServiceResourceData(data *schema.ResourceData, service *cloudco
 
 // resourceNetworkIpServiceDelete deletes a network IP service
 func resourceNetworkIpServiceDelete(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-	c := i.(*cloudconnexa.Client)
+	meta := i.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
-	err := c.NetworkIPServices.Delete(data.Id())
+	err := withRetryNoBody(ctx, meta.RetryConfig, func() error {
+		return c.NetworkIPServices.Delete(data.Id())
+	})
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -212,10 +221,13 @@ func flattenNetworkIpServiceRoutes(routes []*cloudconnexa.Route) []string {
 
 // resourceNetworkIpServiceCreate creates a new network IP service
 func resourceNetworkIpServiceCreate(ctx context.Context, data *schema.ResourceData, m interface{}) diag.Diagnostics {
-	client := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	client := meta.Client
 
 	service := resourceDataToNetworkIpService(data)
-	createdService, err := client.NetworkIPServices.Create(service)
+	createdService, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.NetworkIPServiceResponse, error) {
+		return client.NetworkIPServices.Create(service)
+	})
 	if err != nil {
 		return diag.FromErr(err)
 	}

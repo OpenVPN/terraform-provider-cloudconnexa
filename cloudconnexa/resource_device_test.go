@@ -98,7 +98,7 @@ func testAccCheckCloudConnexaDeviceExists(n string) resource.TestCheckFunc {
 		if userID == "" {
 			return errors.New("no user_id is set")
 		}
-		c := testAccProvider.Meta().(*cloudconnexa.Client)
+		c := testAccProvider.Meta().(*providerMeta).Client
 		if _, err := c.Devices.GetByID(userID, rs.Primary.ID); err != nil {
 			return fmt.Errorf("device %s not retrievable: %w", rs.Primary.ID, err)
 		}
@@ -109,7 +109,7 @@ func testAccCheckCloudConnexaDeviceExists(n string) resource.TestCheckFunc {
 // testAccCheckCloudConnexaDeviceDestroy confirms the device is gone from the
 // API after Terraform destroys the resource.
 func testAccCheckCloudConnexaDeviceDestroy(s *terraform.State) error {
-	c := testAccProvider.Meta().(*cloudconnexa.Client)
+	c := testAccProvider.Meta().(*providerMeta).Client
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "cloudconnexa_device" {
 			continue

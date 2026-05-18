@@ -244,7 +244,8 @@ func ipSecConfigSchema() *schema.Resource {
 
 // resourceNetworkConnectorUpdate updates an existing network connector
 func resourceNetworkConnectorUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 
 	// Handle status change (suspend/activate)
@@ -252,11 +253,11 @@ func resourceNetworkConnectorUpdate(ctx context.Context, d *schema.ResourceData,
 		_, newStatus := d.GetChange("status")
 		switch newStatus.(string) {
 		case "SUSPENDED":
-			if err := c.NetworkConnectors.Suspend(d.Id()); err != nil {
+			if err := withRetryNoBody(ctx, meta.RetryConfig, func() error { return c.NetworkConnectors.Suspend(d.Id()) }); err != nil {
 				return append(diags, diag.FromErr(err)...)
 			}
 		case "ACTIVE":
-			if err := c.NetworkConnectors.Activate(d.Id()); err != nil {
+			if err := withRetryNoBody(ctx, meta.RetryConfig, func() error { return c.NetworkConnectors.Activate(d.Id()) }); err != nil {
 				return append(diags, diag.FromErr(err)...)
 			}
 		}
@@ -265,12 +266,16 @@ func resourceNetworkConnectorUpdate(ctx context.Context, d *schema.ResourceData,
 	// Handle other field changes
 	if d.HasChanges("name", "description", "vpn_region_id", "ipsec_config") {
 		connector := resourceDataToNetworkConnector(d)
-		_, err := c.NetworkConnectors.Update(connector)
+		_, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.NetworkConnector, error) {
+			return c.NetworkConnectors.Update(connector)
+		})
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
 		if connector.IPSecConfig != nil {
-			err := c.NetworkConnectors.StartIPsec(connector.ID)
+			err := withRetryNoBody(ctx, meta.RetryConfig, func() error {
+				return c.NetworkConnectors.StartIPsec(connector.ID)
+			})
 			if err != nil {
 				return append(diags, diag.FromErr(err)...)
 			}
@@ -282,21 +287,28 @@ func resourceNetworkConnectorUpdate(ctx context.Context, d *schema.ResourceData,
 
 // resourceNetworkConnectorCreate creates a new network connector
 func resourceNetworkConnectorCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	connector := resourceDataToNetworkConnector(d)
-	conn, err := c.NetworkConnectors.Create(connector, connector.NetworkItemID)
+	conn, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.NetworkConnector, error) {
+		return c.NetworkConnectors.Create(connector, connector.NetworkItemID)
+	})
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	d.SetId(conn.ID)
 	if conn.TunnelingProtocol == "OPENVPN" {
-		profile, err := c.NetworkConnectors.GetProfile(conn.ID)
+		profile, err := withRetry(ctx, meta.RetryConfig, func() (string, error) {
+			return c.NetworkConnectors.GetProfile(conn.ID)
+		})
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
 		d.Set("profile", profile)
-		token, err := c.NetworkConnectors.GetToken(conn.ID)
+		token, err := withRetry(ctx, meta.RetryConfig, func() (string, error) {
+			return c.NetworkConnectors.GetToken(conn.ID)
+		})
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
@@ -304,7 +316,9 @@ func resourceNetworkConnectorCreate(ctx context.Context, d *schema.ResourceData,
 	}
 
 	if conn.IPSecConfig != nil {
-		err := c.NetworkConnectors.StartIPsec(conn.ID)
+		err := withRetryNoBody(ctx, meta.RetryConfig, func() error {
+			return c.NetworkConnectors.StartIPsec(conn.ID)
+		})
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
@@ -319,22 +333,29 @@ func resourceNetworkConnectorCreate(ctx context.Context, d *schema.ResourceData,
 
 // resourceNetworkConnectorRead reads the state of a network connector
 func resourceNetworkConnectorRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	id := d.Id()
-	connector, err := c.NetworkConnectors.GetByID(id)
+	connector, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.NetworkConnector, error) {
+		return c.NetworkConnectors.GetByID(id)
+	})
 	if err != nil {
 		return append(diags, diag.Errorf("Failed to get network connector with ID: %s, %s", id, err)...)
 	}
 	setNetworkConnectorData(d, connector)
 
 	if connector.TunnelingProtocol == "OPENVPN" {
-		token, err := c.NetworkConnectors.GetToken(connector.ID)
+		token, err := withRetry(ctx, meta.RetryConfig, func() (string, error) {
+			return c.NetworkConnectors.GetToken(connector.ID)
+		})
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
 		d.Set("token", token)
-		profile, err := c.NetworkConnectors.GetProfile(connector.ID)
+		profile, err := withRetry(ctx, meta.RetryConfig, func() (string, error) {
+			return c.NetworkConnectors.GetProfile(connector.ID)
+		})
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
@@ -345,9 +366,12 @@ func resourceNetworkConnectorRead(ctx context.Context, d *schema.ResourceData, m
 
 // resourceNetworkConnectorDelete deletes a network connector
 func resourceNetworkConnectorDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
-	err := c.NetworkConnectors.Delete(d.Id(), d.Get("network_id").(string))
+	err := withRetryNoBody(ctx, meta.RetryConfig, func() error {
+		return c.NetworkConnectors.Delete(d.Id(), d.Get("network_id").(string))
+	})
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}

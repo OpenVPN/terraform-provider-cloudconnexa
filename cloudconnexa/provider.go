@@ -17,6 +17,9 @@ const ClientIDEnvVar = "CLOUDCONNEXA_CLIENT_ID"
 // ClientSecretEnvVar is the environment variable name for the CloudConnexa client secret
 const ClientSecretEnvVar = "CLOUDCONNEXA_CLIENT_SECRET"
 
+// MaxRetriesEnvVar is the environment variable name for the maximum number of retries
+const MaxRetriesEnvVar = "CLOUDCONNEXA_MAX_RETRIES"
+
 // cloudIDPattern validates that cloud_id contains only alphanumeric characters and hyphens
 var cloudIDPattern = regexp.MustCompile(`^[a-zA-Z0-9-]+$`)
 
@@ -26,6 +29,12 @@ var version = "v1.2.1"
 // Token represents the authentication token structure returned by the CloudConnexa API
 type Token struct {
 	AccessToken string `json:"access_token"`
+}
+
+// providerMeta holds the configured CloudConnexa client and retry settings.
+type providerMeta struct {
+	Client      *cloudconnexa.Client
+	RetryConfig retryConfig
 }
 
 // Provider returns a Terraform provider for CloudConnexa.
@@ -62,6 +71,14 @@ func Provider() *schema.Provider {
 				Description: "Cloud ID",
 				Type:        schema.TypeString,
 				Optional:    true,
+			},
+			"max_retries": {
+				Description: "Maximum number of retries for rate-limited (HTTP 429) or transient (HTTP 503) API requests. " +
+					"Uses exponential backoff between attempts. Set to 0 to disable retries. " +
+					"The value can be sourced from the `CLOUDCONNEXA_MAX_RETRIES` environment variable. Defaults to `5`.",
+				Type:        schema.TypeInt,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc(MaxRetriesEnvVar, 5),
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
@@ -142,5 +159,13 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		return nil, diags
 	}
 	cloudConnexaClient.UserAgent = fmt.Sprintf("terraform-provider-cloudconnexa/%v", version)
-	return cloudConnexaClient, nil
+
+	maxRetries := d.Get("max_retries").(int)
+	cfg := defaultRetryConfig()
+	cfg.MaxRetries = maxRetries
+
+	return &providerMeta{
+		Client:      cloudConnexaClient,
+		RetryConfig: cfg,
+	}, nil
 }

@@ -66,16 +66,21 @@ func dataSourceDevices() *schema.Resource {
 
 // dataSourceDevicesRead handles the read operation for the devices data source.
 func dataSourceDevicesRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 
 	var devices []cloudconnexa.DeviceDetail
 	var err error
 
 	if v, ok := d.GetOk("user_id"); ok {
-		devices, err = c.Devices.ListByUserID(v.(string))
+		devices, err = withRetry(ctx, meta.RetryConfig, func() ([]cloudconnexa.DeviceDetail, error) {
+			return c.Devices.ListByUserID(v.(string))
+		})
 	} else {
-		devices, err = c.Devices.ListAll()
+		devices, err = withRetry(ctx, meta.RetryConfig, func() ([]cloudconnexa.DeviceDetail, error) {
+			return c.Devices.ListAll()
+		})
 	}
 
 	if err != nil {
@@ -151,12 +156,15 @@ func dataSourceDevice() *schema.Resource {
 
 // dataSourceDeviceRead handles the read operation for a single device data source.
 func dataSourceDeviceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 
 	deviceID := d.Get("device_id").(string)
 	userID := d.Get("user_id").(string)
-	device, err := c.Devices.GetByID(userID, deviceID)
+	device, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.DeviceDetail, error) {
+		return c.Devices.GetByID(userID, deviceID)
+	})
 	if err != nil {
 		return diag.Errorf("Failed to get device with ID %s: %s", deviceID, err)
 	}

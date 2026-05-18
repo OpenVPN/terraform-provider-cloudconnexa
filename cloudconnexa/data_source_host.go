@@ -74,13 +74,16 @@ func dataSourceHost() *schema.Resource {
 // Returns:
 //   - diag.Diagnostics: Diagnostics containing any errors that occurred during the operation
 func dataSourceHostRead(ctx context.Context, data *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	var id = data.Get("id").(string)
 	var host *cloudconnexa.Host
 	var err error
 	if id != "" {
-		host, err = c.Hosts.Get(id)
+		host, err = withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.Host, error) {
+			return c.Hosts.Get(id)
+		})
 		if err != nil {
 			return append(diags, diag.Errorf("Failed to get host with ID: %s, %s", id, err)...)
 		}
@@ -89,7 +92,9 @@ func dataSourceHostRead(ctx context.Context, data *schema.ResourceData, m interf
 		}
 	} else {
 		var name = data.Get("name").(string)
-		host, err = c.Hosts.GetByName(name)
+		host, err = withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.Host, error) {
+			return c.Hosts.GetByName(name)
+		})
 		if err != nil {
 			return append(diags, diag.Errorf("Failed to get host with name: %s, %s", name, err)...)
 		}

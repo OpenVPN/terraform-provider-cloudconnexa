@@ -73,7 +73,7 @@ func testAccCheckCloudConnexaHostExists(rn string) resource.TestCheckFunc {
 		if rs.Primary.ID == "" {
 			return errors.New("no ID is set")
 		}
-		c := testAccProvider.Meta().(*cloudconnexa.Client)
+		c := testAccProvider.Meta().(*providerMeta).Client
 		h, err := c.Hosts.Get(rs.Primary.ID)
 		if err != nil {
 			return err
@@ -88,7 +88,7 @@ func testAccCheckCloudConnexaHostExists(rn string) resource.TestCheckFunc {
 // testAccCheckCloudConnexaHostDestroy confirms every host tracked in state
 // has been removed from the API after Terraform destroys the resource.
 func testAccCheckCloudConnexaHostDestroy(s *terraform.State) error {
-	c := testAccProvider.Meta().(*cloudconnexa.Client)
+	c := testAccProvider.Meta().(*providerMeta).Client
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "cloudconnexa_host" {
 			continue
@@ -199,7 +199,7 @@ func TestUnitResourceHostCreate_Success(t *testing.T) {
 		"domain":       "e",
 		"gateways_ids": []interface{}{"gw-1"},
 	})
-	diags := resourceHostCreate(context.Background(), d, c)
+	diags := resourceHostCreate(context.Background(), d, &providerMeta{Client: c, RetryConfig: defaultRetryConfig()})
 	require.False(t, diags.HasError(), "unexpected diagnostics: %v", diags)
 	assert.Equal(t, "new-host", d.Id())
 }
@@ -212,7 +212,7 @@ func TestUnitResourceHostCreate_Error(t *testing.T) {
 	d := schema.TestResourceDataRaw(t, resourceHost().Schema, map[string]interface{}{
 		"name": "to-fail",
 	})
-	diags := resourceHostCreate(context.Background(), d, c)
+	diags := resourceHostCreate(context.Background(), d, &providerMeta{Client: c, RetryConfig: defaultRetryConfig()})
 	assert.True(t, diags.HasError())
 	assert.Empty(t, d.Id(), "ID must remain empty when Create fails")
 }
@@ -241,7 +241,7 @@ func TestUnitResourceHostRead_Success(t *testing.T) {
 		"name": "ignored",
 	})
 	d.SetId("host-id")
-	diags := resourceHostRead(context.Background(), d, c)
+	diags := resourceHostRead(context.Background(), d, &providerMeta{Client: c, RetryConfig: defaultRetryConfig()})
 	require.False(t, diags.HasError(), "unexpected diagnostics: %v", diags)
 	assert.Equal(t, "my-host", d.Get("name"))
 	assert.Equal(t, "desc", d.Get("description"))
@@ -258,7 +258,7 @@ func TestUnitResourceHostRead_Error(t *testing.T) {
 		"name": "x",
 	})
 	d.SetId("host-id")
-	diags := resourceHostRead(context.Background(), d, c)
+	diags := resourceHostRead(context.Background(), d, &providerMeta{Client: c, RetryConfig: defaultRetryConfig()})
 	assert.True(t, diags.HasError())
 }
 
@@ -291,7 +291,7 @@ func TestUnitResourceHostUpdate_Success(t *testing.T) {
 		"internet_access": "SPLIT_TUNNEL_OFF",
 	})
 	d.SetId("host-id")
-	diags := resourceHostUpdate(context.Background(), d, c)
+	diags := resourceHostUpdate(context.Background(), d, &providerMeta{Client: c, RetryConfig: defaultRetryConfig()})
 	require.False(t, diags.HasError(), "unexpected diagnostics: %v", diags)
 	assert.Equal(t, "updated", d.Get("name"))
 }
@@ -305,7 +305,7 @@ func TestUnitResourceHostUpdate_Error(t *testing.T) {
 		"name": "x",
 	})
 	d.SetId("host-id")
-	diags := resourceHostUpdate(context.Background(), d, c)
+	diags := resourceHostUpdate(context.Background(), d, &providerMeta{Client: c, RetryConfig: defaultRetryConfig()})
 	assert.True(t, diags.HasError())
 }
 
@@ -323,7 +323,7 @@ func TestUnitResourceHostDelete_Success(t *testing.T) {
 		"name": "x",
 	})
 	d.SetId("host-id")
-	diags := resourceHostDelete(context.Background(), d, c)
+	diags := resourceHostDelete(context.Background(), d, &providerMeta{Client: c, RetryConfig: defaultRetryConfig()})
 	require.False(t, diags.HasError(), "unexpected diagnostics: %v", diags)
 }
 
@@ -336,6 +336,6 @@ func TestUnitResourceHostDelete_Error(t *testing.T) {
 		"name": "x",
 	})
 	d.SetId("host-id")
-	diags := resourceHostDelete(context.Background(), d, c)
+	diags := resourceHostDelete(context.Background(), d, &providerMeta{Client: c, RetryConfig: defaultRetryConfig()})
 	assert.True(t, diags.HasError())
 }

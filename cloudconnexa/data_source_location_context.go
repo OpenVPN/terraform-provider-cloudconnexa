@@ -65,29 +65,28 @@ func dataSourceLocationContext() *schema.Resource {
 // Returns:
 //   - diag.Diagnostics: Diagnostics containing any errors that occurred during the operation
 func dataSourceLocationContextRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-	c := i.(*cloudconnexa.Client)
+	meta := i.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 	var id = data.Get("id").(string)
-	var context *cloudconnexa.LocationContext
+	var lc *cloudconnexa.LocationContext
 	var err error
 	if id != "" {
-		context, err = c.LocationContexts.Get(id)
-		if err != nil {
-			return append(diags, diag.Errorf("Failed to get location context with ID: %s, %s", id, err)...)
-		}
-		if context == nil {
-			return append(diags, diag.Errorf("Location context with id %s was not found", id)...)
-		}
+		lc, err = withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.LocationContext, error) {
+			return c.LocationContexts.Get(id)
+		})
 	} else {
 		var name = data.Get("name").(string)
-		context, err = c.LocationContexts.GetByName(name)
-		if err != nil {
-			return append(diags, diag.Errorf("Failed to get location context with name: %s, %s", name, err)...)
-		}
-		if context == nil {
-			return append(diags, diag.Errorf("Location context with name %s was not found", name)...)
-		}
+		lc, err = withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.LocationContext, error) {
+			return c.LocationContexts.GetByName(name)
+		})
 	}
-	setLocationContextData(data, context)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	if lc == nil {
+		return append(diags, diag.Errorf("Location context was not found")...)
+	}
+	setLocationContextData(data, lc)
 	return nil
 }

@@ -69,14 +69,17 @@ func dataSourceNetworkRoutes() *schema.Resource {
 // Returns:
 //   - diag.Diagnostics: Diagnostics containing any errors that occurred during the operation
 func dataSourceNetworkRoutesRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*cloudconnexa.Client)
+	meta := m.(*providerMeta)
+	c := meta.Client
 	var diags diag.Diagnostics
 
 	id := d.Get("id").(string)
 	if id == "" {
 		return append(diags, diag.Errorf("ID cannot be empty")...)
 	}
-	network, err := c.Networks.Get(id)
+	network, err := withRetry(ctx, meta.RetryConfig, func() (*cloudconnexa.Network, error) {
+		return c.Networks.Get(id)
+	})
 	if err != nil {
 		return append(diags, diag.Errorf("Failed to get network with ID: %s, %s", id, err)...)
 	}

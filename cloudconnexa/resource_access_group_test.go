@@ -178,7 +178,7 @@ func testAccCheckCloudConnexaAccessGroupExists(rn string, id *string) resource.T
 			return errors.New("no ID is set")
 		}
 
-		c := testAccProvider.Meta().(*cloudconnexa.Client)
+		c := testAccProvider.Meta().(*providerMeta).Client
 		ag, err := c.AccessGroups.Get(rs.Primary.ID)
 		if err != nil {
 			return err
@@ -194,7 +194,7 @@ func testAccCheckCloudConnexaAccessGroupExists(rn string, id *string) resource.T
 // testAccCheckCloudConnexaAccessGroupDestroy verifies that every access group
 // previously tracked in state has been removed from the CloudConnexa API.
 func testAccCheckCloudConnexaAccessGroupDestroy(s *terraform.State) error {
-	c := testAccProvider.Meta().(*cloudconnexa.Client)
+	c := testAccProvider.Meta().(*providerMeta).Client
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "cloudconnexa_access_group" {
 			continue

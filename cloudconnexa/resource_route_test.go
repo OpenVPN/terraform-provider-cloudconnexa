@@ -63,7 +63,7 @@ func TestAccCloudConnexaRoute_basic(t *testing.T) {
 
 // testAccCheckCloudConnexaRouteDestroy verifies that the route has been destroyed
 func testAccCheckCloudConnexaRouteDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*cloudconnexa.Client)
+	client := testAccProvider.Meta().(*providerMeta).Client
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "cloudconnexa_route" {
 			continue
@@ -92,7 +92,7 @@ func testAccCheckCloudConnexaRouteExists(n string, routeID *string) resource.Tes
 			return errors.New("no ID is set")
 		}
 
-		client := testAccProvider.Meta().(*cloudconnexa.Client)
+		client := testAccProvider.Meta().(*providerMeta).Client
 		_, err := client.Routes.Get(rs.Primary.ID)
 		if err != nil {
 			return err
