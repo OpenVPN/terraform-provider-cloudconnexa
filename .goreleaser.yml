@@ -59,5 +59,10 @@ release:
       name_template: "{{ .ProjectName }}_{{ .Version }}_manifest.json"
   # Manually examine the release before it goes live:
   draft: true
+  # Survive retries under GitHub's immutable-releases feature: reuse or replace
+  # the existing draft instead of failing, and re-upload any stale partial assets.
+  use_existing_draft: true
+  replace_existing_draft: true
+  replace_existing_artifacts: true
 changelog:
   disable: true
