@@ -57,3 +57,5 @@ Two styles coexist in `cloudconnexa/`:
 ## Releases
 
 Tag-driven (`v*`) via `.github/workflows/release.yml` → GoReleaser. Cross-builds darwin/linux/windows/freebsd × amd64/386/arm/arm64, signs checksums with GPG, and publishes a **draft** GitHub release for manual review before going live. The `version` constant in `cloudconnexa/provider.go` is the user-agent string sent to the API — bump it when cutting a release.
+
+**Release only by pushing a tag — never create or publish the GitHub release manually in the UI.** GoReleaser owns release creation: it makes a *draft* release and uploads the signed assets (zips + `SHA256SUMS` + `.sig` + manifest) to it, and you then Publish that draft. If a *published* (non-draft) release already exists on the tag when the workflow runs, GoReleaser cannot attach its assets to it (GitHub immutable published releases), so the run goes green but the release ships with zero assets and the Terraform Registry never ingests it. This is exactly what broke v1.2.5.
