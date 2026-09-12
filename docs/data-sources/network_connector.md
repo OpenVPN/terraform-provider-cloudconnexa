@@ -22,6 +22,7 @@ Use an `cloudconnexa_connector` data source to read an existing CloudConnexa con
 
 ### Read-Only
 
+- `connection_status` (String) The connection status of the connector.
 - `description` (String) The description of the connector.
 - `ip_v4_address` (String) The IPV4 address of the connector.
 - `ip_v6_address` (String) The IPV6 address of the connector.
@@ -37,6 +38,7 @@ Use an `cloudconnexa_connector` data source to read an existing CloudConnexa con
 Read-Only:
 
 - `authentication_type` (String)
+- `auto_initiate` (Boolean)
 - `ca_certificate` (String)
 - `dead_peer_handling` (String)
 - `domain` (String)

@@ -2,9 +2,11 @@ package cloudconnexa
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -18,6 +20,7 @@ func resourceNetworkConnector() *schema.Resource {
 		ReadContext:   resourceNetworkConnectorRead,
 		DeleteContext: resourceNetworkConnectorDelete,
 		UpdateContext: resourceNetworkConnectorUpdate,
+		CustomizeDiff: resourceNetworkConnectorCustomizeDiff,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -222,13 +225,23 @@ func ipSecConfigSchema() *schema.Resource {
 				Required: true,
 			},
 			"timeout_sec": {
-				Type:     schema.TypeInt,
-				Required: true,
+				Type:       schema.TypeInt,
+				Optional:   true,
+				Computed:   true,
+				Deprecated: "Replaced by auto_initiate. The API no longer honors this value and always reports 30; set auto_initiate instead and remove this attribute.",
 			},
 			"dead_peer_handling": {
 				Type:         schema.TypeString,
 				ValidateFunc: validation.StringInSlice([]string{"RESTART", "NONE"}, false),
-				Required:     true,
+				Optional:     true,
+				Computed:     true,
+				Deprecated:   "Replaced by auto_initiate. `RESTART` combined with `startup_action = \"START\"` is equivalent to `auto_initiate = true`; anything else is equivalent to `auto_initiate = false`.",
+			},
+			"auto_initiate": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Computed:    true,
+				Description: "Whether the tunnel is initiated and re-initiated automatically. Replaces the deprecated `timeout_sec` and `dead_peer_handling` attributes and cannot be combined with them. Cannot be `true` when `startup_action` is `ATTACH`.",
 			},
 			"hostname": {
 				Type:     schema.TypeString,
@@ -240,6 +253,62 @@ func ipSecConfigSchema() *schema.Resource {
 			},
 		},
 	}
+}
+
+// ipSecConfigRawConfig returns the single ipsec_config block exactly as written in the
+// configuration, plus whether there was one to return. The raw config is the only place a
+// null attribute is distinguishable from its zero value, which is what auto_initiate needs:
+// being Optional+Computed, both "unset" and "false" read back as false through Get.
+func ipSecConfigRawConfig(raw cty.Value) (cty.Value, bool) {
+	if raw.IsNull() || !raw.IsKnown() {
+		return cty.NilVal, false
+	}
+	list := raw.GetAttr("ipsec_config")
+	if list.IsNull() || !list.IsKnown() || list.LengthInt() == 0 {
+		return cty.NilVal, false
+	}
+	block := list.Index(cty.NumberIntVal(0))
+	if block.IsNull() || !block.IsKnown() {
+		return cty.NilVal, false
+	}
+	return block, true
+}
+
+// setInConfig reports whether attr was written in the given ipsec_config block.
+func setInConfig(block cty.Value, attr string) bool {
+	return !block.GetAttr(attr).IsNull()
+}
+
+// resourceNetworkConnectorCustomizeDiff enforces that dead peer detection is configured
+// either through auto_initiate or through the deprecated timeout_sec/dead_peer_handling
+// pair, never both. The API applies the same rule by silently discarding dead peer
+// detection when auto_initiate is present, so rejecting at plan time is the only way the
+// user sees that their deprecated values are being ignored.
+func resourceNetworkConnectorCustomizeDiff(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
+	return validateIpSecDeadPeerConfig(d.GetRawConfig())
+}
+
+// validateIpSecDeadPeerConfig holds the rule itself, separated from the diff plumbing so
+// it can be exercised against a raw config directly.
+func validateIpSecDeadPeerConfig(raw cty.Value) error {
+	block, ok := ipSecConfigRawConfig(raw)
+	if !ok {
+		return nil
+	}
+
+	autoInitiate := setInConfig(block, "auto_initiate")
+	timeoutSec := setInConfig(block, "timeout_sec")
+	deadPeerHandling := setInConfig(block, "dead_peer_handling")
+
+	switch {
+	case autoInitiate && (timeoutSec || deadPeerHandling):
+		return fmt.Errorf(`ipsec_config: "auto_initiate" conflicts with the deprecated "timeout_sec" and "dead_peer_handling"; set "auto_initiate" alone`)
+	case !autoInitiate && !timeoutSec && !deadPeerHandling:
+		return fmt.Errorf(`ipsec_config: "auto_initiate" must be set (or, deprecated, both "timeout_sec" and "dead_peer_handling")`)
+	case timeoutSec != deadPeerHandling:
+		return fmt.Errorf(`ipsec_config: the deprecated "timeout_sec" and "dead_peer_handling" must be set together`)
+	}
+	return nil
 }
 
 // resourceNetworkConnectorUpdate updates an existing network connector
@@ -400,14 +469,21 @@ func resourceDataToNetworkConnector(data *schema.ResourceData) cloudconnexa.Netw
 					FuzzPercent:      ipSecConfigData["fuzz_percent"].(int),
 					ReplayWindowSize: ipSecConfigData["replay_window_size"].(int),
 				},
-				DeadPeerDetection: cloudconnexa.DeadPeerDetection{
-					TimeoutSec:       ipSecConfigData["timeout_sec"].(int),
-					DeadPeerHandling: ipSecConfigData["dead_peer_handling"].(string),
-				},
 				StartupAction: ipSecConfigData["startup_action"].(string),
 			},
 			Hostname: ipSecConfigData["hostname"].(string),
 			Domain:   ipSecConfigData["domain"].(string),
+		}
+		// auto_initiate and the deprecated dead peer detection attributes are mutually
+		// exclusive (CustomizeDiff rejects both), so the raw config decides which to send.
+		if block, ok := ipSecConfigRawConfig(data.GetRawConfig()); ok && setInConfig(block, "auto_initiate") {
+			autoInitiate := ipSecConfigData["auto_initiate"].(bool)
+			ipSecConfig.IkeProtocol.AutoInitiate = &autoInitiate
+		} else {
+			ipSecConfig.IkeProtocol.DeadPeerDetection = &cloudconnexa.DeadPeerDetection{
+				TimeoutSec:       ipSecConfigData["timeout_sec"].(int),
+				DeadPeerHandling: ipSecConfigData["dead_peer_handling"].(string),
+			}
 		}
 		connector.IPSecConfig = ipSecConfig
 	}
@@ -449,8 +525,13 @@ func setNetworkConnectorData(d *schema.ResourceData, connector *cloudconnexa.Net
 		ipSecConfig["margin_time_sec"] = connector.IPSecConfig.IkeProtocol.Rekey.MarginTimeSec
 		ipSecConfig["replay_window_size"] = connector.IPSecConfig.IkeProtocol.Rekey.ReplayWindowSize
 		ipSecConfig["fuzz_percent"] = connector.IPSecConfig.IkeProtocol.Rekey.FuzzPercent
-		ipSecConfig["timeout_sec"] = connector.IPSecConfig.IkeProtocol.DeadPeerDetection.TimeoutSec
-		ipSecConfig["dead_peer_handling"] = connector.IPSecConfig.IkeProtocol.DeadPeerDetection.DeadPeerHandling
+		if deadPeerDetection := connector.IPSecConfig.IkeProtocol.DeadPeerDetection; deadPeerDetection != nil {
+			ipSecConfig["timeout_sec"] = deadPeerDetection.TimeoutSec
+			ipSecConfig["dead_peer_handling"] = deadPeerDetection.DeadPeerHandling
+		}
+		if autoInitiate := connector.IPSecConfig.IkeProtocol.AutoInitiate; autoInitiate != nil {
+			ipSecConfig["auto_initiate"] = *autoInitiate
+		}
 		ipSecConfig["startup_action"] = connector.IPSecConfig.IkeProtocol.StartupAction
 		ipSecConfig["hostname"] = connector.IPSecConfig.Hostname
 		ipSecConfig["domain"] = connector.IPSecConfig.Domain
