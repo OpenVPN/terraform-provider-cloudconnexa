@@ -7,8 +7,13 @@ updates:
   - package-ecosystem: "gomod"
     directory: "/"
     ignore:
+      # update-types only filters version updates, so security updates still
+      # raise PRs for these dependencies.
       - dependency-name: "github.com/hashicorp/go-hclog"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
       - dependency-name: "golang.org/x/tools"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
       - dependency-name: "google.golang.org/grpc"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
     schedule:
       interval: "daily"
