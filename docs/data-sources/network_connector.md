@@ -37,6 +37,7 @@ Use an `cloudconnexa_connector` data source to read an existing CloudConnexa con
 Read-Only:
 
 - `authentication_type` (String)
+- `auto_initiate` (Boolean)
 - `ca_certificate` (String)
 - `dead_peer_handling` (String)
 - `domain` (String)

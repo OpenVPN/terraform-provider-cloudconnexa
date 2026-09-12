@@ -382,6 +382,47 @@ resource "cloudconnexa_network_connector" "specialized_connectors" {
   )
 }
 
+# IPsec network connector. Automatic (re)initiation is configured through
+# auto_initiate, which replaces the deprecated timeout_sec and dead_peer_handling
+# attributes and cannot be combined with them. auto_initiate cannot be true when
+# startup_action is "ATTACH".
+variable "partner_ipsec_pre_shared_key" {
+  description = "Pre-shared key for the partner IPsec tunnel"
+  type        = string
+  sensitive   = true
+}
+
+resource "cloudconnexa_network_connector" "partner_ipsec" {
+  name          = "partner-ipsec-connector"
+  description   = "IPsec connector to the partner site"
+  vpn_region_id = "us-east-1"
+  network_id    = cloudconnexa_network.partner_network.id
+
+  ipsec_config {
+    platform              = "AWS"
+    authentication_type   = "SHARED_SECRET"
+    remote_site_public_ip = "203.0.113.10"
+    pre_shared_key        = var.partner_ipsec_pre_shared_key
+    protocol_version      = "IKE_V2"
+    startup_action        = "START"
+    auto_initiate         = true
+
+    phase_1_encryption_algorithms = ["AES256"]
+    phase_1_integrity_algorithms  = ["SHA2_256"]
+    phase_1_diffie_hellman_groups = ["G_14"]
+    phase_1_lifetime_sec          = 28800
+
+    phase_2_encryption_algorithms = ["AES256"]
+    phase_2_integrity_algorithms  = ["SHA2_256"]
+    phase_2_diffie_hellman_groups = ["G_14"]
+    phase_2_lifetime_sec          = 3600
+
+    margin_time_sec    = 270
+    fuzz_percent       = 100
+    replay_window_size = 1024
+  }
+}
+
 # Outputs
 output "production_connectors" {
   description = "Production network connectors"
@@ -585,7 +626,6 @@ output "connector_summary" {
 Required:
 
 - `authentication_type` (String)
-- `dead_peer_handling` (String)
 - `fuzz_percent` (Number)
 - `margin_time_sec` (Number)
 - `phase_1_diffie_hellman_groups` (List of String)
@@ -601,11 +641,12 @@ Required:
 - `remote_site_public_ip` (String)
 - `replay_window_size` (Number)
 - `startup_action` (String)
-- `timeout_sec` (Number)
 
 Optional:
 
+- `auto_initiate` (Boolean) Whether the tunnel is initiated and re-initiated automatically. Replaces the deprecated `timeout_sec` and `dead_peer_handling` attributes and cannot be combined with them. Cannot be `true` when `startup_action` is `ATTACH`.
 - `ca_certificate` (String, Sensitive)
+- `dead_peer_handling` (String, Deprecated)
 - `domain` (String)
 - `hostname` (String)
 - `peer_certificate` (String, Sensitive)
@@ -613,6 +654,7 @@ Optional:
 - `peer_certificate_private_key` (String, Sensitive)
 - `pre_shared_key` (String, Sensitive)
 - `remote_gateway_certificate` (String, Sensitive)
+- `timeout_sec` (Number, Deprecated)
 
 ## Import
 
