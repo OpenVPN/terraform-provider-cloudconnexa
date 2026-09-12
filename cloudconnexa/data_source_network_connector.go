@@ -63,6 +63,11 @@ func dataSourceNetworkConnector() *schema.Resource {
 				Sensitive:   true,
 				Description: "Connector token",
 			},
+			"connection_status": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The connection status of the connector.",
+			},
 			"ipsec_config": {
 				Type:     schema.TypeList,
 				Computed: true,
