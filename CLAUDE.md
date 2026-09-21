@@ -19,7 +19,7 @@ Single test: `go test ./cloudconnexa -run TestUnitResourceHostCreate_Success -v`
 
 ## Test environment loading
 
-`cloudconnexa/main_test.go` defines a `TestMain` that auto-loads `.env` and `../.env` (simple `KEY=VALUE` lines) before tests run. **Side effect:** if a `.env` was applied, `TF_ACC=1` is set automatically unless you exported `TF_ACC` yourself. So merely having a `.env` with `CLOUDCONNEXA_*` populated makes `go test ./cloudconnexa` hit the real API. Set `TF_ACC=0` explicitly to opt out.
+`cloudconnexa/main_test.go` defines a `TestMain` that auto-loads `.env` and `../.env` (simple `KEY=VALUE` lines) before tests run. **Side effect:** if a `.env` was applied, `TF_ACC=1` is set automatically unless you exported `TF_ACC` yourself. So merely having a `.env` with `CLOUDCONNEXA_*` populated makes `go test ./cloudconnexa` hit the real API. To opt out, export `TF_ACC` **empty** (`TF_ACC= go test ./cloudconnexa`): the SDK skips acceptance tests only when the variable is empty, so `TF_ACC=0` still runs them.
 
 Required env vars for acceptance tests:
 - `CLOUDCONNEXA_CLIENT_ID`, `CLOUDCONNEXA_CLIENT_SECRET` (OAuth credentials)

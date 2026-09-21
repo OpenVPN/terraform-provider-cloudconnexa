@@ -3,10 +3,13 @@ package cloudconnexa
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"regexp"
+	"time"
 
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -21,7 +24,7 @@ const ClientSecretEnvVar = "CLOUDCONNEXA_CLIENT_SECRET"
 var cloudIDPattern = regexp.MustCompile(`^[a-zA-Z0-9-]+$`)
 
 // version represents the current version of the Terraform provider
-var version = "v1.2.7"
+var version = "v1.3.0"
 
 // Token represents the authentication token structure returned by the CloudConnexa API
 type Token struct {
@@ -131,7 +134,9 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 			baseUrl = "https://" + cloudId + ".api.openvpn.com"
 		}
 	}
-	cloudConnexaClient, err := cloudconnexa.NewClient(baseUrl, clientId, clientSecret)
+	cloudConnexaClient, err := cloudconnexa.NewClientWithOptions(baseUrl, clientId, clientSecret, &cloudconnexa.ClientOptions{
+		OnRetry: newRetryLogger(ctx),
+	})
 	var diags diag.Diagnostics
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
@@ -143,4 +148,19 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	}
 	cloudConnexaClient.UserAgent = fmt.Sprintf("terraform-provider-cloudconnexa/%v", version)
 	return cloudConnexaClient, nil
+}
+
+// newRetryLogger returns a hook for cloudconnexa.ClientOptions.OnRetry that reports every
+// rate-limit retry through the provider logger, so it is visible with TF_LOG=WARN or lower.
+// ctx is the configure context: it carries the provider logger, and the SDK client builds its
+// requests without a context, so the hook cannot take the logger from the request itself.
+func newRetryLogger(ctx context.Context) func(*http.Request, int, time.Duration) {
+	return func(req *http.Request, attempt int, wait time.Duration) {
+		tflog.Warn(ctx, "CloudConnexa API rate limit reached, retrying request", map[string]interface{}{
+			"method":  req.Method,
+			"path":    req.URL.Path,
+			"attempt": attempt,
+			"wait":    wait.String(),
+		})
+	}
 }

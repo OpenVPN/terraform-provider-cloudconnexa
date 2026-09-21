@@ -16,8 +16,9 @@ import (
 // variables via GitHub secrets).
 //
 // When a .env file is loaded, TF_ACC is set to "1" by default so acceptance
-// tests participate in the run. Callers that want to opt out can export
-// TF_ACC=0 explicitly before invoking `go test`.
+// tests participate in the run. Callers that want to opt out must export
+// TF_ACC with an empty value (TF_ACC= go test ...): the SDK only skips
+// acceptance tests when the variable is empty, so TF_ACC=0 still runs them.
 func TestMain(m *testing.M) {
 	var loaded bool
 	for _, p := range []string{".env", "../.env"} {
