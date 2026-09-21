@@ -1,11 +1,15 @@
 package cloudconnexa
 
 import (
+	"bytes"
 	"context"
+	"net/http"
 	"os"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/hashicorp/terraform-plugin-log/tflogtest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 
@@ -74,5 +78,40 @@ func testAccPreCheck(t *testing.T) {
 	}
 	if testBaseURL == "" {
 		t.Fatalf("%s must be set for acceptance tests (full URL, e.g. https://example.api.openvpn.com)", BaseURLEnvVar)
+	}
+}
+
+// TestUnitRetryLogger_WritesWarning verifies that the OnRetry hook emits one warn-level log
+// entry carrying the request method and path, the retry number and the wait.
+func TestUnitRetryLogger_WritesWarning(t *testing.T) {
+	var buf bytes.Buffer
+	ctx := tflogtest.RootLogger(context.Background(), &buf)
+
+	req, err := http.NewRequest(http.MethodPost, "https://example.api.openvpn.com/api/v1/networks", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	newRetryLogger(ctx)(req, 2, 4*time.Second)
+
+	entries, err := tflogtest.MultilineJSONDecode(&buf)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(entries) != 1 {
+		t.Fatalf("expected 1 log entry, got %d: %v", len(entries), entries)
+	}
+	got := entries[0]
+	want := map[string]interface{}{
+		"@level":   "warn",
+		"@message": "CloudConnexa API rate limit reached, retrying request",
+		"method":   "POST",
+		"path":     "/api/v1/networks",
+		"attempt":  float64(2),
+		"wait":     "4s",
+	}
+	for k, v := range want {
+		if got[k] != v {
+			t.Errorf("%s = %v, want %v", k, got[k], v)
+		}
 	}
 }
