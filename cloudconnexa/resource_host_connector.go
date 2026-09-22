@@ -60,13 +60,15 @@ func resourceHostConnector() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Sensitive:   true,
-				Description: "OpenVPN profile of the connector.",
+				Description: "OpenVPN profile of the connector. Deprecated: use the `cloudconnexa_host_connector_profile` ephemeral resource, which retrieves the profile without storing it in state.",
+				Deprecated:  "Use the cloudconnexa_host_connector_profile ephemeral resource instead; this attribute will be removed in the next major version.",
 			},
 			"token": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Sensitive:   true,
-				Description: "Connector token.",
+				Description: "Connector token, set when the connector is created and not refreshed afterwards; empty for imported connectors. Deprecated: use the `cloudconnexa_host_connector_token` ephemeral resource, which mints a token without storing it in state.",
+				Deprecated:  "Use the cloudconnexa_host_connector_token ephemeral resource instead; this attribute is set on create only, empty for imported connectors, and will be removed in the next major version.",
 			},
 			"status": {
 				Type:         schema.TypeString,
@@ -161,7 +163,10 @@ func resourceHostConnectorCreate(ctx context.Context, d *schema.ResourceData, m 
 }
 
 // resourceHostConnectorRead retrieves the current state of a CloudConnexa host connector.
-// It fetches the connector's configuration, profile, and token information.
+// It fetches the connector's configuration and profile. The token is deliberately not
+// refreshed: every token request mints a new one on the API side, and the ephemeral
+// cloudconnexa_host_connector_token resource is the way to obtain a current token without
+// storing it in state.
 func resourceHostConnectorRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*cloudconnexa.Client)
 	var diags diag.Diagnostics
@@ -169,10 +174,6 @@ func resourceHostConnectorRead(ctx context.Context, d *schema.ResourceData, m in
 	connector, err := c.HostConnectors.GetByID(id)
 	if err != nil {
 		return append(diags, diag.Errorf("Failed to get host connector with ID: %s, %s", id, err)...)
-	}
-	token, err := c.HostConnectors.GetToken(d.Id())
-	if err != nil {
-		return append(diags, diag.FromErr(err)...)
 	}
 
 	if connector == nil {
@@ -186,7 +187,6 @@ func resourceHostConnectorRead(ctx context.Context, d *schema.ResourceData, m in
 		d.Set("ip_v4_address", connector.IPv4Address)
 		d.Set("ip_v6_address", connector.IPv6Address)
 		d.Set("connection_status", connector.ConnectionStatus)
-		d.Set("token", token)
 		profile, err := c.HostConnectors.GetProfile(connector.ID)
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)

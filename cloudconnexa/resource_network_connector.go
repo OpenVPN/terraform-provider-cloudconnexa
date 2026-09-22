@@ -62,13 +62,15 @@ func resourceNetworkConnector() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Sensitive:   true,
-				Description: "OpenVPN profile of the connector.",
+				Description: "OpenVPN profile of the connector. Deprecated: use the `cloudconnexa_network_connector_profile` ephemeral resource, which retrieves the profile without storing it in state.",
+				Deprecated:  "Use the cloudconnexa_network_connector_profile ephemeral resource instead; this attribute will be removed in the next major version.",
 			},
 			"token": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Sensitive:   true,
-				Description: "Connector token.",
+				Description: "Connector token, set when the connector is created and not refreshed afterwards; empty for imported connectors. Deprecated: use the `cloudconnexa_network_connector_token` ephemeral resource, which mints a token without storing it in state.",
+				Deprecated:  "Use the cloudconnexa_network_connector_token ephemeral resource instead; this attribute is set on create only, empty for imported connectors, and will be removed in the next major version.",
 			},
 			"ipsec_config": {
 				Type:     schema.TypeList,
@@ -397,12 +399,11 @@ func resourceNetworkConnectorRead(ctx context.Context, d *schema.ResourceData, m
 	}
 	setNetworkConnectorData(d, connector)
 
+	// The profile is refreshed so a revocation made outside Terraform is picked up on the next
+	// plan. The token is deliberately not refreshed: every token request mints a new one on the
+	// API side, and the ephemeral cloudconnexa_network_connector_token resource is the way to
+	// obtain a current token without storing it in state.
 	if connector.TunnelingProtocol == "OPENVPN" {
-		token, err := c.NetworkConnectors.GetToken(connector.ID)
-		if err != nil {
-			return append(diags, diag.FromErr(err)...)
-		}
-		d.Set("token", token)
 		profile, err := c.NetworkConnectors.GetProfile(connector.ID)
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)

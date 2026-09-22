@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"sync"
 	"time"
 
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
@@ -122,31 +123,58 @@ func Provider() *schema.Provider {
 //   - interface{}: The configured CloudConnexa client
 //   - diag.Diagnostics: Diagnostics containing any errors that occurred during configuration
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-	clientId := d.Get("client_id").(string)
-	clientSecret := d.Get("client_secret").(string)
-	baseUrl := d.Get("base_url").(string)
-	if baseUrl == "" {
-		cloudId := d.Get("cloud_id").(string)
-		if cloudId != "" && !cloudIDPattern.MatchString(cloudId) {
-			return nil, diag.Errorf("Invalid cloud_id format: must contain only alphanumeric characters and hyphens")
-		}
-		if cloudId != "" {
-			baseUrl = "https://" + cloudId + ".api.openvpn.com"
-		}
+	baseUrl, err := resolveBaseURL(d.Get("base_url").(string), d.Get("cloud_id").(string))
+	if err != nil {
+		return nil, diag.FromErr(err)
+	}
+	cloudConnexaClient, err := newAPIClient(ctx, baseUrl, d.Get("client_id").(string), d.Get("client_secret").(string))
+	if err != nil {
+		return nil, diag.Diagnostics{{
+			Severity: diag.Error,
+			Summary:  "Unable to create CloudConnexa client",
+			Detail:   err.Error(),
+		}}
+	}
+	return cloudConnexaClient, nil
+}
+
+// resolveBaseURL returns the API base URL from the provider's base_url, or derives it from
+// cloud_id when base_url is empty. Shared by the SDK v2 and framework provider servers.
+func resolveBaseURL(baseUrl, cloudId string) (string, error) {
+	if baseUrl != "" || cloudId == "" {
+		return baseUrl, nil
+	}
+	if !cloudIDPattern.MatchString(cloudId) {
+		return "", fmt.Errorf("invalid cloud_id format: must contain only alphanumeric characters and hyphens")
+	}
+	return "https://" + cloudId + ".api.openvpn.com", nil
+}
+
+// apiClients caches clients by credentials so that the SDK v2 and framework servers behind the
+// mux, which are both configured on every Terraform command, authenticate once and share one
+// rate-limit back-off state.
+var apiClients = struct {
+	sync.Mutex
+	m map[[3]string]*cloudconnexa.Client
+}{m: map[[3]string]*cloudconnexa.Client{}}
+
+// newAPIClient builds the CloudConnexa API client used as provider meta by both the SDK v2
+// and the framework provider servers, so retry logging and the user agent stay identical.
+func newAPIClient(ctx context.Context, baseUrl, clientId, clientSecret string) (*cloudconnexa.Client, error) {
+	key := [3]string{baseUrl, clientId, clientSecret}
+	apiClients.Lock()
+	defer apiClients.Unlock()
+	if c, ok := apiClients.m[key]; ok {
+		return c, nil
 	}
 	cloudConnexaClient, err := cloudconnexa.NewClientWithOptions(baseUrl, clientId, clientSecret, &cloudconnexa.ClientOptions{
 		OnRetry: newRetryLogger(ctx),
 	})
-	var diags diag.Diagnostics
 	if err != nil {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Unable to create CloudConnexa client",
-			Detail:   fmt.Sprintf("Failed to create CloudConnexa client with base URL '%s': %v", baseUrl, err),
-		})
-		return nil, diags
+		return nil, fmt.Errorf("failed to create CloudConnexa client with base URL '%s': %v", baseUrl, err)
 	}
 	cloudConnexaClient.UserAgent = fmt.Sprintf("terraform-provider-cloudconnexa/%v", version)
+	apiClients.m[key] = cloudConnexaClient
 	return cloudConnexaClient, nil
 }
 

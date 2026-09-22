@@ -87,3 +87,14 @@ jobs:
           TF_ACC: "1"
         run: |
           go test -v -cover ./cloudconnexa
+      # Ephemeral resources are served through the mux and observed with the echo provider;
+      # the test skips itself below Terraform 1.10.
+      - name: Muxed provider acceptance tests
+        timeout-minutes: 10
+        env:
+          CLOUDCONNEXA_BASE_URL: ${{ vars.CLOUDCONNEXA_BASE_URL }}
+          CLOUDCONNEXA_CLIENT_ID: ${{ secrets.CLOUDCONNEXA_CLIENT_ID }}
+          CLOUDCONNEXA_CLIENT_SECRET: ${{ secrets.CLOUDCONNEXA_CLIENT_SECRET }}
+          TF_ACC: "1"
+        run: |
+          go test -v ./internal/acceptance

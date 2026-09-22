@@ -27,7 +27,12 @@ Required env vars for acceptance tests:
 
 ## Architecture
 
-Single Go package `cloudconnexa/` exports a `Provider()` (`provider.go`) that wires every resource and data source explicitly into `ResourcesMap` / `DataSourcesMap`. **A new resource or data source must be registered there or it won't be visible.** `main.go` is just the plugin entrypoint.
+Single Go package `cloudconnexa/` exports a `Provider()` (`provider.go`) that wires every resource and data source explicitly into `ResourcesMap` / `DataSourcesMap`. **A new resource or data source must be registered there or it won't be visible.**
+
+`main.go` serves two provider implementations behind one `terraform-plugin-mux` server (protocol 5): the SDK v2 `Provider()` owns all resources and data sources; the plugin-framework provider in `framework_provider.go` (`NewFrameworkProvider()`) owns only the **ephemeral resources** (`ephemeral_connector.go`: connector token and profile, for network and host connectors), which SDK v2 cannot implement. Rules that follow from mux:
+- The provider block schema in `framework_provider.go` must stay attribute-for-attribute identical (name, type, optional/sensitive, description text) to the SDK v2 one. Mux does not check this at startup: it compares the schemas on every `GetProviderSchema` call and returns an error diagnostic when they differ, so drift fails every Terraform command at runtime. `TestUnitMuxServer_ProviderSchemaParity` calls `GetProviderSchema` and catches this in CI — run it after touching either schema.
+- Both sides build the API client through `newAPIClient` / `resolveBaseURL` in `provider.go`; keep client construction there so retry logging and the user agent stay identical.
+- New ephemeral resources are registered in `frameworkProvider.EphemeralResources`. Don't add new *managed* resources to the framework side without a decision to migrate — keep them in SDK v2 for consistency.
 
 The provider accepts `client_id` + `client_secret` plus exactly one of `base_url` or `cloud_id` (enforced via `ExactlyOneOf`). `cloud_id` is shorthand: the configure function expands it to `https://<cloud_id>.api.openvpn.com`. After `providerConfigure` runs, the provider's "meta" passed into every CRUD function is a `*cloudconnexa.Client`; resources start with `c := m.(*cloudconnexa.Client)` and call `c.Hosts.Create`, `c.Users.Get`, `c.Devices.GetByID`, etc.
 
@@ -42,6 +47,7 @@ The `devices` block on `cloudconnexa_user` is deprecated — managing devices in
 Two styles coexist in `cloudconnexa/`:
 
 - `TestAccXxx_*` — acceptance tests that drive `resource.Test` against the real API via `testAccProviderFactories` after `testAccPreCheck`. Cover at minimum a create step, an update step that flips every mutable field (so `d.GetChange` observes a delta in `Update`), and an `ImportState`/`ImportStateVerify` step. Pair each with a `testAccCheck<Resource>Destroy` that confirms the API no longer returns the resource.
+- Ephemeral resources are unit-tested by calling `Open` directly with a hand-built `tfsdk.Config` (see `openConnectorEphemeral` in `ephemeral_connector_test.go`). Their acceptance test lives in `internal/acceptance/` and uses `terraform-plugin-testing` with the `echo` provider to observe the ephemeral value (skips below Terraform 1.10). It is a separate package on purpose: `terraform-plugin-testing/helper/resource` and the SDK v2 `helper/resource` both register a `-sweep` flag and cannot share a test binary. That package does **not** load `.env`; export the `CLOUDCONNEXA_*` variables yourself.
 - `TestUnitXxx_*` — unit tests that spin up an `httptest.NewServer` exposing `/api/v1/oauth/token` plus a per-test handler, then construct the SDK client via `cloudconnexa.NewClientWithOptions(server.URL, ..., &cloudconnexa.ClientOptions{AllowInsecureHTTP: true})`. See `newHostUnitTestClient` in `resource_host_test.go` for the canonical setup. Use these to cover the error branches (`*_Error` tests with `hostsHandlerError`) so coverage doesn't depend on the API being reachable.
 
 `provider_test.go` initializes `testAccProvider` / `testAccProviderFactories` in `init()` and defines `testAccPreCheck`. The `alphabet` constant + `acctest.RandStringFromCharSet` is the project's standard for unique acceptance-test resource names.

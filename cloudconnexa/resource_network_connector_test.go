@@ -797,11 +797,13 @@ func TestUnitNetworkConnectorCreate_OpenVPN(t *testing.T) {
 		"no IPsec tunnel should be started for an OPENVPN connector")
 }
 
-// TestUnitNetworkConnectorRead_OpenVPN covers the profile and token reads on the read path.
+// TestUnitNetworkConnectorRead_OpenVPN covers the read path of an OPENVPN connector: the profile
+// is refreshed, but no token is minted (each token request creates a new one on the API side).
 func TestUnitNetworkConnectorRead_OpenVPN(t *testing.T) {
-	c, _ := newNetworkConnectorTestClient(t, openVPNHandler())
+	c, captured := newNetworkConnectorTestClient(t, openVPNHandler())
 	d := schema.TestResourceDataRaw(t, resourceNetworkConnector().Schema, map[string]interface{}{
-		"name": "test-connector",
+		"name":  "test-connector",
+		"token": "token-from-create",
 	})
 	d.SetId("conn-1")
 
@@ -809,8 +811,73 @@ func TestUnitNetworkConnectorRead_OpenVPN(t *testing.T) {
 	require.False(t, diags.HasError(), "unexpected diagnostics: %v", diags)
 
 	assert.Equal(t, "openvpn-profile", d.Get("profile"))
-	assert.Equal(t, "connector-token", d.Get("token"))
+	assert.Equal(t, "token-from-create", d.Get("token"), "token must be left as set on create")
+	assert.True(t, captured.called(http.MethodPost, "/api/v1/networks/connectors/conn-1/profile"))
+	assert.False(t, captured.called(http.MethodPost, "/api/v1/networks/connectors/conn-1/profile/encrypt"),
+		"read must not mint a new token")
 	assert.Empty(t, d.Get("ipsec_config"), "an OPENVPN connector has no ipsec_config")
+}
+
+// hostConnectorHandler answers the host connector routes plus the profile and token endpoints.
+func hostConnectorHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/api/v1/hosts/connectors/conn-9/profile":
+			_, _ = w.Write([]byte("host-profile"))
+		case "/api/v1/hosts/connectors/conn-9/profile/encrypt":
+			_, _ = w.Write([]byte("host-token"))
+		default:
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{"id":"conn-9","name":"host-connector","networkItemId":"host-1","networkItemType":"HOST","vpnRegionId":"us-east-1"}`))
+		}
+	})
+}
+
+// TestUnitHostConnectorRead_DoesNotMintToken covers the same rule for host connectors.
+func TestUnitHostConnectorRead_DoesNotMintToken(t *testing.T) {
+	c, captured := newNetworkConnectorTestClient(t, hostConnectorHandler())
+	d := schema.TestResourceDataRaw(t, resourceHostConnector().Schema, map[string]interface{}{
+		"name":  "host-connector",
+		"token": "token-from-create",
+	})
+	d.SetId("conn-9")
+
+	diags := resourceHostConnectorRead(context.Background(), d, c)
+	require.False(t, diags.HasError(), "unexpected diagnostics: %v", diags)
+
+	assert.Equal(t, "host-profile", d.Get("profile"))
+	assert.Equal(t, "token-from-create", d.Get("token"))
+	assert.False(t, captured.called(http.MethodPost, "/api/v1/hosts/connectors/conn-9/profile/encrypt"),
+		"read must not mint a new token")
+}
+
+// TestUnitDataSourceNetworkConnectorRead_OpenVPN covers the opposite rule for the data source:
+// it keeps no state to hold a token in, so every read mints one next to the profile.
+func TestUnitDataSourceNetworkConnectorRead_OpenVPN(t *testing.T) {
+	c, _ := newNetworkConnectorTestClient(t, openVPNHandler())
+	d := schema.TestResourceDataRaw(t, dataSourceNetworkConnector().Schema, map[string]interface{}{
+		"id": "conn-1",
+	})
+
+	diags := dataSourceNetworkConnectorRead(context.Background(), d, c)
+	require.False(t, diags.HasError(), "unexpected diagnostics: %v", diags)
+
+	assert.Equal(t, "openvpn-profile", d.Get("profile"))
+	assert.Equal(t, "connector-token", d.Get("token"))
+}
+
+// TestUnitDataSourceHostConnectorRead covers the same for the host connector data source.
+func TestUnitDataSourceHostConnectorRead(t *testing.T) {
+	c, _ := newNetworkConnectorTestClient(t, hostConnectorHandler())
+	d := schema.TestResourceDataRaw(t, dataSourceHostConnector().Schema, map[string]interface{}{
+		"id": "conn-9",
+	})
+
+	diags := dataSourceHostConnectorRead(context.Background(), d, c)
+	require.False(t, diags.HasError(), "unexpected diagnostics: %v", diags)
+
+	assert.Equal(t, "host-profile", d.Get("profile"))
+	assert.Equal(t, "host-token", d.Get("token"))
 }
 
 // TestUnitNetworkConnectorUpdate_Status covers the suspend and activate branch, which
