@@ -28,8 +28,8 @@ Use an `cloudconnexa_connector` data source to read an existing CloudConnexa con
 - `ip_v6_address` (String) The IPV6 address of the connector.
 - `ipsec_config` (List of Object) (see [below for nested schema](#nestedatt--ipsec_config))
 - `network_id` (String) The id of the network with which the connector is associated.
-- `profile` (String, Sensitive) OpenVPN profile
-- `token` (String, Sensitive) Connector token
+- `profile` (String, Sensitive, Deprecated) OpenVPN profile. Deprecated: use the `cloudconnexa_network_connector_profile` ephemeral resource, which retrieves the profile without storing it in state.
+- `token` (String, Sensitive, Deprecated) Connector token. A new token is minted on every read, so the value changes on every refresh. Deprecated: use the `cloudconnexa_network_connector_token` ephemeral resource, which mints a token without storing it in state.
 - `vpn_region_id` (String) The id of the region where the connector is deployed.
 
 <a id="nestedatt--ipsec_config"></a>

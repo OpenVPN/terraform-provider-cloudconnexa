@@ -55,13 +55,15 @@ func dataSourceNetworkConnector() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Sensitive:   true,
-				Description: "OpenVPN profile",
+				Description: "OpenVPN profile. Deprecated: use the `cloudconnexa_network_connector_profile` ephemeral resource, which retrieves the profile without storing it in state.",
+				Deprecated:  "Use the cloudconnexa_network_connector_profile ephemeral resource instead; this attribute will be removed in the next major version.",
 			},
 			"token": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Sensitive:   true,
-				Description: "Connector token",
+				Description: "Connector token. A new token is minted on every read, so the value changes on every refresh. Deprecated: use the `cloudconnexa_network_connector_token` ephemeral resource, which mints a token without storing it in state.",
+				Deprecated:  "Use the cloudconnexa_network_connector_token ephemeral resource instead; this attribute will be removed in the next major version.",
 			},
 			"connection_status": {
 				Type:        schema.TypeString,
@@ -115,6 +117,7 @@ func dataSourceNetworkConnectorRead(ctx context.Context, data *schema.ResourceDa
 
 	setNetworkConnectorData(data, connector)
 	if connector.TunnelingProtocol == "OPENVPN" {
+		// The API cannot return an existing token, so every read mints a new one.
 		token, err := c.NetworkConnectors.GetToken(connector.ID)
 		if err != nil {
 			return append(diags, diag.FromErr(err)...)

@@ -617,8 +617,8 @@ output "connector_summary" {
 - `id` (String) The ID of this resource.
 - `ip_v4_address` (String) The IPV4 address of the connector.
 - `ip_v6_address` (String) The IPV6 address of the connector.
-- `profile` (String, Sensitive) OpenVPN profile of the connector.
-- `token` (String, Sensitive) Connector token.
+- `profile` (String, Sensitive, Deprecated) OpenVPN profile of the connector. Deprecated: use the `cloudconnexa_network_connector_profile` ephemeral resource, which retrieves the profile without storing it in state.
+- `token` (String, Sensitive, Deprecated) Connector token, set when the connector is created and not refreshed afterwards; empty for imported connectors. Deprecated: use the `cloudconnexa_network_connector_token` ephemeral resource, which mints a token without storing it in state.
 
 <a id="nestedblock--ipsec_config"></a>
 ### Nested Schema for `ipsec_config`
