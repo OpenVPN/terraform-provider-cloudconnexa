@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
+	"net/http"
 
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
 
@@ -117,7 +117,7 @@ func resourceDnsRecordRead(ctx context.Context, d *schema.ResourceData, m interf
 	id := d.Id()
 	r, err := c.DNSRecords.GetByID(id)
 	if err != nil {
-		if isDNSRecordNotFoundErr(err) {
+		if isNotFoundErr(err) {
 			d.SetId("")
 			return diags
 		}
@@ -180,23 +180,17 @@ func resourceDnsRecordDelete(ctx context.Context, d *schema.ResourceData, m inte
 	var diags diag.Diagnostics
 	recordId := d.Id()
 	err := c.DNSRecords.Delete(recordId)
-	if err != nil && !isDNSRecordNotFoundErr(err) {
+	if err != nil && !isNotFoundErr(err) {
 		return append(diags, diag.FromErr(err)...)
 	}
 	return diags
 }
 
-// isDNSRecordNotFoundErr reports whether the given error indicates that the DNS
-// record no longer exists. The API returns 400 with a "not found" message rather
-// than 404, so we match on the error string.
-func isDNSRecordNotFoundErr(err error) bool {
-	if err == nil {
-		return false
-	}
-	if errors.Is(err, cloudconnexa.ErrDNSRecordNotFound) {
-		return true
-	}
-	return strings.Contains(err.Error(), "not found")
+// isNotFoundErr reports whether the API rejected the request with HTTP 404.
+// The client surfaces a missing resource as an error rather than (nil, nil).
+func isNotFoundErr(err error) bool {
+	var apiErr *cloudconnexa.ErrClientResponse
+	return errors.As(err, &apiErr) && apiErr.StatusCode() == http.StatusNotFound
 }
 
 // getAddressesSlice converts a slice of interface{} to a slice of strings.
