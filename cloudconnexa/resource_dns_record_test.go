@@ -1,12 +1,17 @@
 package cloudconnexa
 
 import (
+	"context"
 	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/openvpn/cloudconnexa-go-client/v2/cloudconnexa"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
@@ -34,8 +39,27 @@ func TestAccCloudConnexaDnsRecord_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "ip_v6_addresses.1", "2001:db8:85a3:0:0:8a2e:370:7335"),
 				),
 			},
+			{
+				Config:             testAccCloudConnexaDnsRecordConfig(domainName),
+				Check:              testAccCheckCloudConnexaDnsRecordDisappears(resourceName),
+				ExpectNonEmptyPlan: true,
+			},
 		},
 	})
+}
+
+// testAccCheckCloudConnexaDnsRecordDisappears deletes the DNS record behind
+// Terraform's back, so the follow-up refresh must drop it from state and plan
+// a re-create instead of failing on the API's 404.
+func testAccCheckCloudConnexaDnsRecordDisappears(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("not found: %s", resourceName)
+		}
+		client := testAccProvider.Meta().(*cloudconnexa.Client)
+		return client.DNSRecords.Delete(rs.Primary.ID)
+	}
 }
 
 // testAccCheckCloudConnexaDnsRecordDestroy verifies that the DNS record has been properly destroyed.
@@ -57,7 +81,7 @@ func testAccCheckCloudConnexaDnsRecordDestroy(s *terraform.State) error {
 		recordId := rs.Primary.ID
 		r, err := client.DNSRecords.GetByID(recordId)
 		if err != nil {
-			if isDNSRecordNotFoundErr(err) {
+			if isNotFoundErr(err) {
 				continue
 			}
 			return err
@@ -92,4 +116,55 @@ resource "cloudconnexa_dns_record" "test" {
   ip_v6_addresses = ["2001:db8:85a3:0:0:8a2e:370:7334", "2001:db8:85a3:0:0:8a2e:370:7335"]
 }
 `, testBaseURL, domainName)
+}
+
+// TestUnitResourceDnsRecordRead_NotFound covers a record deleted out of band:
+// the API's 404 removes the record from state instead of failing the refresh.
+func TestUnitResourceDnsRecordRead_NotFound(t *testing.T) {
+	c := newHostUnitTestClient(t, hostsHandlerError(http.StatusNotFound))
+	d := schema.TestResourceDataRaw(t, resourceDnsRecord().Schema, map[string]interface{}{
+		"domain": "x.example.com",
+	})
+	d.SetId("record-id")
+	diags := resourceDnsRecordRead(context.Background(), d, c)
+	require.False(t, diags.HasError(), "unexpected diagnostics: %v", diags)
+	assert.Empty(t, d.Id())
+}
+
+// TestUnitResourceDnsRecordRead_Error covers non-404 failures, including the
+// API's former 400 "not found" response, which must no longer be swallowed.
+func TestUnitResourceDnsRecordRead_Error(t *testing.T) {
+	for _, status := range []int{http.StatusBadRequest, http.StatusInternalServerError} {
+		c := newHostUnitTestClient(t, hostsHandlerError(status))
+		d := schema.TestResourceDataRaw(t, resourceDnsRecord().Schema, map[string]interface{}{
+			"domain": "x.example.com",
+		})
+		d.SetId("record-id")
+		diags := resourceDnsRecordRead(context.Background(), d, c)
+		assert.True(t, diags.HasError(), "status %d", status)
+		assert.Equal(t, "record-id", d.Id(), "status %d", status)
+	}
+}
+
+// TestUnitResourceDnsRecordDelete_NotFound covers deleting a record that is
+// already gone: the API's 404 counts as a successful delete.
+func TestUnitResourceDnsRecordDelete_NotFound(t *testing.T) {
+	c := newHostUnitTestClient(t, hostsHandlerError(http.StatusNotFound))
+	d := schema.TestResourceDataRaw(t, resourceDnsRecord().Schema, map[string]interface{}{
+		"domain": "x.example.com",
+	})
+	d.SetId("record-id")
+	diags := resourceDnsRecordDelete(context.Background(), d, c)
+	assert.False(t, diags.HasError(), "unexpected diagnostics: %v", diags)
+}
+
+// TestUnitResourceDnsRecordDelete_Error covers non-404 delete failures.
+func TestUnitResourceDnsRecordDelete_Error(t *testing.T) {
+	c := newHostUnitTestClient(t, hostsHandlerError(http.StatusInternalServerError))
+	d := schema.TestResourceDataRaw(t, resourceDnsRecord().Schema, map[string]interface{}{
+		"domain": "x.example.com",
+	})
+	d.SetId("record-id")
+	diags := resourceDnsRecordDelete(context.Background(), d, c)
+	assert.True(t, diags.HasError())
 }
